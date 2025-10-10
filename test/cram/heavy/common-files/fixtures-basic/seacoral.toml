@@ -1,0 +1,21 @@
+[project]
+entrypoint = "neg"
+criterion = "DC"
+ignored-globals = ["a"]
+
+[fixtures]
+files = ["fixtures.c"]
+init = "neg_init"
+oracle = "neg_oracle"
+seek-oracle-failures = true
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 10
+seed = 42
+
+[luncov]
+plugins = ["eva"]

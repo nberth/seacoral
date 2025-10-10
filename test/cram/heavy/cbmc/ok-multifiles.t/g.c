@@ -1,0 +1,1 @@
+../../common-files/multifiles/g.c

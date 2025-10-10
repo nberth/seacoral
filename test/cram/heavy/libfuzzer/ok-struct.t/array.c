@@ -1,0 +1,1 @@
+../../common-files/struct/array.c

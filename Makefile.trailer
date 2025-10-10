@@ -1,0 +1,32 @@
+# -*- Makefile -*-
+
+.PHONY: light-tests
+light-tests:
+	./scripts/before.sh test
+	opam exec -- dune runtest test/cram/light
+	./scripts/after.sh test
+
+CI_TESTS_JOBS ?= 8
+.PHONY: ci-tests
+ci-tests:
+#	Several tests are sensitive to compute resources. To still
+#	obtain fast results we first run them with the given amount of
+#	jobs, but we ignore the exist status and outputs.  We rerun
+#	failed tests, if any, without any parallelism to ensure that
+#	was not the cause of failures.
+	@echo "Running tests..."
+	opam exec -- dune runtest test/cram -j "${CI_TESTS_JOBS}" >/dev/null 2>&1 || \
+	opam exec -- dune runtest test/cram -j 1
+	@echo "Tests ran successfully"
+
+.PHONY: project
+project:
+	opam exec -- drom project
+#	Get rid of warnings with dune:
+	sed -i dune-project \
+	    -e 's/(= version)/(= :version)/g' \
+	    -e '/(allow_approximate_merlin)/d'
+
+# Make sure `make opam` proceeds even though there exists an `opam`
+# subdirectory.
+.PHONY: opam

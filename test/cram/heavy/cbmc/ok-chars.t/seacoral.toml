@@ -1,0 +1,4 @@
+[project]
+files = ["charcheck.c"]
+entrypoint = "charcheck"
+criterion = "DC"

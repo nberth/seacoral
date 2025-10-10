@@ -1,0 +1,12 @@
+[project]
+files = ["test.c"]
+entrypoint = "foo"
+criterion = "WM"
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42

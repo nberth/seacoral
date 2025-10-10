@@ -1,0 +1,4 @@
+(env
+ (_
+  (env-vars
+   (SC_ENABLE_DETAILED_STATS no))))

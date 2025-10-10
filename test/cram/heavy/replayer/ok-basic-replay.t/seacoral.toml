@@ -1,0 +1,17 @@
+[project]
+files = ["test.c"]
+entrypoint = "test"
+include-dirs = ["."]
+criterion = "CC"
+functions-to-cover = "*"
+
+[run]
+tools = ["test-runner"]
+
+[lreplay]
+enable = true
+
+[test-runner]
+custom-tests = ["test_of_test.c",
+                "test_of_test2.c",
+                "test_of_test_failing.c"]

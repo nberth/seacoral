@@ -1,0 +1,1 @@
+../../common-files/fixtures-basic/fail-n-uncov.c

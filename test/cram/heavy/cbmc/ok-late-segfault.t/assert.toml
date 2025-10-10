@@ -1,0 +1,7 @@
+[project]
+files = ["late-segfault.c"]
+entrypoint = "f"
+criterion = "DC"
+
+[cbmc]
+mode = "assert"

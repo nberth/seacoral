@@ -1,0 +1,13 @@
+[project]
+files = ["cstring.c"]
+
+[pointer-handling]
+max-cstring-length = 3
+treat-pointer-as-string = ["str"]
+
+[klee]
+timeout = 30
+libc = "uclibc"
+
+[libfuzzer]
+timeout = 10

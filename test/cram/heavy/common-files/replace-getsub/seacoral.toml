@@ -1,0 +1,12 @@
+[project]
+files = ["replace.c"]
+entrypoint = "getsub"
+criterion = "DC"
+
+[pointer-handling]
+treat-pointer-as-string = ["arg", "sub"]
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42

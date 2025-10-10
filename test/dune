@@ -1,0 +1,12 @@
+(subdir cram-env
+ (rule
+  (with-stdout-to generated.inc
+   (progn
+    (echo "(env\n (_\n  (env-vars")
+    (echo "\n   (BUILD_PATH_PREFIX_MAP \
+               \"$OPAM_SWITCH_PREFIX=%{env:OPAM_SWITCH_PREFIX=}:%{env:BUILD_PATH_PREFIX_MAP=}\")")
+    (echo "\n   ; Do not include timing info in console logs:")
+    (echo "\n   (SC_ENABLE_CONSOLE_TIMING no)")
+    (echo "\n   ; Retain some level of determinism by constraining replay parallelism:")
+    (echo "\n   (KLEE_REPLAY_MAX_CONCURRENCY 1)")
+    (echo ")))")))))

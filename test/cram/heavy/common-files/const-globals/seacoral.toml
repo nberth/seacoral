@@ -1,0 +1,9 @@
+[project]
+files = ["const.c"]
+entrypoint = "foo"
+include-dirs = ["."]
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

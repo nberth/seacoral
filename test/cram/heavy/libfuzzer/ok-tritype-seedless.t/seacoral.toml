@@ -1,0 +1,10 @@
+[project]
+files = ["tritype.c"]
+entrypoint = "tritype"
+
+[libfuzzer]
+init-corpus-size = 1		#not a viable seed
+init-corpus-with-uniform-bytes = ["\\x7f"]
+timeout = 0
+runs = 1000
+seed = 42

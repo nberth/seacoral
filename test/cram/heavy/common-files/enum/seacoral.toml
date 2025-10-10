@@ -1,0 +1,8 @@
+[project]
+files = ["enum.c"]
+entrypoint = "f"
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

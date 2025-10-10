@@ -1,0 +1,27 @@
+Advanced usage
+==============
+
+Pointers and arrays
+-------------------
+
+The different orchestrated tools are configured to treat memory the same way.
+We divide pointers into three categories:
+- static-size arrays, of type `int[static N]` with `N` a strictly positive integer known at compile time;
+- strings;
+- dynamic arrays (pointers and any array whose size is not static).
+
+The first case is easy to handle for most tools. To handle the next cases, several
+options can be set up in the configuration file as `core` options (`[core]` branch of the
+TOML file).
+
+- `max_cstring_length`: Maximal Maximal size of C strings, excluding any additional terminating '\000'.  Default is 20.
+- `max_ptr_array_length`: Maximal size of C arrays that are induced by naked pointers. Default is 1. (project-wide knob)
+
+.. code-block::
+
+   int length5(int* arr, int N){
+     int res = 0;
+     for (int i = 0; i < N; i++) {if arr[i] = 1 then res ++;}
+     if (res > 5) return 1; else return 0;
+   }
+

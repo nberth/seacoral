@@ -1,0 +1,1 @@
+../../common-files/error-in-label/test.c

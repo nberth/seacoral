@@ -1,0 +1,6 @@
+[project]
+files = ["empty-foo.c"]
+entrypoint = "foo"
+
+[run]
+tools = ["klee"]

@@ -1,0 +1,6 @@
+/docker/Dockerfile*
+/docker/README.md
+_drom
+_opam
+_build
+_sc

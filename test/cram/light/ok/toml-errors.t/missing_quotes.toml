@@ -1,0 +1,3 @@
+[project]
+  # entrypoint = "foo"
+  entrypoint = bar

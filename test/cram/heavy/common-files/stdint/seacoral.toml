@@ -1,0 +1,12 @@
+[project]
+files = ["stdint.c"]
+entrypoint = "f"
+criterion = "DC"
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42
+
+[klee]
+timeout = 5

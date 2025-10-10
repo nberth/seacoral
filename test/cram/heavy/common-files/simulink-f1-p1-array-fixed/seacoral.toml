@@ -1,0 +1,13 @@
+[project]
+files = ["codebase.c"]
+entrypoint = "p1"
+criterion = "CC"
+
+[klee]
+timeout = 30	      #avoid any potential test that runs ad infinitum
+
+[cbmc]
+unwind = 20
+
+[libfuzzer]
+timeout = 10

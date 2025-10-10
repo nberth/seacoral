@@ -1,0 +1,7 @@
+[project]
+files = ["tritype.c"]
+entrypoint = "tritype"
+criterion = "DC"
+
+[luncov]
+plugins = ["eva"]		# fast for tritype, enough for tests.

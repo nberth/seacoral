@@ -1,0 +1,6 @@
+[project]
+files = ["invalid.c"]
+entrypoint = "foo"
+
+[run]
+tools = ["klee"]

@@ -1,0 +1,12 @@
+[project]
+files = ["g.c", "f.c", "main.c"]
+entrypoint = "_main"
+include-dirs = ["."]
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42
+
+[klee]
+timeout = 5

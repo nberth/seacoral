@@ -1,0 +1,7 @@
+(cram
+ (applies_to :whole_subtree)
+ (deps
+   (alias_rec ../../install)
+   (package seacoral)))
+
+(dynamic_include ../cram-env/generated.inc)

@@ -1,0 +1,12 @@
+[project]
+files = ["file.c"]
+entrypoint = "f"
+
+[pointer-handling]
+max-ptr-array-length = 5
+treat-pointer-as-array = ["arr"]
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

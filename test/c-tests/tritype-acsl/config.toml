@@ -1,0 +1,19 @@
+[project]
+files = ["tritype.c"]
+entrypoint = "tritype"
+
+[run]
+tools = ["klee"]
+
+[lreplay]
+enable = true
+
+[klee]
+timeout = 10
+label-handling = "optimize+reject" #reject RTEs
+
+[cbmc]
+unwind = 20
+
+[libfuzzer]
+timeout = 5

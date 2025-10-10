@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tool configuration &mdash; seacoral prod-doc
+ (d479a3db
+) (2025/04/09 18:10) documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d8449d71" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/fixes.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=43ea2d23"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Project management" href="project.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tool configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-file">Configuration file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#main-configuration-options-sc">Main configuration options [sc]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-configuration-options-core">Core configuration options [core]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#project-configuration-options-project-manager">Project configuration options [project-manager]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#klee-configuration-options-klee">Klee configuration options [klee]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cbmc-configuration-options-cbmc">Cbmc configuration options ([cbmc])</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-runner-configuration-options-test-runner">Test_runner configuration options [test_runner]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#libfuzzer-configuration-options-libfuzzer">Libfuzzer configuration options [libfuzzer]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#afl-configuration-options-afl">Afl++ configuration options [“afl++”]</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#luncov-configuration-options-luncov">Luncov configuration options [luncov]</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#about-named-locations">About named locations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="project.html">Project management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">Copyright and License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">seacoral</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tool configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tool-configuration">
+<span id="configuration"></span><h1>Tool configuration<a class="headerlink" href="#tool-configuration" title="Link to this heading"></a></h1>
+<section id="configuration-file">
+<h2>Configuration file<a class="headerlink" href="#configuration-file" title="Link to this heading"></a></h2>
+<p>SeaCoral can be configured differently via a <cite>toml</cite> file with the option <cite>-c</cite>.</p>
+<p>Options can be <cite>project-wide</cite> or <cite>runtime</cite>, depending on how they influence
+the analysis. If a <cite>project-wide</cite> option is changed between two analyses,
+a new separate project will be created and the old results will not be used.
+If a <cite>runtime</cite> option is changed beween two analyses, it will re-use the
+previous project.</p>
+<p>Note that you can generate a new configuration file with the option <cite>–init</cite>.
+It will create a <cite>seacoral.toml</cite> that you can use to start the analysis.</p>
+<section id="main-configuration-options-sc">
+<h3>Main configuration options [sc]<a class="headerlink" href="#main-configuration-options-sc" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>force_preprocess</cite>: Forces the preprocessing, even if it already has been performed. (default: false) (runtime knob)</p></li>
+<li><p><cite>seacoral_srcdir</cite>: Selects the orchestrator’s source path (default is current directory) (project-wide knob)</p></li>
+<li><p><cite>files</cite>: The list of files of the project (default: []) (project-wide knob)</p></li>
+<li><p><cite>I</cite>: Adds the directory to the list of directories to be searched for header files during preprocessing (default: []) (project-wide knob)</p></li>
+<li><p><cite>output_path</cite>: Sets the path where the output files are stored. (default: “_sc”) (runtime knob)</p></li>
+<li><p><cite>entrypoint</cite>: Select the entrypoint to analyze (default: “”). (project-wide knob)</p></li>
+<li><p><cite>strategy</cite>: Uses a specific orchestration strategy: ‘s’ for sequential, ‘p’ for parallel and ‘o’ for optimized (default: “p”). Custom strategies can be used (see Sc_strategy for more information) (runtime knob)</p></li>
+<li><p><cite>debug</cite>: Selects the console log level: 0 for no message, 1 for default messages, 2 for error messages, 3 for warnings, 4 for information, 5 or any other value for debug messages (default: 2). Selecting a level automatically activates all lower level messages. (runtime knob)</p></li>
+<li><p><cite>tools</cite>: List the tools to use. (default: []) (runtime knob)</p></li>
+</ul>
+</section>
+<section id="core-configuration-options-core">
+<h3>Core configuration options [core]<a class="headerlink" href="#core-configuration-options-core" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>array_size_mapping</cite>: Lists the pair of variables <cite>(arr, size)</cite> of the form <cite>“arr:size”</cite> where <cite>arr</cite> is an array (formal or global) and <cite>size</cite> is an integer variable representing its size (default: []) (runtime knob)</p></li>
+<li><p><cite>max_cstring_length</cite>: Maximal size of C strings, excluding any additional terminating ‘000’.  Default is 20. (project-wide knob)</p></li>
+<li><p><cite>treat_pointer_as_array</cite>: Formal arguments or global variables that are declared as naked pointers (like <cite>int *p</cite> or <cite>struct t * x</cite>), but need to be treated as arrays (default: []) (project-wide knob)</p></li>
+<li><p><cite>treat_pointer_as_string</cite>: Formal arguments or global variables that are declared as naked pointers to characters (<cite>char *p</cite>), but need to be treated as ‘000’-terminated C-strings (default: []) (project-wide knob)</p></li>
+<li><p><cite>criterion</cite>: Selects the cover criterion. Launch <cite>frama-c -lannot-list</cite> for a list of available criteria (default: “CC”). If you used custom labels, you can use the criteria “custom” or “Empty”. (project-wide knob)</p></li>
+<li><p><cite>max_non_nil_ptr_depth</cite>: Maximal depth at which pointers may be non-NULL, measured in number of pointer dereferences from function arguments. Default is 3. (project-wide knob)</p></li>
+<li><p><cite>external_libs</cite>: Lists external libraries required to compile the project, like “m” for the math library for example (default: []) (runtime knob)</p></li>
+<li><p><cite>max_ptr_array_length</cite>: Maximal size of C arrays that are induced by naked pointers. Default is 1. (project-wide knob)</p></li>
+<li><p><cite>functions-to-annot</cite>: Selects the functions to cover. (default: all).  Use “*”, which is the default, to select all functions. (project-wide knob)</p></li>
+</ul>
+</section>
+<section id="project-configuration-options-project-manager">
+<h3>Project configuration options [project-manager]<a class="headerlink" href="#project-configuration-options-project-manager" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>lreplay</cite>: Enables post-processing with lreplay. (runtime knob)</p></li>
+<li><p><cite>eacsl</cite>: Enables post-processing with eacsl. There are two modes: parallel (activated with “p”) and sequential (activated with “s”). The parallel mode will switch to sequential if it fails too many times. (project-wide knob)</p></li>
+</ul>
+</section>
+<section id="klee-configuration-options-klee">
+<h3>Klee configuration options [klee]<a class="headerlink" href="#klee-configuration-options-klee" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>label_handling</cite>: Label handling mode (default: “optimize”; possible values: {ignore, naive, optimize, optimize+avoid, optimize+keepall}) (project-wide knob)</p></li>
+<li><p><cite>timeout</cite>: Sets the timeout of the tool, in seconds; 0 means no timeout (default: 10.000) (runtime knob)</p></li>
+<li><p><cite>libc</cite>: Choose libc version (default: “none”) (runtime knob)</p></li>
+<li><p><cite>search</cite>: Specify klee search strategy (see <cite>klee –help</cite> for details, use an empty listfor klee defaults — default: []) (runtime knob)</p></li>
+<li><p><cite>keep_error_cases</cite>: Keep tests that are generated because they raise errors (default: true) (runtime knob)</p></li>
+<li><p><cite>only_new_tests</cite>: Activate option ‘–only-output-states-covering-new’ (default: true) (runtime knob)</p></li>
+<li><p><cite>replay_max_concurrency</cite>: Maximum number of replayers running concurrently (default: 1; a null or negative value disables on-the-fly replay of test cases) (runtime knob)</p></li>
+<li><p><cite>replay</cite>: On-the-fly replay of generated test cases (default: “yes”; possible values: {inhibit, yes, delayed, force}) (runtime knob)</p></li>
+</ul>
+</section>
+<section id="cbmc-configuration-options-cbmc">
+<h3>Cbmc configuration options ([cbmc])<a class="headerlink" href="#cbmc-configuration-options-cbmc" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>timeout</cite>: Sets the timeout of the tool (default: 0.000). If set to 0, the process will not stop before its end. (runtime knob)</p></li>
+<li><p><cite>unwind</cite>: Sets the loop unwinding (default: 100). If set to 0, there will not be unwinding. (runtime knob)</p></li>
+</ul>
+</section>
+<section id="test-runner-configuration-options-test-runner">
+<h3>Test_runner configuration options [test_runner]<a class="headerlink" href="#test-runner-configuration-options-test-runner" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>custom_tests</cite>: Adds custom tests to the test suite and plays them before starting the analysis (default: []) (runtime knob)</p></li>
+</ul>
+</section>
+<section id="libfuzzer-configuration-options-libfuzzer">
+<h3>Libfuzzer configuration options [libfuzzer]<a class="headerlink" href="#libfuzzer-configuration-options-libfuzzer" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>init_corpus_size</cite>: Size of the initial input corpus (default: 10; must be strictly positive) (runtime knob)</p></li>
+<li><p><cite>use_counters</cite>: Whether libfuzzer’s coverage counters may be used as features (default: false; using counters may increase the amount of generated test cases) (runtime knob)</p></li>
+<li><p><cite>init_corpus_with_nulls</cite>: Whether to include an input that only consists of null bytes into the initial corpus (default: true) (runtime knob)</p></li>
+<li><p><cite>use_cmp</cite>: Whether tracing of comparison instructions may be used to guide mutations (default: true; using this feature may increase the amount of generated test cases) (runtime knob)</p></li>
+<li><p><cite>timeout</cite>: Total time to spend while fuzzing (in seconds, default: 30.000; 0 means run indefinitely) (runtime knob)</p></li>
+<li><p><cite>labels_only</cite>: Whether to restrict libfuzzers’ sensitivity to labels instead of to its own counters (default: false; <cite>use_counters</cite> and <cite>use_cmp</cite> have no effect when used in combination with this option) (project-wide knob)</p></li>
+<li><p><cite>runs</cite>: Number of individual test runs (default: -1; a strictly negative value indicates an infinite number of runs) (runtime knob)</p></li>
+<li><p><cite>micro_timeout</cite>: Single-test timeout (in seconds, default: 1200.000) (runtime knob)</p></li>
+<li><p><cite>triage_timeout</cite>: Total time to spend while in each triage phase (in seconds, default: 0.000; 0 means run indefinitely) (runtime knob)</p></li>
+<li><p><cite>seed</cite>: Seed to pass to libfuzzer.  Default is 0, which instructs libfuzzer to generate a seed internally. (runtime knob)</p></li>
+</ul>
+</section>
+<section id="afl-configuration-options-afl">
+<h3>Afl++ configuration options [“afl++”]<a class="headerlink" href="#afl-configuration-options-afl" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>init_corpus_size</cite>: Size of the initial input corpus (default: 1; must be strictly positive) (runtime knob)</p></li>
+<li><p><cite>init_corpus_with_nulls</cite>: Whether to include an input that only consists of null bytes into the initial corpus (default: true) (runtime knob)</p></li>
+<li><p><cite>labels_only</cite>: Whether to restrict AFL++’s sensitivity to labels instead of to its own counters (default: false); not yet operational (project-wide knob)</p></li>
+<li><p><cite>runs</cite>: Number of individual test runs (default: 1000; a negative value indicates an infinite number of runs) (runtime knob)</p></li>
+<li><p><cite>seed</cite>: Seed to pass to AFL++. Default is 0. (runtime knob)</p></li>
+</ul>
+</section>
+<section id="luncov-configuration-options-luncov">
+<h3>Luncov configuration options [luncov]<a class="headerlink" href="#luncov-configuration-options-luncov" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><cite>extra-args</cite>: Adds extra arguments to frama-c as pair of “cmd_key:cmd_value” separated by a comma (default: []) (runtime knob)</p></li>
+<li><p><cite>plugins</cite>: Sets the plugins tools used by luncov. Default is [“wp”]. “eva” (or “value”) is also possible, but not recommended as it may report coverable labels uncoverable (runtime knob)</p></li>
+</ul>
+<section id="about-named-locations">
+<h4>About named locations<a class="headerlink" href="#about-named-locations" title="Link to this heading"></a></h4>
+<p>The core configuration options <cite>treat_pointer_as_array/cstring</cite> require a list
+of “named locations”. Named locations represent a position in the memory layout
+of the test input.
+It is possible to directly write variables (for example, <cite>foo</cite> in
+<cite>treat_pointer_as_array</cite> will specify the pointer <cite>foo</cite> must be treated as a reference to an array).</p>
+<p>It is also possible to specify indirect pointers. For example, for an input
+<cite>char **foo</cite>, you may add <cite>foo[_]</cite> in <cite>treat_pointer_as_cstring</cite>
+to specify that pointers accessed via <cite>*foo</cite> or <cite>foo[i]</cite>, for some <cite>i</cite>,
+point to C character strings.
+You may also specify a path in a structure (<cite>foo.bar.tri…</cite>), or even every
+structure of a given type (<cite>{struct:t}.foo.bar.tri…</cite>).
+Use of the <cite>-&gt;</cite> operator is also permitted to represent the access of a pointer
+field (<cite>x-&gt;y</cite> is equivalent to <cite>x[_].y</cite>).</p>
+<p>A similar syntax is used for <cite>array_size_mapping</cite>: this list is a list of pairs of
+named locations separated by ‘:’.
+For example, the string <cite>x.y:N</cite> states that the field <cite>y</cite> of <cite>x</cite> is an array that
+must have size <cite>N</cite>, where <cite>x</cite> and <cite>N</cite> either are globals or formals of the
+tested function.
+It also is possible for a structure to reference itself:
+<cite>{struct:t}.y:.N</cite> states that for any structure <cite>s</cite> of type <cite>t</cite> in the input,
+<cite>s.y</cite> is an array whose size must be equal to <cite>s.N</cite>.
+..</p>
+</section>
+</section>
+</section>
+<section id="environment-variables">
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Documentation</p></th>
+<th class="head"><p>Default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CLANG</p></td>
+<td><p>Executable name of <cite>clang</cite></p></td>
+<td><p><cite>clang</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>CLANGXX</p></td>
+<td><p>Executable name of <cite>clang++</cite></p></td>
+<td><p><cite>clang++</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>CPPFLAGS</p></td>
+<td><p>Flags to use with <cite>cpp</cite></p></td>
+<td><p>“”</p></td>
+</tr>
+<tr class="row-odd"><td><p>EACSL_GCC</p></td>
+<td><p>Executable name of <cite>e-acsl-gcc</cite></p></td>
+<td><p><cite>e-acsl-gcc.sh</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>LDFLAGS</p></td>
+<td><p>Flags to use with <cite>clang</cite></p></td>
+<td><p>“”</p></td>
+</tr>
+<tr class="row-odd"><td><p>OPAM_SWITCH_PREFIX</p></td>
+<td><p>The prefix of your opam switch</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>SC_TIDY_COMMANDS</p></td>
+<td><p>Prints processes logs better</p></td>
+<td><p>“false”</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="project.html" class="btn btn-neutral float-right" title="Project management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright OCamlPro.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+[project]
+files = ["late-segfault.c"]
+entrypoint = "f"
+criterion = "DC"
+
+[libfuzzer]
+timeout = 0
+runs = 10
+seed = 42
+
+[klee]
+timeout = 5

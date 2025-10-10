@@ -1,0 +1,696 @@
+// a version of simulink_f1_p1.c with fixed-length arrays of 18
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+
+#define TRUE 1
+#define FALSE 0
+
+// number of cycles for LOCK and UNLOCK
+#define LK_SIZE 60
+#define LK_SIZE_UNLOCKED 10
+#define ULK_SIZE 20
+
+// Number of unfoldings
+#define UNFOLDINGS 3
+
+// inputs
+_Bool L; // Left flasher command
+_Bool R; // Right flasher command
+_Bool W; // Warning command
+_Bool LK; // LocK command
+_Bool ULK; // UnLocK command
+_Bool F; // Flashing function active command
+_Bool in18=1; // always one !
+
+// outputs
+_Bool outL=0; // left light
+_Bool outR=0; // right light
+
+// internal variables
+int counter_a_DSTATE;
+int counter_b_DSTATE;
+int Unit_Delay1_d_DSTATE;
+int Unit_Delay1_f_DSTATE;
+int Unit_Delay1_h_DSTATE;
+int Unit_Delay1_j_DSTATE;
+int Unit_Delay1_b_DSTATE;
+_Bool Unit_Delay_c_DSTATE;
+_Bool Unit_Delay_e_DSTATE;
+_Bool Unit_Delay_h_DSTATE;
+_Bool Unit_Delay3_c_DSTATE;
+_Bool Unit_Delay_i_DSTATE;
+_Bool Unit_Delay_j_DSTATE;
+_Bool Unit_Delay_a_DSTATE;
+_Bool Unit_Delay_b_DSTATE;
+_Bool Unit_Delay3_a_DSTATE;
+_Bool Unit_Delay_d_DSTATE;
+_Bool Unit_Delay_f_DSTATE;
+_Bool Unit_Delay3_b_DSTATE;
+_Bool Unit_Delay3_d_DSTATE;
+_Bool Unit_Delay3_e_DSTATE;
+_Bool Unit_Delay1_a_DSTATE;
+_Bool Unit_Delay1_c_DSTATE;
+_Bool Unit_Delay1_e_DSTATE;
+_Bool Unit_Delay1_g_DSTATE;
+_Bool Unit_Delay1_i_DSTATE;
+_Bool Unit_Delay_g_DSTATE;
+int Switch7;
+int Switch1_m;
+int add_g;
+int Switch1_k;
+int add_f;
+int Switch1_i;
+int add_e;
+int Switch_e;
+int add_d;
+int Switch_d;
+int add_c;
+int Switch1_e;
+int add_b;
+int Switch1_c;
+int add_a;
+_Bool Data_Type_Conversion_a;
+_Bool Switch5;
+_Bool Switch4_a;
+_Bool OR;
+_Bool Switch6;
+_Bool Switch2_a;
+_Bool Switch3_a;
+_Bool superior_e;
+_Bool Switch3_f;
+_Bool Switch1_l;
+_Bool Switch2_f;
+_Bool Switch4_f;
+_Bool and1_d;
+_Bool superior_d;
+_Bool Switch3_e;
+_Bool Switch1_j;
+_Bool Switch2_e;
+_Bool Switch4_e;
+_Bool and1_c;
+_Bool Switch_g;
+_Bool Logical_Operator2;
+_Bool superior_c;
+_Bool Switch3_d;
+_Bool Switch1_h;
+_Bool Switch2_d;
+_Bool Switch4_d;
+_Bool and1_b;
+_Bool Data_Type_Conversion_d;
+_Bool Data_Type_Conversion_c;
+_Bool Unit_Delay_g;
+_Bool Multiport_Switch;
+_Bool and_e;
+_Bool superior_b;
+_Bool Switch3_c;
+_Bool Switch1_d;
+_Bool Switch2_c;
+_Bool Switch4_c;
+_Bool and_d;
+_Bool superior_a;
+_Bool Switch3_b;
+_Bool Switch1_b;
+_Bool Switch2_b;
+_Bool Switch4_b;
+_Bool and1_a;
+_Bool and_c;
+_Bool and_b;
+_Bool Switch1_a;
+_Bool Switch_a;
+_Bool Warning_Acti_ZCE;
+int rtb_Switch_i;
+int rtb_Switch_h;
+int rtb_Switch_f;
+int rtb_Switch1_g;
+int rtb_Switch1_f;
+int rtb_Switch_c;
+int rtb_Switch_b;
+_Bool rtb_and_a;
+_Bool rtb_Logical_Operator;
+_Bool rtb_Logical_Operator1;
+
+int ind;
+int cpt;
+
+// matrix of booleans: each line i of 6 booleans is the inputs for cycle i
+// (values for F, L, R, LK, ULK, and W)
+_Bool tabin[18];    // UNFOLDINGS*6
+
+// artificial function to give symbolic values to variables
+// F, L, R, LK, ULK and W at each cycle
+// values of tabin are copied from the input of p1
+_Bool _nondet_in(){
+  ind = (ind+1)%6;
+  return(tabin[cpt*6+ind]);
+}
+
+
+/**********************************************/
+// function that describes the simulink module
+/**********************************************/
+
+void f1() {
+
+  if (in18) {
+    Data_Type_Conversion_a = LK;
+    and_b = ((W == TRUE) && (TRUE != Unit_Delay_a_DSTATE));
+    Unit_Delay_g = Unit_Delay_g_DSTATE;
+    switch (((1 + ULK) + (Data_Type_Conversion_a * 2))) {
+    case 1 : Multiport_Switch = Unit_Delay_g;
+      break;
+    case 2 : Multiport_Switch = TRUE;
+      break;
+    case 3 : Multiport_Switch = FALSE;
+      break;
+    }
+    and_c = ((Unit_Delay_g == FALSE) && (FALSE != Unit_Delay_b_DSTATE));
+    if (F) {
+      Switch5 = L;
+    }
+    else {
+      Switch5 = FALSE;
+    }
+    and1_a = ((Switch5 == TRUE) && (TRUE != Unit_Delay3_a_DSTATE));
+    if ((TRUE == ((and1_a - Unit_Delay_c_DSTATE) != 0))) {
+      rtb_Switch_b = 0;
+    }
+    else {
+      add_a = (1 + Unit_Delay1_b_DSTATE);
+      rtb_Switch_b = add_a;
+    }
+    superior_a = (rtb_Switch_b >= 3);
+    if (superior_a) {
+      Switch1_c = 0;
+    }
+    else {
+      Switch1_c = rtb_Switch_b;
+    }
+    if (Switch5) {
+      if (and1_a) {
+	Switch1_b = TRUE;
+      }
+      else {
+	if (superior_a) {
+	  if (Unit_Delay1_a_DSTATE) {
+	    Switch4_b = FALSE;
+	  }
+	  else {
+	    Switch4_b = TRUE;
+	  }
+	  Switch2_b = Switch4_b;
+	}
+	else {
+	  Switch2_b = Unit_Delay1_a_DSTATE;
+	}
+	Switch1_b = Switch2_b;
+      }
+      Switch3_b = Switch1_b;
+    }
+    else {
+      Switch3_b = FALSE;
+    }
+    if (F) {
+      Switch4_a = R;
+    }
+    else {
+      Switch4_a = FALSE;
+    }
+    and_d = ((Switch4_a == TRUE) && (TRUE != Unit_Delay_d_DSTATE));
+    if ((1 == (and_d - Unit_Delay_e_DSTATE))) {
+      rtb_Switch_c = 0;
+    }
+    else {
+      add_b = (1 + Unit_Delay1_d_DSTATE);
+      rtb_Switch_c = add_b;
+    }
+    superior_b = (rtb_Switch_c >= 3);
+    if (superior_b) {
+      Switch1_e = 0;
+    }
+    else {
+      Switch1_e = rtb_Switch_c;
+    }
+    if (Switch4_a) {
+      if (and_d) {
+	Switch1_d = TRUE;
+      }
+      else {
+	if (superior_b) {
+	  if (Unit_Delay1_c_DSTATE) {
+	    Switch4_c = FALSE;
+	  }
+	  else {
+	    Switch4_c = TRUE;
+	  }
+	  Switch2_c = Switch4_c;
+	}
+	else {
+	  Switch2_c = Unit_Delay1_c_DSTATE;
+	}
+	Switch1_d = Switch2_c;
+      }
+      Switch3_c = Switch1_d;
+    }
+    else {
+      Switch3_c = FALSE;
+    }
+    rtb_and_a = (Data_Type_Conversion_a && ( ! Unit_Delay_g));
+    OR = (rtb_and_a || Unit_Delay_g);
+    and_e = ((OR == TRUE) && (TRUE != Unit_Delay_f_DSTATE));
+    if (rtb_and_a) {
+      Switch7 = LK_SIZE;
+    }
+    else {
+      Switch7 = ULK_SIZE;
+    }
+    if (counter_b_DSTATE == 0) {
+      rtb_Switch1_g = 0;
+    }
+    else {
+      rtb_Switch1_g = 1;
+    }
+    Data_Type_Conversion_d = (rtb_Switch1_g != 0);
+    if (and_e) {
+      Switch_e = Switch7;
+    }
+    else {
+      add_d = (( - rtb_Switch1_g) + counter_b_DSTATE);
+      Switch_e = add_d;
+    }
+    and1_c = ((Data_Type_Conversion_d == TRUE) && (TRUE != Unit_Delay3_d_DSTATE));
+    if ((1 == (and1_c - Unit_Delay_i_DSTATE))) {
+      rtb_Switch_h = 0;
+    }
+    else {
+      add_f = (1 + Unit_Delay1_h_DSTATE);
+      rtb_Switch_h = add_f;
+    }
+    superior_d = (rtb_Switch_h >= 1);
+    if (superior_d) {
+      Switch1_k = 0;
+    }
+    else {
+      Switch1_k = rtb_Switch_h;
+    }
+    if (Data_Type_Conversion_d) {
+      if (and1_c) {
+	Switch1_j = TRUE;
+      }
+      else {
+	if (superior_d) {
+	  if (Unit_Delay1_g_DSTATE) {
+	    Switch4_e = FALSE;
+	  }
+	  else {
+	    Switch4_e = TRUE;
+	  }
+	  Switch2_e = Switch4_e;
+	}
+	else {
+	  Switch2_e = Unit_Delay1_g_DSTATE;
+	}
+	Switch1_j = Switch2_e;
+      }
+      Switch3_e = Switch1_j;
+    }
+    else {
+      Switch3_e = FALSE;
+    }
+    if (counter_a_DSTATE == 0) {
+      rtb_Switch1_f = 0;
+    }
+    else {
+      rtb_Switch1_f = 1;
+    }
+    Data_Type_Conversion_c = (rtb_Switch1_f != 0);
+    if (and_c) {
+      Switch_d = LK_SIZE_UNLOCKED;
+    }
+    else {
+      add_c = (( - rtb_Switch1_f) + counter_a_DSTATE);
+      Switch_d = add_c;
+    }
+    and1_d = ((Data_Type_Conversion_c == TRUE) && (TRUE != Unit_Delay3_e_DSTATE));
+    if ((1 == (and1_d - Unit_Delay_j_DSTATE))) {
+      rtb_Switch_i = 0;
+    }
+    else {
+      add_g = (1 + Unit_Delay1_j_DSTATE);
+      rtb_Switch_i = add_g;
+    }
+    superior_e = (rtb_Switch_i >= LK_SIZE_UNLOCKED);
+    if (superior_e) {
+      Switch1_m = 0;
+    }
+    else {
+      Switch1_m = rtb_Switch_i;
+    }
+    if (Data_Type_Conversion_c) {
+      if (and1_d) {
+	Switch1_l = TRUE;
+      }
+      else {
+	if (superior_e) {
+	  if (Unit_Delay1_i_DSTATE) {
+	    Switch4_f = FALSE;
+	  }
+	  else {
+	    Switch4_f = TRUE;
+	  }
+	  Switch2_f = Switch4_f;
+	}
+	else {
+	  Switch2_f = Unit_Delay1_i_DSTATE;
+	}
+	Switch1_l = Switch2_f;
+      }
+      Switch3_f = Switch1_l;
+    }
+    else {
+      Switch3_f = FALSE;
+    }
+    rtb_Logical_Operator = (Switch3_e || Switch3_f);
+    rtb_Logical_Operator1 = (Data_Type_Conversion_d || Data_Type_Conversion_c);
+    if ((and_b && ( ! Warning_Acti_ZCE))) {
+      if (W) {
+	Logical_Operator2 = ( ! Unit_Delay3_c_DSTATE);
+	Switch_g = Logical_Operator2;
+      }
+      else {
+	Switch_g = FALSE;
+      }
+      Unit_Delay3_c_DSTATE = Switch_g;
+    }
+    else {
+    }
+    Warning_Acti_ZCE = and_b;
+    if (F) {
+      Switch6 = Switch_g;
+    }
+    else {
+      Switch6 = FALSE;
+    }
+    and1_b = ((Switch6 == TRUE) && (TRUE != Unit_Delay3_b_DSTATE));
+    if ((1 == (and1_b - Unit_Delay_h_DSTATE))) {
+      rtb_Switch_f = 0;
+    }
+    else {
+      add_e = (1 + Unit_Delay1_f_DSTATE);
+      rtb_Switch_f = add_e;
+    }
+    superior_c = (rtb_Switch_f >= 3);
+    if (superior_c) {
+      Switch1_i = 0;
+    }
+    else {
+      Switch1_i = rtb_Switch_f;
+    }
+    if (Switch6) {
+      if (and1_b) {
+	Switch1_h = TRUE;
+      }
+      else {
+	if (superior_c) {
+	  if (Unit_Delay1_e_DSTATE) {
+	    Switch4_d = FALSE;
+	  }
+	  else {
+	    Switch4_d = TRUE;
+	  }
+	  Switch2_d = Switch4_d;
+	}
+	else {
+	  Switch2_d = Unit_Delay1_e_DSTATE;
+	}
+	Switch1_h = Switch2_d;
+      }
+      Switch3_d = Switch1_h;
+    }
+    else {
+      Switch3_d = FALSE;
+    }
+    if (rtb_Logical_Operator1) {
+      Switch2_a = rtb_Logical_Operator;
+    }
+    else {
+      if (Switch6) {
+	Switch1_a = Switch3_d;
+      }
+      else {
+	Switch1_a = Switch3_b;
+      }
+      Switch2_a = Switch1_a;
+    }
+    if (rtb_Logical_Operator1) {
+      Switch3_a = rtb_Logical_Operator;
+    }
+    else {
+      if (Switch6) {
+	Switch_a = Switch3_d;
+      }
+      else {
+	Switch_a = Switch3_c;
+      }
+      Switch3_a = Switch_a;
+    }
+  }
+  else {
+  }
+  outL = Switch2_a;
+  outR = Switch3_a;
+  if (in18) {
+    Unit_Delay_a_DSTATE = W;
+    Unit_Delay_g_DSTATE = Multiport_Switch;
+    Unit_Delay_b_DSTATE = Unit_Delay_g;
+    Unit_Delay3_a_DSTATE = Switch5;
+    Unit_Delay_c_DSTATE = and1_a;
+    Unit_Delay1_b_DSTATE = Switch1_c;
+    Unit_Delay1_a_DSTATE = Switch3_b;
+    Unit_Delay_d_DSTATE = Switch4_a;
+    Unit_Delay_e_DSTATE = and_d;
+    Unit_Delay1_d_DSTATE = Switch1_e;
+    Unit_Delay1_c_DSTATE = Switch3_c;
+    Unit_Delay_f_DSTATE = OR;
+    counter_b_DSTATE = Switch_e;
+    Unit_Delay3_d_DSTATE = Data_Type_Conversion_d;
+    Unit_Delay_i_DSTATE = and1_c;
+    Unit_Delay1_h_DSTATE = Switch1_k;
+    Unit_Delay1_g_DSTATE = Switch3_e;
+    counter_a_DSTATE = Switch_d;
+    Unit_Delay3_e_DSTATE = Data_Type_Conversion_c;
+    Unit_Delay_j_DSTATE = and1_d;
+    Unit_Delay1_j_DSTATE = Switch1_m;
+    Unit_Delay1_i_DSTATE = Switch3_f;
+    Unit_Delay3_b_DSTATE = Switch6;
+    Unit_Delay_h_DSTATE = and1_b;
+    Unit_Delay1_f_DSTATE = Switch1_i;
+    Unit_Delay1_e_DSTATE = Switch3_d;
+  }
+  else {
+  }
+}
+
+
+
+/*****************************/
+// initializations
+/*****************************/
+void init(void){
+  counter_a_DSTATE = 0;
+  counter_b_DSTATE= 0;
+  Unit_Delay1_d_DSTATE= 0;
+  Unit_Delay1_f_DSTATE= 0;
+  Unit_Delay1_h_DSTATE= 0;
+  Unit_Delay1_j_DSTATE= 0;
+  Unit_Delay1_b_DSTATE= 0;
+  Unit_Delay_c_DSTATE = FALSE;
+  Unit_Delay_e_DSTATE = FALSE;
+  Unit_Delay_h_DSTATE = FALSE;
+  Unit_Delay3_c_DSTATE = FALSE;
+  Unit_Delay_i_DSTATE = FALSE;
+  Unit_Delay_j_DSTATE = FALSE;
+  Unit_Delay_a_DSTATE = FALSE;
+  Unit_Delay_b_DSTATE = FALSE;
+  Unit_Delay3_a_DSTATE = FALSE;
+  Unit_Delay_d_DSTATE = FALSE;
+  Unit_Delay_f_DSTATE = FALSE;
+  Unit_Delay3_b_DSTATE = FALSE;
+  Unit_Delay3_d_DSTATE = FALSE;
+  Unit_Delay3_e_DSTATE = FALSE;
+  Unit_Delay1_a_DSTATE = FALSE;
+  Unit_Delay1_c_DSTATE = FALSE;
+  Unit_Delay1_e_DSTATE = FALSE;
+  Unit_Delay1_g_DSTATE = FALSE;
+  Unit_Delay1_i_DSTATE = FALSE;
+  Unit_Delay_g_DSTATE = FALSE;
+  Switch7 = 0;
+  Switch1_m = 0;
+  add_g = 0;
+  Switch1_k = 0;
+  add_f = 0;
+  Switch1_i = 0;
+  add_e = 0;
+  Switch_e = 0;
+  add_d = 0;
+  Switch_d = 0;
+  add_c = 0;
+  Switch1_e = 0;
+  add_b = 0;
+  Switch1_c = 0;
+  add_a = 0;
+  Data_Type_Conversion_a = FALSE;
+  Switch5 = FALSE;
+  Switch4_a = FALSE;
+  OR = FALSE;
+  Switch6 = FALSE;
+  Switch2_a = FALSE;
+  Switch3_a = FALSE;
+  superior_e = FALSE;
+  Switch3_f = FALSE;
+  Switch1_l = FALSE;
+  Switch2_f = FALSE;
+  Switch4_f = FALSE;
+  and1_d = FALSE;
+  superior_d = FALSE;
+  Switch3_e = FALSE;
+  Switch1_j = FALSE;
+  Switch2_e = FALSE;
+  Switch4_e = FALSE;
+  and1_c = FALSE;
+  Switch_g = FALSE;
+  Logical_Operator2 = FALSE;
+  superior_c = FALSE;
+  Switch3_d = FALSE;
+  Switch1_h = FALSE;
+  Switch2_d = FALSE;
+  Switch4_d = FALSE;
+  and1_b = FALSE;
+  Data_Type_Conversion_d = FALSE;
+  Data_Type_Conversion_c = FALSE;
+  Unit_Delay_g = FALSE;
+  Multiport_Switch = FALSE;
+  and_e = FALSE;
+  superior_b = FALSE;
+  Switch3_c = FALSE;
+  Switch1_d = FALSE;
+  Switch2_c = FALSE;
+  Switch4_c = FALSE;
+  and_d = FALSE;
+  superior_a = FALSE;
+  Switch3_b = FALSE;
+  Switch1_b = FALSE;
+  Switch2_b = FALSE;
+  Switch4_b = FALSE;
+  and1_a = FALSE;
+  and_c = FALSE;
+  and_b = FALSE;
+  Switch1_a = FALSE;
+  Switch_a = FALSE;
+  Warning_Acti_ZCE = FALSE;
+  rtb_Switch_i = 0;
+  rtb_Switch_h = 0;
+  rtb_Switch_f = 0;
+  rtb_Switch1_g = 0;
+  rtb_Switch1_f = 0;
+  rtb_Switch_c = 0;
+  rtb_Switch_b = 0;
+  rtb_and_a = FALSE;
+  rtb_Logical_Operator = FALSE;
+  rtb_Logical_Operator1 = FALSE;
+}
+
+
+/*****************************/
+// property 1
+// "Warning function has priority over other flashing functions."
+/*****************************/
+
+void p1(_Bool inputs[static (UNFOLDINGS * 6)]) { // UNFOLDINGS*6
+  int d = UNFOLDINGS;
+  _Bool oldW;
+  _Bool Won = FALSE;
+  int count=0;
+  ind=-1;
+  cpt=0;
+
+  // module initialization
+  init();
+  // F=TRUE;	// Flasher active
+
+  // parameters initialization
+  for(int i = 0; i < UNFOLDINGS*6; i++) {
+    tabin[i] = inputs[i];
+  }
+
+  while (cpt < d) {
+
+    F=_nondet_in();
+    L=_nondet_in();
+    R=_nondet_in();
+    LK=_nondet_in();
+    ULK=_nondet_in();
+    oldW=W;
+    W=_nondet_in();
+    // preconditions
+    // F=TRUE; // Flasher active
+    // if(L==TRUE){R=FALSE;} // L and R inputs cannot both be TRUE on the same cycle
+    // if(LK==TRUE){ULK=FALSE;} // LK and ULK inputs cannot both be TRUE on the same cycle
+
+    if (W && !oldW){
+      count=0;
+      Won = !Won;
+    }
+
+    f1();
+    //    printf("%d: %d %d %d %d %d %d - %d %d\n",cpt,F,L,R,LK,ULK,W,outL,outR);
+
+    // if Warning is on, the output is 111000111000... until it is off
+    if (Won) {
+      if ((count/3)%2==0) {
+	      if (!(outL==TRUE && outR==TRUE)) return; //assert(outL==TRUE && outR==TRUE);
+      } else {
+	      if (!(outL==FALSE && outR==FALSE)) return; //assert(outL==FALSE && outR==FALSE);
+      }
+      count++;
+    }
+
+    cpt++;
+  }
+}
+
+
+
+/*
+int main() {
+  _Bool inputs[UNFOLDINGS*6];
+  for(int i = 0; i < UNFOLDINGS*6; i++) {
+      if(i%6 == 0) {
+	inputs[i] = 1;
+      } else {
+	inputs[i] = 0;
+      }
+  }
+
+  // tourne a gauche
+  //    for(int i = 2; i < UNFOLDINGS; i++) {
+  //    inputs[i*6+1] = 1;
+  //    }
+
+  //  inputs[1*6+5] = 1; // activation du warning
+  //  inputs[14*6+5] = 1; // desactivation du warning
+
+  //  inputs[0*6+3] = 1; // fermeture des portes (déjà fermées)
+  //  inputs[1*6+4] = 1; // ouverture des portes
+  //  inputs[25][3] = 1; // fermeture des portes (ouvertes)
+
+  // contre-exemple à la propriété
+  inputs[0*6+3] = 1; // fermeture des portes (déjà fermées)
+  inputs[1*6+5] = 1; // activation du warning
+
+  p1(inputs);
+}
+*/

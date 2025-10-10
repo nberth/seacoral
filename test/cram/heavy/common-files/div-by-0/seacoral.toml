@@ -1,0 +1,11 @@
+[project]
+files = ["div0.c"]
+entrypoint = "div0"
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42
+
+[klee]
+timeout = 5
