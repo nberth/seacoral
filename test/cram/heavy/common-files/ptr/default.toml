@@ -1,0 +1,12 @@
+[project]
+files = ["default.c"]
+entrypoint = "f"
+criterion = "DC"
+
+[pointer-handling]
+max-ptr-array-length = 2
+
+[libfuzzer]
+timeout = 0
+runs = 10
+seed = 42

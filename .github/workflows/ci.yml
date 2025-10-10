@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    name: Build, test, and deploy
+    runs-on: ubuntu-latest
+    environment: ocp-gitlab
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v5
+      -
+        name: Setup Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ${{ vars.GITLAB_REGISTRY }}/ocamlpro/seacoral
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+            type=sha
+      -
+        name: "Login to OCamlPro's registry"
+        uses: docker/login-action@v3
+        if: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
+        with:
+          registry: ${{ vars.GITLAB_REGISTRY }}
+          username: ${{ secrets.GITLAB_USER }}
+          password: ${{ secrets.GITLAB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Remove intermediate Docker build stages
+        run: |
+          # Artificially remove multi-stage build instructions to
+          # work-around issues with cache handling:
+          sed -e '/AS base$/ d; /AS executable$/ d' \
+              docker/Dockerfile > ${{ runner.temp }}/Dockerfile
+      -
+        name: Build, test, and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ runner.temp }}/Dockerfile
+          build-args: |
+             RUN_TESTS=yes
+             RUN_TESTS_JOBS=8
+          push: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          # sbom: true

@@ -1,0 +1,6 @@
+[afl++]
+  init_corpus_size = 1
+  init_corpus_with_nulls = true
+  labels_only = false
+  runs = 1000
+  seed = 0

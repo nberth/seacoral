@@ -1,0 +1,1 @@
+../../common-files/typedef-enum/nat.c

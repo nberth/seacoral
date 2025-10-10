@@ -1,0 +1,1 @@
+../../common-files/ptr-result/test.c

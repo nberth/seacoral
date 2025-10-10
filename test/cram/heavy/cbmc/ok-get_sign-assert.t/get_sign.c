@@ -1,0 +1,1 @@
+../../common-files/get_sign/get_sign.c

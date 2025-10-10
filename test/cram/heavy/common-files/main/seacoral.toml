@@ -1,0 +1,11 @@
+[project]
+files = ["main.c"]
+entrypoint = "main"
+
+[klee]
+timeout = 1
+
+[libfuzzer]
+timeout = 0
+runs = 10
+seed = 42

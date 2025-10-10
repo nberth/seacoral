@@ -1,0 +1,12 @@
+[project]
+files = ["custom.c"]
+entrypoint = "f"
+criterion = "Custom"
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

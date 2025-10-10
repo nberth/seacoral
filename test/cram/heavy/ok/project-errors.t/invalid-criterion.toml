@@ -1,0 +1,7 @@
+[project]
+files = ["basic-array.c"]
+entrypoint = "f"
+criterion = "foo"
+
+[run]
+tools = ["klee"]

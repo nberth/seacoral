@@ -1,0 +1,1 @@
+../../common-files/ignored-globals/ignored-global.c

@@ -1,0 +1,9 @@
+[project]
+files = ["basic-array.c"]
+entrypoint = "h"
+
+[pointer-handling]
+array-size-mapping = ["array:n"]
+
+[run]
+tools = ["klee"]

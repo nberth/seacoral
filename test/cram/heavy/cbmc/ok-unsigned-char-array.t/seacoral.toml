@@ -1,0 +1,11 @@
+[project]
+files = ["test.c"]
+entrypoint = "g"
+criterion = "DC"
+
+[run]
+tools = ["cbmc"]
+
+[pointer-handling]
+array-size-mapping = ["data:dataLength"]
+max-ptr-array-length = 5

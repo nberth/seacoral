@@ -1,0 +1,1 @@
+../../common-files/tritype-uncov/tritype.c

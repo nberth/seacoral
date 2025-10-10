@@ -1,0 +1,18 @@
+[project]
+files = ["foo.c"]
+include-dirs = ["."]
+entrypoint = "foo"
+criterion = "DC"
+
+[fixtures]
+files = ["oracle.c"]
+oracle = "oracle"
+seek-oracle-failures = true
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 10
+seed = 42

@@ -1,0 +1,35 @@
+# directories to ignore
+IGNORE-DIRS .git .svn _build _obuild _opam docs sphinx
+
+# files to ignore
+IGNORE-FILES .header-check .header-check-more _oasis _tags authors
+IGNORE-FILES changes check-headers.undo copying descr dune
+IGNORE-FILES dune-project license meta opam readme
+IGNORE-FILES todo url
+
+# extensions to ignore
+IGNORE-EXT  .a .annot .asm .byte
+IGNORE-EXT .cma .cmi .cmo .cmt .cmti
+IGNORE-EXT .cmx .cmxa .cmxs .css .dll
+IGNORE-EXT .dtd .el .exe .git .gz
+IGNORE-EXT .html .jpeg .jpg .locked .log
+IGNORE-EXT .md .mldylib .mlimods .mlipp .mllib
+IGNORE-EXT .mlmods .mlpp .mlt .native .o
+IGNORE-EXT .odocl .old .opam .out .pdf
+IGNORE-EXT .plot .png .sgml .so .status
+IGNORE-EXT .tex .toml .txt .xml
+IGNORE-EXT .trailer .mld .tpl .t
+
+# headers to ignore
+
+# extensions for ML files
+ML-EXT .ml .ml4 .mli .mll .mlp
+ML-EXT .ocp .ocp2
+
+# extensions for C/C++ files
+CC-EXT .c .cpp .h .js .cxx .mly
+
+# extensions for SH files
+SH-EXT .ac .in .m4 .sh
+SH-EXT .py
+

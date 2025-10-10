@@ -1,0 +1,12 @@
+[project]
+files = ["typedef-bool.c"]
+entrypoint = "f"
+criterion = "DC"
+
+[pointer-handling]
+array-size-mapping = ["arr:n"]
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

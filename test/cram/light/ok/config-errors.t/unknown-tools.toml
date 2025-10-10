@@ -1,0 +1,6 @@
+[project]
+files = ["empty.c"]
+entrypoint = "f"
+
+[run]
+tools = ["tool1", "tool2"]

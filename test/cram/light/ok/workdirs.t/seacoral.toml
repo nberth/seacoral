@@ -1,0 +1,3 @@
+[project]
+files = ["foo.c"]
+entrypoint = "foo"

@@ -1,0 +1,1 @@
+../../common-files/tritype-basic/tritype-with-preconditions.c

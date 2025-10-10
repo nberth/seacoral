@@ -1,0 +1,398 @@
+<html>
+  <head>
+    <title>Coverage report of function hashed_sort</title>
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <h1 tabindex="1">Coverage report of function hashed_sort</h1>
+    <div class="tabs">
+      <!-- Overview -->
+      <input class="radiotab" name="tabs" tabindex="1" type="radio" id="overview" checked="checked">
+      <label class="label" for="overview">Overview</label>
+      <div class="panel" tabindex="1"> <!-- Panel associated to Overview tab -->
+	<h2>Overview</h2>
+	<div id='overview-panel'> <!-- Overview panel content -->
+	  <div class='overview-statistics overview-subpanel'>
+	    <!-- Statistics panel, summing up the whole results -->
+	    <h3> Statistics </h3>
+	      <ul>
+		<li>Tests generated: 2</li>
+		<li>Labels: 16 labels to cover
+		  <ul>
+		    <li> 8 covered (50%) </li>
+		    <li> 6 uncoverable (37.5%) </li>
+		    <li> 2 unknown (12.5%) </li>
+		  </ul>
+		</li>
+		<li> Runs: 3 </li>
+	      </ul>
+	  </div> <!-- Statistics -->
+	  <div class='overview-config overview-subpanel'>
+	    <!-- Configuration panel, with the different configurations used for each run -->
+	    <h3> Run details </h3>
+	    <div class='tabs'>
+	      <!-- Tab 1 -->
+	      <input class="radiotab" name="tab-run" tabindex="1" type="radio" id="tab-run-1" checked="checked">
+	      <label class="label" for="tab-run-1">Run 1</label>
+	      <div class='panel'> <!-- Tab 1 panel -->
+		<h4> Statistics </h4>
+		<ul>
+		  <li> Time: 10.96891s </li>
+		  <li> Tests generated: 1 (Test 1) </li>
+		  <li> Code coverage: 37.5% (6 labels) </li>
+		</ul>
+		<h4> Configuration </h4>
+		<div class='accordion'> <!-- Accordions -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-1" id="1cb1">
+		    <label for="1cb1" class="acctab__label">Core</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Max string length: 10</li>
+			<li>Max recursive pointer depth: -</li>
+			<li>Max pointer array length: 2</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-1" id="1cb2">
+		    <label for="1cb2" class="acctab__label">LAnnot</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Criterion: CC</li>
+			<li>Coverage targets: array_sort, hash, hashed_sort</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-1" id="1cb3">
+		    <label for="1cb3" class="acctab__label">AFL++</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Initial corpus size: 5</li>
+			<li>Labels only: true</li>
+			<li>Seed: 42</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		</div> <!-- Accordions -->
+	      </div> <!-- Tab 1 panel -->
+	      <!-- end Tab 1 -->
+
+	      <!-- Tab 2 -->
+	      <input class="radiotab" name="tab-run" tabindex="1" type="radio" id="tab-run-2">
+	      <label class="label" for="tab-run-2">Run 2</label>
+	      <div class='panel'> <!-- Tab 2 panel -->
+		<h4> Statistics </h4>
+		<ul>
+		  <li> Time: 5.12 </li>
+		  <li> Tests generated: 1 (Test 2) </li>
+		  <li> Code coverage: 12.5% (2 labels) </li>
+		</ul>
+		<h4> Configuration </h4>
+		<div class='accordion'> <!-- Accordions -->
+		  <div class='config-panel acctab'>
+		    <input type="checkbox" name="accordion-2" id="2cb1">
+		    <label for="2cb1" class="acctab__label">Core</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Max string length: 10</li>
+			<li>Max recursive pointer depth: -</li>
+			<li>Max pointer array length: 2</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-2" id="2cb2">
+		    <label for="2cb2" class="acctab__label">LAnnot</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Criterion: CC</li>
+			<li>Coverage targets: array_sort, hash, hashed_sort</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-2" id="2cb3">
+		    <label for="2cb3" class="acctab__label">Klee</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Klee option: some value</li>
+			<li>Other klee option: some other value</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		</div> <!-- Accordions -->
+	      </div> <!-- Tab 2 panel -->
+	      <!-- end Tab 2 -->
+
+	      <!-- Tab 3 -->
+	      <input class="radiotab" name="tab-run" tabindex="1" type="radio" id="tab-run-3">
+	      <label class="label" for="tab-run-3">Run 3</label>
+	      <div class='panel'> <!-- Tab 3 panel -->
+		<h4> Statistics </h4>
+		<ul>
+		  <li> Time: 5.12 </li>
+		  <li> Labels proven uncoverable: 37.5% (6 labels) </li>
+		</ul>
+		<h4> Configuration </h4>
+		<div class='accordion'> <!-- Accordions -->
+		  <div class='config-panel acctab'>
+		    <input type="checkbox" name="accordion-3" id="3cb1">
+		    <label for="3cb1" class="acctab__label">Core</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Max string length: 10</li>
+			<li>Max recursive pointer depth: -</li>
+			<li>Max pointer array length: 2</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-3" id="3cb2">
+		    <label for="3cb2" class="acctab__label">LAnnot</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>Criterion: CC</li>
+			<li>Coverage targets: array_sort, hash, hashed_sort</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		  <div class='config-panel acctab'> <!-- Accordion -->
+		    <input type="checkbox" name="accordion-3" id="3cb3">
+		    <label for="3cb3" class="acctab__label">CBMC-annot</label>
+		    <div class="acctab__content"> <!-- Accordion content -->
+		      <ul>
+			<li>CBMC option: some value</li>
+			<li>CBMC second option: some other value</li>
+		      </ul>
+		    </div> <!-- Accordion content -->
+		  </div> <!-- Accordion -->
+		</div> <!-- Accordions -->
+	      </div> <!-- Tab 3 panel -->
+	      <!-- end Tab 3 -->
+
+	      <!-- Closing tabs -->
+	      <div style="position:relative; width: 100%;">
+		<div
+		  style="bottom:0; width:100%; border-bottom:solid 2px black; position: absolute;z-index:0;">
+		</div>
+	      </div>
+	    </div> <!-- Configuration -->
+	  </div> <!-- Overview panel content -->
+	</div> <!-- Panel associated to Overview tab -->
+      </div> <!-- Overview -->
+
+
+      <!-- Tests -->
+      <input class="radiotab" name="tabs" tabindex="1" type="radio" id="tests">
+      <label class="label" for="tests">Generated tests</label>
+      <div class="panel" tabindex="1">
+	<h2>Generated tests</h2>
+	<div class="tabs">
+	  <input class="radiotab" name="test-tabs" tabindex="1" type="radio" id="test1" checked="checked">
+	  <label class="label" for="test1">Test 1</label>
+	  <div class="panel" tabindex="1">
+	    Generated by AFL++
+	    <pre>
+#include &ltstring.h&gt /* for memcpy */
+#include &ltstdbool.h&gt /* for _Bool */
+#ifdef LREPLAY
+# include &ltCC.c&gt
+# include &ltreplay_annots.h&gt
+#else
+# include &lttest_array.c&gt
+#endif
+// "Heap" creation (if any non-null pointers are involved)
+int _heap_obj_0_ = 0;
+
+
+int main (){
+// Globals (if any)
+
+// Effective argument(s)
+  int (* arr) = &_heap_obj_0_;
+  int N = 1;
+  sum (arr,N);
+  return 0;
+}
+	    </pre>
+	  </div>
+
+	  <input class="radiotab" name="test-tabs" tabindex="1" type="radio" id="test2" checked="unchecked">
+	  <label class="label" for="test2">Test 2</label>
+	  <div class="panel" tabindex="1">
+	    Generated by Klee
+	    <pre>
+#include &ltstring.h&gt /* for memcpy */
+#include &ltstdbool.h&gt /* for _Bool */
+#ifdef LREPLAY
+# include &ltCC.c&gt
+# include &ltreplay_annots.h&gt
+#else
+# include &lttest_array.c&gt
+#endif
+// "Heap" creation (if any non-null pointers are involved)
+
+int main (){
+// Globals (if any)
+
+// Effective argument(s)
+  int (* arr) = NULL;
+  int N = 64;
+  sum (arr,N);
+  return 0;
+}
+	    </pre>
+	  </div>
+
+	  <div style="position:relative; width: 100%;">
+	    <div
+	      style="bottom:0; width:100%; border-bottom:solid 2px black; position: absolute;z-index:0;">
+	    </div>
+	  </div>
+	</div>
+      </div>
+
+      <!-- Coverage -->
+      <input class="radiotab" name="tabs" tabindex="1" type="radio" id="coverage">
+      <label class="label" for="coverage">Coverage</label>
+      <div class="panel" tabindex="1"> <!-- Label tabs -->
+	<h2>Coverage</h2>
+	<div class="tabs">
+	  <!-- Label 1 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-1" checked="checked">
+	  <label class="label" for="label-1">Label 1</label>
+	  <div class='panel'>
+	    Condition <code> x > 0 </code> at line 27 of file main.c
+	    <ul>
+	      <li> Status: Coverable </li>
+	      <li> Covered by: Test 1 </li>
+	      <li> Emitter: afl++ </li>
+	    </ul>
+	  </div>
+
+	  <!-- Label 2 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-2">
+	  <label class="label" for="label-2">Label 2</label>
+	  <div class='panel'>
+	    Condition <code> x <= 0 </code> at line 27 of file main.c
+	    <ul>
+	      <li> Status: Coverable </li>
+	      <li> Covered by: Test 2 </li>
+	      <li> Emitter: afl++ </li>
+	    </ul>
+	  </div>
+
+	  <!-- Label 3 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-3">
+	  <label class="label" for="label-3">Label 3</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 4 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-4">
+	  <label class="label" for="label-4">Label 4</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 5 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-5">
+	  <label class="label" for="label-5">Label 5</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 6 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-6">
+	  <label class="label" for="label-6">Label 6</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 7 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-7">
+	  <label class="label" for="label-7">Label 7</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 8 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-8">
+	  <label class="label" for="label-8">Label 8</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 9 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-9">
+	  <label class="label" for="label-9">Label 9</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 10 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-10">
+	  <label class="label" for="label-10">Label 10</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 11 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-11">
+	  <label class="label" for="label-11">Label 11</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 12 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-12">
+	  <label class="label" for="label-12">Label 12</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 13 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-13">
+	  <label class="label" for="label-13">Label 13</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 14 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-14">
+	  <label class="label" for="label-14">Label 14</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 15 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-15">
+	  <label class="label" for="label-15">Label 15</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Label 16 -->
+	  <input class="radiotab" name="coverage-tabs" tabindex="1" type="radio" id="label-16">
+	  <label class="label" for="label-16">Label 16</label>
+	  <div class='panel'>
+	  </div>
+
+	  <!-- Tab end -->
+	  <div style="position:relative; width: 100%;">
+	    <div
+	      style="bottom:0; width:100%; border-bottom:solid 2px black; position: absolute;">
+	    </div>
+	  </div>
+	</div> <!-- Coverage tabs -->
+      </div> <!-- Coverage panel -->
+      <div style="position:relative; width: 100%;">
+	<div
+	  style=
+	    "bottom:0;
+	     width:100%;
+	     border-bottom:solid 2px black;
+	     position: absolute;"
+	  >
+	</div>
+      </div>
+
+      <div style="position:relative; width: 100%;">
+	<div
+	  style="bottom:0; width:100%; border-bottom:solid 2px black; position: absolute;">
+	</div>
+      </div>
+    </div>
+    </div>
+  </body>
+</html>

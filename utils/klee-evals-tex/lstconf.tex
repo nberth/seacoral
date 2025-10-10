@@ -1,0 +1,21 @@
+% -*- coding: utf-8; TeX-master: "main" -*-
+
+\lstset{%
+  frame=tb,
+  framesep=0pt,%
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  language=c,
+}
+\lstdefinestyle{inlined}{%
+  breakatwhitespace,%
+  % columns=fullflexible,%
+  basicstyle=\ttfamily\small,%
+}
+\makeatletter
+\newcommand\lstatenable[1][]{%
+  \protect\lstMakeShortInline[style=inlined,mathescape,#1]@%
+}
+\makeatother
+
+\endinput

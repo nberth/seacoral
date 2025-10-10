@@ -1,0 +1,199 @@
+/* Overall style */
+body {
+  padding: 30px 20px;
+  background: #fff;
+  color: #333;
+}
+
+main {
+  max-width: 801px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 30px;
+}
+
+p {
+  margin: 0 0 20px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+/* Overview */
+#overview-panel {
+  display: flex;
+}
+
+.overview-statistics {
+  width: 25%;
+}
+
+.overview-config .config-panel {
+  margin: 10px;
+  padding: 10px;
+  border: solid 1px #000;
+}
+
+
+/* Tabs */
+* {
+  box-sizing: border-box;
+}
+
+*:focus, input:focus + label {
+  outline: none;
+  box-shadow: inset 0 0 0 5px lightBlue;
+}
+
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto 20px;
+  border-radius: 10px 10px 0 0;
+}
+
+.radiotab {
+  position: absolute;
+  opacity: 0;
+}
+
+.label {
+  width: 100%;
+  padding: 22px 20px;
+  background: #e5e5e5;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 23px;
+  color: #7f7f7f;
+  transition: background .3s, color .3s;
+  border: none;
+  border-radius: 0;
+  text-align: center;
+}
+
+.label:hover {
+  background: #d8d8d8;
+}
+
+.label:active {
+  background: #ccc;
+}
+
+.radiotab:checked + .label {
+  background: #fff;
+  color: #000;
+  border-top: solid 2px #000;
+  border-left: solid 2px #000;
+  border-right: solid 2px #000;
+  border-bottom: none;
+  z-index:1
+}
+
+.panel {
+  display: none;
+  padding: 20px 30px 30px;
+  background: #fff;
+  width: 100%;
+  border-top: none;
+  border-left: solid 2px #000;
+  border-right: solid 2px #000;
+  border-bottom: solid 2px #000;
+}
+
+.radiotab:checked + .label + .panel {
+  display: block;
+}
+
+@media (min-width: 600px) {
+  .panel {
+    order: 99;
+  }
+
+  .label {
+    width: auto;
+    border-radius: 10px 10px 0 0;
+    border-bottom: solid 2px #000;
+  }
+
+}
+
+/* Accordion (https://codepen.io/raubaca/pen/PZzpVe) */
+
+/** Core styles/functionality */
+.acctab input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+.acctab__content {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.35s;
+}
+
+.acctab input:checked ~ .acctab__content {
+  max-height: 10rem;
+}
+
+/* Visual styles */
+.accordion {
+  overflow: hidden;
+}
+
+.acctab__label,
+.acctab__close {
+  display: flex;
+  color: black;
+  cursor: pointer;
+}
+
+.acctab__label {
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.acctab__label::after {
+  content: "\276F";
+  width: 1em;
+  height: 1em;
+  text-align: center;
+  transform: rotate(90deg);
+  transition: all 0.35s;
+}
+
+.acctab input:checked + .acctab__label::after {
+  transform: rotate(270deg);
+}
+
+.acctab__content p {
+  margin: 0;
+  padding: 1rem;
+}
+
+.acctab__close {
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+/* Arrow animation */
+.acctab input:not(:checked) + .acctab__label:hover::after {
+  animation: bounce .5s infinite;
+}
+@keyframes bounce {
+  25% {
+    transform: rotate(90deg) translate(.25rem);
+  }
+  75% {
+    transform: rotate(90deg) translate(-.25rem);
+  }
+}

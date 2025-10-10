@@ -1,0 +1,7 @@
+[project]
+files = ["replace.c"]
+entrypoint = "getsub"
+criterion = "DC"
+
+[pointer-handling]
+# treat-pointer-as-string = ["arg", "sub"]

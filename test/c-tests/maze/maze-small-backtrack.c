@@ -1,0 +1,97 @@
+// The maze demo is taken from Felipe Andres Manzano's blog:
+// http://feliam.wordpress.com/2010/10/07/the-symbolic-maze/
+//
+//
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdbool.h>
+
+#define H 7
+#define W 11
+char maze[H][W] = { "+-+---+---+",
+                    "| |     |#|",
+                    "| | --+ | |",
+                    "| |   | | |",
+                    "| +-- | | |",
+                    "|     |   |",
+                    "+-----+---+" };
+
+#define ITERS 28
+
+/*
+void draw ()
+{
+	int i, j;
+	for (i = 0; i < H; i++)
+	  {
+		  for (j = 0; j < W; j++)
+				  printf ("%c", maze[i][j]);
+		  printf ("\n");
+	  }
+	printf ("\n");
+}
+*/
+
+int solve (char program[28])
+{
+	int x, y;     //Player position
+	int ox, oy;   //Old player position
+	int i = 0;    //Iteration number
+	x = 1;
+	y = 1;
+	maze[y][x]='X';
+	// draw();
+	while(i < ITERS)
+	{
+	        maze[y][x]=' ';
+		ox = x;    //Save old player position
+		oy = y;
+		switch (program[i])
+		{
+			case 'w':
+				y--;
+				break;
+			case 's':
+				y++;
+				break;
+			case 'a':
+				x--;
+				break;
+			case 'd':
+				x++;
+				break;
+			default:
+			  // printf("Wrong command!(only w,s,a,d accepted!)\n");
+			  // printf("You lose!\n");
+			  // exit(-1);
+			  return -1;
+		}
+		if (maze[y][x] == '#')
+		{
+		  // printf("You win!\n");
+		  // exit(0);
+		  return 0;
+		}
+		if (maze[y][x] != ' ') {
+		  x = ox;
+		  y = oy;
+		}
+
+		maze[y][x]='X';
+		// draw ();          //draw it
+		i++;
+		// sleep(1);
+	}
+	// printf("You lose\n");
+	return -2;
+}
+
+/*
+int main() {
+  char *program="ssssddddwwaawwddddssssddwwww";
+  solve(program);
+}
+*/

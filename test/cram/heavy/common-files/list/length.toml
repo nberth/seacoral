@@ -1,0 +1,9 @@
+[project]
+files = ["length.c"]
+entrypoint = "length"
+
+[pointer-handling]
+max-ptr-array-length = 1
+
+[klee]
+timeout = 10

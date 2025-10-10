@@ -1,0 +1,10 @@
+# gdImageStringFTEx
+[project]
+criterion = "__CRITERION__"
+
+[klee]
+timeout = __TIMEOUT__
+__KLEE_MODE__
+
+[lreplay]
+enable = false

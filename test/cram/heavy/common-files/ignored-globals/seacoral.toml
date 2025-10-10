@@ -1,0 +1,9 @@
+[project]
+files = ["ignored-global.c"]
+entrypoint = "f"
+ignored-globals = ["__unused_global"]
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42

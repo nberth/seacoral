@@ -1,0 +1,10 @@
+{1 Library seacoral-luncov}
+
+Seacoral is an orchestration tool that is able to combine the power of
+a wide range of test generation techniques in order to automatically
+produce tests for your C projects.
+
+
+
+The entry point of this library is the module: {!Sc_luncov}.
+

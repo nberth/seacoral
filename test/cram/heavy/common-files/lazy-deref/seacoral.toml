@@ -1,0 +1,17 @@
+[project]
+files = ["lazy-deref.c"]
+entrypoint = "f"
+criterion = "CC"
+
+[pointer-handling]
+array-size-mapping = ["arr:n"]
+treat-pointer-as-array = ["arr"]
+max-ptr-array-length = 2
+
+[libfuzzer]
+timeout = 0
+runs = 100
+seed = 42
+
+[klee]
+timeout = 5

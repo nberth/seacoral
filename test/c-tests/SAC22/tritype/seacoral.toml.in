@@ -1,0 +1,10 @@
+# tritype
+[project]
+criterion = "__CRITERION__"
+
+[lreplay]
+enable = false
+
+[klee]
+timeout = __TIMEOUT__
+__KLEE_MODE__

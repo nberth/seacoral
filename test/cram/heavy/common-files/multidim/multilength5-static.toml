@@ -1,0 +1,18 @@
+[project]
+files = ["multilength5-static.c"]
+entrypoint = "length55"
+criterion = "CC"
+
+[pointer-handling]
+max-ptr-array-length = 10
+
+[cbmc]
+timeout = 10
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42

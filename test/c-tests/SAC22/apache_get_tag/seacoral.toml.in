@@ -1,0 +1,14 @@
+# get_tag
+[project]
+criterion = "__CRITERION__"
+
+[klee]
+timeout = __TIMEOUT__
+__KLEE_MODE__
+
+[lreplay]
+enable = false
+
+[pointer-handling]
+# max-cstring-length = 5
+# must be >= 5 to reach maximum coverage

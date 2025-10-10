@@ -1,0 +1,14 @@
+# escape_absolute_uri
+[project]
+criterion = "__CRITERION__"
+
+[pointer-handling]
+max-cstring-length = 10
+# must be >= 7 to reach maximum coverage
+
+[lreplay]
+enable = false
+
+[klee]
+timeout = __TIMEOUT__
+__KLEE_MODE__

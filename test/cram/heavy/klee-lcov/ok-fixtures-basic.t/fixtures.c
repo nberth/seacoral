@@ -1,0 +1,1 @@
+../../common-files/fixtures-basic/fixtures.c

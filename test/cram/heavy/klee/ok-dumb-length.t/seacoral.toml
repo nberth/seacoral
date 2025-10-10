@@ -1,0 +1,11 @@
+# Tests infinite loop avoidance in seed generation.
+[project]
+files = ["dumb-length.c"]
+entrypoint = "length"
+
+[pointer-handling]
+max-non-nil-ptr-depth = 2
+
+[libfuzzer]
+init-corpus-size = 10	      # <- more than number of possible inputs
+timeout = 2
