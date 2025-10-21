@@ -56,9 +56,9 @@ type labels =
 
 type lreplay_results =
   {
-    lreplay_covered: int;
-    lreplay_unconclusive: int;
-    lreplay_unknown: int;
+    lreplay_covered: Basics.Ints.t;
+    lreplay_uncoverable: Basics.Ints.t;
+    lreplay_unknown: Basics.Ints.t;
     lreplay_labels: Sc_C.Cov_label.simple list;
   }
 

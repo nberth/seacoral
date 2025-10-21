@@ -99,10 +99,10 @@ let%expect_test "Struct { int x; float y }" =
     literal:
       heap:
       vars: int x = 1;
-            float y = 42;
+            float y = 0x1.5p+5 /*42*/;
     allocation/initialization:
       vars: int x = 1;
-            float y = 42;
+            float y = 0x1.5p+5 /*42*/;
     |}]
 ;;
 
@@ -197,11 +197,11 @@ let%expect_test "Struct { int x[2]; float y }" =
       heap:
       vars: int x[2];
             (void) memcpy (x, (int[2]){2, -3}, sizeof (int[2]));
-            float y = 42;
+            float y = 0x1.5p+5 /*42*/;
     allocation/initialization:
       vars: int x[2];
             (void) memcpy (x, (int[2]){2, -3}, sizeof (int[2]));
-            float y = 42;
+            float y = 0x1.5p+5 /*42*/;
     |}]
 ;;
 
@@ -1114,7 +1114,7 @@ let%expect_test "Bits of everything, mostly to check output of values that \
                            sizeof (struct s1));
             _heap_obj_6_ = '\001';
             (void) memcpy (&(_heap_obj_7_),
-                           (struct s2){.s12 = &_heap_obj_5_, .d = 2.36942782762e-38, .e = &_heap_obj_6_},
+                           (struct s2){.s12 = &_heap_obj_5_, .d = 0x1.020202p-125 /*2.36943e-38*/, .e = &_heap_obj_6_},
                            sizeof (struct s2));
             (void) memcpy (&(_heap_obj_0_),
                            (struct s1){.s11 = NULL, .a = 16843009, .b = true, .c = NULL},
@@ -1160,7 +1160,7 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             s2[0].s12[0].a = 16843009;
             s2[0].s12[0].b = true;
             s2[0].s12[0].c = NULL;
-            s2[0].d = 2.36942782762e-38;
+            s2[0].d = 0x1.020202p-125 /*2.36943e-38*/;
             s2[0].e = malloc (sizeof (char[1]));
             (void) memcpy (s2[0].e, (char[1]){'\001'}, sizeof (char[1]));
             int n = 1;
@@ -1188,7 +1188,7 @@ let%expect_test "Bits of everything, mostly to check output of values that \
                            sizeof (struct s1[0]));
             (void) memcpy (&(_heap_obj_6_), (char[0]){}, sizeof (char[0]));
             (void) memcpy (&(_heap_obj_7_),
-                           (struct s2[2]){{.s12 = _heap_obj_3_, .d = 9.55146781436e-38, .e = _heap_obj_4_}, {.s12 = _heap_obj_5_, .d = 9.55146781436e-38, .e = _heap_obj_6_}},
+                           (struct s2[2]){{.s12 = _heap_obj_3_, .d = 0x1.040404p-123 /*9.55147e-38*/, .e = _heap_obj_4_}, {.s12 = _heap_obj_5_, .d = 0x1.040404p-123 /*9.55147e-38*/, .e = _heap_obj_6_}},
                            sizeof (struct s2[2]));
             (void) memcpy (&(_heap_obj_0_), (struct s1[0]){},
                            sizeof (struct s1[0]));
@@ -1208,10 +1208,10 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             s1[0].c = malloc (sizeof (char[0]));
             struct s2 (* s2) = malloc (sizeof (struct s2[2]));
             s2[0].s12 = malloc (sizeof (struct s1[0]));
-            s2[0].d = 9.55146781436e-38;
+            s2[0].d = 0x1.040404p-123 /*9.55147e-38*/;
             s2[0].e = malloc (sizeof (char[0]));
             s2[1].s12 = malloc (sizeof (struct s1[0]));
-            s2[1].d = 9.55146781436e-38;
+            s2[1].d = 0x1.040404p-123 /*9.55147e-38*/;
             s2[1].e = malloc (sizeof (char[0]));
             int n = 2;
             char (* f) = NULL;

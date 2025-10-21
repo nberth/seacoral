@@ -5,12 +5,12 @@
    1 = isoceles triangle
    0 = other triangle
 
-   Same code as tritype, but with doubles.
+   Same code as tritype, but with floats.
 */
 
-int tritype (double i, double j, double k){
+int tritype (float i, float j, float k){
   int type_code;
-	
+
   if ((i == 0.0) || (j == 0.0) || (k == 0.0)) type_code = 4;
   else {
     type_code = 0;
@@ -19,9 +19,9 @@ int tritype (double i, double j, double k){
     if (j == k) type_code = type_code + 3;
     if (type_code == 0){
       if ((i+j <= k) || (j+k <= i) || (i+k <= j))
-	type_code = 4;
+        type_code = 4;
       else
-	type_code = 1;
+        type_code = 1;
     }
     else if (type_code > 3) type_code = 3;
     else if ((type_code == 1) && (i+j > k)) type_code = 2;

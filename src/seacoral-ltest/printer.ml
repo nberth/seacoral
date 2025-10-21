@@ -10,9 +10,12 @@
 
 open Types
 
-let pp_lreplay_results ppf ({ lreplay_covered = cov; lreplay_unconclusive = unc;
+let pp_lreplay_results ppf ({ lreplay_covered = cov; lreplay_uncoverable = unc;
                               lreplay_unknown = unk; lreplay_labels = lbls },
                             display_style) =
+  let cov = Basics.Ints.cardinal cov
+  and unc = Basics.Ints.cardinal unc
+  and unk = Basics.Ints.cardinal unk in
   let decided = cov + unc in
   let total = decided + unk in
   let percentage =
