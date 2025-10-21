@@ -1,0 +1,12 @@
+[project]
+entrypoint = "tritype"
+criterion = "DC"
+
+[klee]
+timeout = 10
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42
+

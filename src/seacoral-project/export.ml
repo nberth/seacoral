@@ -131,9 +131,6 @@ let emit_testsuite_header ~with_main ppf project =
   Fmt.pf ppf
     "#include <string.h> /* for memcpy */\
      @\n#include <stdlib.h> /* for malloc */\
-     @\n#ifndef __SC_AVOID_INCLUDING_MATH_H__\
-     @\n# include <math.h> /* for NAN */\
-     @\n#endif\
      @\n#include <assert.h>";
   pp_needed_stddefs_includes ppf;
   pp_oracle_assessment_header_macros ppf

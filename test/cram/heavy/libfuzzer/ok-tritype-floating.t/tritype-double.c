@@ -1,0 +1,1 @@
+../../common-files/tritype-floating/tritype-double.c

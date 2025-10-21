@@ -1367,9 +1367,13 @@ module Printer = struct
               if Char.code v < 128
               then c_lit "'%s'" (Char.escaped v)
               else c_lit "%u" (Char.code v)
+          | Primitive Float ->
+              if Float.is_nan v   (* CHECKME: quiet/signaling, infinity, etc? *)
+              then c_lit "(float)(0.0/0.0) /*NaN*/"
+              else c_lit "%g" v
           | Primitive Double ->
-              if Float.is_nan v              (* CHECKME: quiet/signaling nan? *)
-              then c_lit "NAN"                       (* TODO: transmit math.h *)
+              if Float.is_nan v                   (* CHEKME: ditto float case *)
+              then c_lit "(double)(0.0/0.0) /*NaN*/"
               else c_lit "%a" (format t) v
           | t ->
               c_lit "%a" (format t) v
