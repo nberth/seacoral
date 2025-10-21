@@ -7,6 +7,7 @@ light-tests:
 	./scripts/after.sh test
 
 CI_TESTS_JOBS ?= 8
+TEST_DIRS = test/seacoral-values test/seacoral-cbmc test/cram
 .PHONY: ci-tests
 ci-tests:
 #	Several tests are sensitive to compute resources. To still
@@ -15,8 +16,8 @@ ci-tests:
 #	failed tests, if any, without any parallelism to ensure that
 #	was not the cause of failures.
 	@echo "Running tests..."
-	opam exec -- dune runtest test/cram -j "${CI_TESTS_JOBS}" >/dev/null 2>&1 || \
-	opam exec -- dune runtest test/cram -j 1
+	opam exec -- dune runtest $(TEST_DIRS) -j "${CI_TESTS_JOBS}" >/dev/null 2>&1 || \
+	opam exec -- dune runtest $(TEST_DIRS) -j 1
 	@echo "Tests ran successfully"
 
 .PHONY: project

@@ -684,6 +684,9 @@ let%expect_test "Struct with an int* field constrained with a char" =
     |}]
 ;;
 
+let map_of_list l =              (* StrMap.of_list only appeared in OCaml 5.1 *)
+  StrMap.of_seq @@ Stdlib.List.to_seq l
+
 let%expect_test "List of ints" =
   let open Struct in
   let max_non_nil_ptr_depth = 2 in
@@ -716,8 +719,8 @@ let%expect_test "List of ints" =
   Stdlib.print_newline ();
   Stdlib.print_endline "- 1-element list:";
   Val.assign_from_literal empty_typdecls v
-    (LBMap (StrMap.of_list [
-         "list", LBRef (LBMap (StrMap.of_list [
+    (LBMap (map_of_list [
+         "list", LBRef (LBMap (map_of_list [
              "x", LBStr "42";
              "next", LBNil;
            ]));
@@ -727,10 +730,10 @@ let%expect_test "List of ints" =
   Stdlib.print_newline ();
   Stdlib.print_endline "- 2-element list:";
   Val.assign_from_literal empty_typdecls v
-    (LBMap (StrMap.of_list [
-         "list", LBRef (LBMap (StrMap.of_list [
+    (LBMap (map_of_list [
+         "list", LBRef (LBMap (map_of_list [
              "x", LBStr "42";
-             "next", LBRef (LBMap (StrMap.of_list [
+             "next", LBRef (LBMap (map_of_list [
                  "x", LBStr "43";
                  "next", LBNil;
                ]));
