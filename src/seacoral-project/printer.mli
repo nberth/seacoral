@@ -26,3 +26,11 @@ module C: sig
     -> 'a
     -> Format.formatter -> unit
 end
+
+val pp_raw_test
+  : project: 'raw_test Types.project
+  -> 'raw_test Fmt.t
+val pp_test_view
+  : ?sep: Basics.PPrt.ufmt
+  -> project: 'raw_test Types.project
+  -> 'raw_test Sc_corpus.Types.test_view Fmt.t

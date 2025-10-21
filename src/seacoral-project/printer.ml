@@ -96,6 +96,18 @@ end
 
 (* --- *)
 
+let pp_raw_test (type raw_test) ~(project: raw_test project) ppf raw_test =
+  let module Raw_test = (val project.params.test_repr) in
+  Raw_test.Val.print ppf raw_test
+
+let pp_test_view ?(sep: Basics.PPrt.ufmt = ":@;")
+    (type raw_test) ~(project: raw_test project) ppf
+    (test_view: _ Sc_corpus.Types.test_view) =
+  Fmt.pf ppf "Test@ %u%(%)%a" test_view.metadata.serialnum sep
+    (pp_raw_test ~project) (Lazy.force test_view.raw)
+
+(* --- *)
+
 ;; Printexc.register_printer begin function
   | SETUP_ERROR e ->
       Some (Basics.PPrt.to_string "%a" pp_setup_error e)

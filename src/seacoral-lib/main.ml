@@ -98,6 +98,38 @@ let retrieve_and_log_statistics ~options ~project =
 let show_lreplay_results res =                     (* simple display, for now *)
   Log.app "%a" Sc_ltest.Printer.pp_lreplay_results (res, One_per_line)
 
+    (* --- *)
+
+let crosscheck_with_lreplay_results ~project
+    ~(lreplay_results: Sc_ltest.Types.lreplay_results)
+    ~(store_cov_info: Sc_store.Types.covinfo) =
+  let lreplay = lreplay_results and cov_info = store_cov_info in
+  if Basics.Ints.equal lreplay.lreplay_covered cov_info.covered_ids
+  then Lwt.return ()
+  else
+    let lreplay_only
+      = Basics.Ints.diff lreplay.lreplay_covered cov_info.covered_ids
+    and store_only
+      = Basics.Ints.diff cov_info.covered_ids lreplay.lreplay_covered
+    in
+    Log.warn "The@ set@ of@ covered@ labels@ reported@ by@ Lreplay@ does@ not@ \
+              match@ SeaCoral's@ own@ accounting";
+    if not (Basics.Ints.is_empty lreplay_only)
+    then Log.warn "@[<2>- Reported@ covered@ by@ LReplay@ only:@;%a@]\
+                  " Basics.Ints.print lreplay_only;
+    if not (Basics.Ints.is_empty store_only)
+    then Log.warn "@[<2>- Reported@ covered@ in@ the@ store@ only:@;%a@]\
+                  " Basics.Ints.print store_only;
+    Log.warn "Label-covering@ tests@ shown@ below...";
+    (* TODO: when test->covered labels info will be available, we may filter
+       what we print below. *)
+    let pp_test = Sc_project.Printer.pp_test_view ?sep:None ~project in
+    Sc_corpus.existing_tests project.corpus |>
+    Lwt_stream.iter begin fun (t: _ Sc_corpus.Types.test_view) ->
+      if t.metadata.outcome = Covering_label
+      then Log.warn "@[<hov 2>%a@]" pp_test t
+    end
+
 (* --- *)
 
 let make_test_repr_module encoding_params =
@@ -175,18 +207,18 @@ let generate ~project_config ~encoding_params (options: generation_options) =
   Log.app "Hard work done";
   let* cov_info, _ = retrieve_and_log_statistics ~options ~project in
 
-  let* lreplay_results = Sc_postproc.Lreplay.run project testsuite in
-  Option.iter begin fun results ->
-    if options.enable_detailed_stats
-    then show_lreplay_results results
-    else Log.app "Skipped reporting of lreplay results";
+  let* () =
+    Sc_postproc.Lreplay.run project testsuite >>= function
+    | None ->
+        Lwt.return ()
+    | Some lreplay_results ->
+        if options.enable_detailed_stats
+        then show_lreplay_results lreplay_results
+        else Log.app "Skipped reporting of lreplay results";
 
-    let cov_count = Basics.Ints.cardinal cov_info.covered_ids in
-    if results.lreplay_covered <> cov_count
-    then Log.warn "The amount of covered labels reported by Lreplay (%u) does \
-                   not match the store's accounting (%u)\
-                  " results.lreplay_covered cov_count;
-  end lreplay_results;
+        crosscheck_with_lreplay_results ~project ~lreplay_results
+          ~store_cov_info:cov_info
+  in
 
   (* E-ACSL *)
   let* () =

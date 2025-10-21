@@ -9,6 +9,7 @@
 (**************************************************************************)
 
 open Types
+open Basics
 
 open Sc_sys.File.Syntax
 open Lwt.Syntax
@@ -121,22 +122,23 @@ module Make (Conf: CONFIG) : S = struct
       ~stderr:(`Log Log_lwt_luncov.LWT.debug)
       ~on_success:(fun () -> Lwt.return ())
 
-  let result_data lbls : int * int * int =
-    let covered (c, unc, unk) = (c + 1, unc, unk) in
-    let uncoverable (c, unc, unk) = (c, unc + 1, unk) in
-    let unknown (c, unc, unk) = (c, unc, unk + 1) in
-    List.fold_left begin fun cpt l -> match Sc_C.Cov_label.status l with
-      | Covered _ -> covered cpt
-      | Uncoverable -> uncoverable cpt
-      | Unknown -> unknown cpt
-    end (0, 0, 0) lbls
-
   let results (label_file : [> `labeldb] Sc_sys.File.t) =
     let lbls = seq_filter label_file (fun _ -> true) in
-    let cov, unc, unk = result_data lbls in
+    let cov, unc, unk =
+      List.fold_left begin fun (c, unc, unk) l ->
+        let id = Sc_C.Cov_label.id l in
+        match Sc_C.Cov_label.status l with
+        | Covered _ ->
+            Ints.add id c, unc, unk
+        | Uncoverable ->
+            c, Ints.add id unc, unk
+        | Unknown ->
+            c, unc, Ints.add id unk
+      end (Ints.empty, Ints.empty, Ints.empty) lbls
+    in
     Lwt.return {
       lreplay_covered = cov;
-      lreplay_unconclusive = unc;
+      lreplay_uncoverable = unc;
       lreplay_unknown = unk;
       lreplay_labels = lbls;
     }
