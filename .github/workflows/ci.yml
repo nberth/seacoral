@@ -69,7 +69,7 @@ jobs:
           push: ${{ env.doPush == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=shared
+          cache-to: type=gha,scope=shared,mode=max
           provenance: false
           # sbom: true
