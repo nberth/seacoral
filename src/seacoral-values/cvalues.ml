@@ -1370,11 +1370,11 @@ module Printer = struct
           | Primitive Float ->
               if Float.is_nan v   (* CHECKME: quiet/signaling, infinity, etc? *)
               then c_lit "(float)(0.0/0.0) /*NaN*/"
-              else c_lit "%g" v
+              else c_lit "%h /*%g*/" v v
           | Primitive Double ->
               if Float.is_nan v                   (* CHEKME: ditto float case *)
-              then c_lit "(double)(0.0/0.0) /*NaN*/"
-              else c_lit "%a" (format t) v
+              then c_lit "(double)(0.0F/0.0F) /*NaN*/"
+              else c_lit "%H /*%G*/" v v
           | t ->
               c_lit "%a" (format t) v
       and aux_ptr: type v. v Ctypes.typ -> v ptr -> lit = fun typ v ->
