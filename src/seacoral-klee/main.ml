@@ -239,6 +239,7 @@ let start_klee wd { workdir; seedsdir; _ }
          Fmt.str "--output-dir=%a" Sc_sys.File.print_absname workdir;
          "--only-output-states-covering-new";
          "--dump-states-on-halt=false";     (* do not emit any .ktest on halt *)
+         "--silent-klee-assume";
          (* "--watchdog";        (\* use a watchdog process to enforce max-time *\) *)
          Fmt.str "--max-time=%.0f" wd.options.timeout ]
        @ List.map (Format.asprintf "--search=%s") wd.options.search
