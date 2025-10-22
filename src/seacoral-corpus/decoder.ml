@@ -88,7 +88,8 @@ let gen_n_compile_decoder (type r) (decoder: r t) () =
     Sc_C.Cmd.clang_c decoder_c
       ~cflags:["-fPIC"]
       ~cppflags:["-I"; Sc_sys.File.absname @@ decoder.workspace.workdir;
-                 "-I"; Sc_sys.File.absname @@ decoder.incdir]
+                 "-I"; Sc_sys.File.absname @@ decoder.incdir;
+                 "-D__SC_RAW_DECODER_AVOID_MALLOC_0"]
   in
   let decoder_so = decoder.workspace.workdir / "decoder.so" in
   Sc_C.Cmd.clang_ld decoder_o
