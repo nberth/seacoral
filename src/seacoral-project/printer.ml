@@ -9,12 +9,13 @@
 (**************************************************************************)
 
 open Types
+open Sc_corpus.Types
 
 let pp_entrypoint_name ppf project =
   Fmt.string ppf project.extra.given_entrypoint_name
 
 (** Pretty prints coverage statistics. *)
-let pp_coverage_info ppf ((covinfo, corpus_info): info) =
+let pp_coverage_info ppf ((covinfo, corpus_info): Types.info) =
   Fmt.styled `Underline begin fun ppf () ->
     Fmt.fmt "%a@ with@ %a" ppf
       Sc_store.Printer.pp_covinfo covinfo
@@ -22,7 +23,7 @@ let pp_coverage_info ppf ((covinfo, corpus_info): info) =
   end ppf ()
 
 (** Pretty prints crash statistics. *)
-let pp_crash_info ppf ((_covinfo, corpus_info): info) =
+let pp_crash_info ppf ((_covinfo, corpus_info): Types.info) =
   Fmt.styled `Underline begin
     if Sc_corpus.has_crashes corpus_info then
       Fmt.styled `Red begin fun ppf () ->
@@ -34,7 +35,7 @@ let pp_crash_info ppf ((_covinfo, corpus_info): info) =
   end ppf ()
 
 (** Pretty prints oracle failure statistics. *)
-let pp_oracle_failures_info ppf ((_covinfo, corpus_info): info) =
+let pp_oracle_failures_info ppf ((_covinfo, corpus_info): Types.info) =
   Fmt.styled `Underline begin
     if Sc_corpus.has_oracle_failures corpus_info then
       Fmt.styled `Red begin fun ppf () ->
@@ -101,10 +102,17 @@ let pp_raw_test (type raw_test) ~(project: raw_test project) ppf raw_test =
   Raw_test.Val.print ppf raw_test
 
 let pp_test_view ?(sep: Basics.PPrt.ufmt = ":@;")
-    (type raw_test) ~(project: raw_test project) ppf
-    (test_view: _ Sc_corpus.Types.test_view) =
-  Fmt.pf ppf "Test@ %u%(%)%a" test_view.metadata.serialnum sep
+    (type raw_test) ~(project: raw_test project) ppf (test_view: _ test_view) =
+  Fmt.pf ppf "Test@ %u@ (%s)%(%)%a" test_view.metadata.serialnum
+    (Digest.to_hex test_view.metadata.id) sep
     (pp_raw_test ~project) (Lazy.force test_view.raw)
+
+let pp_tests (type raw_test) ~(project: raw_test project) : _ Fmt.t =
+  let compare_tests t1 t2 =
+    Int.compare t1.metadata.serialnum t2.metadata.serialnum
+  in
+  Fmt.(using (List.sort compare_tests) @@
+       list ~sep:cut @@ hovbox ~indent:2 @@ pp_test_view ~project)
 
 (* --- *)
 

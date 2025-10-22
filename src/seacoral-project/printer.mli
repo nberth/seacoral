@@ -34,3 +34,6 @@ val pp_test_view
   : ?sep: Basics.PPrt.ufmt
   -> project: 'raw_test Types.project
   -> 'raw_test Sc_corpus.Types.test_view Fmt.t
+val pp_tests
+  : project: 'raw_test Types.project
+  -> 'raw_test Sc_corpus.Types.test_view list Fmt.t
