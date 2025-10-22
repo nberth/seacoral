@@ -24,6 +24,7 @@ type run_config =
     strategy: orchestration_strategy;         (** tool orchestration strategy *)
     max_validation_concurrency: int; (** maximum number of validations that may
                                          be performed in parallel *)
+    verbose_validation: bool;
   }
 
 (** Orchestration strategy *)

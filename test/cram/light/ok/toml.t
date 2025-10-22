@@ -19,6 +19,10 @@ Show its contents:
   # enables unlimitted parallelism.
   max-validation-concurrency = 16
   
+  # When set, show labels reached during test validation in logs (false by
+  # default).
+  verbose-validation = false
+  
   # Force preprocessing, even if it has already been performed.
   force-preprocess = false
   

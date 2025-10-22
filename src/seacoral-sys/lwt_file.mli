@@ -87,6 +87,7 @@ val redirect_symlinks_of: dir: File.dir -> src: string -> dst: File.dir -> unit 
 
 val read: _ File.t -> string Lwt.t
 val write: _ File.t -> string -> unit Lwt.t
+val digest: _ File.t -> Digest.t Lwt.t
 
 (** {2 Syntax extensions} *)
 

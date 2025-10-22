@@ -278,3 +278,6 @@ let write f s =
   let open Syntax in
   let>* oc = f in
   Lwt_io.write oc s
+
+let digest f =
+  Lwt.map Digest.string (read f)
