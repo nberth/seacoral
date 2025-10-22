@@ -31,7 +31,7 @@
 # include <stdio.h>
 # define log(args...) fprintf (stderr, args)
 #else
-# define log(args...)
+# define log(args...) do {} while (0)
 #endif
 
 #define obstack_chunk_alloc malloc
@@ -72,7 +72,20 @@ __sc_decoder_reset (void) {
 /* Allocates `size` bytes, initialized from `buff`. */
 static void*
 __sc_malloc_n_copy (__sc_buff_t * const buff, const size_t size) {
-  void *ptr = malloc (size);
+  void *ptr;
+
+# ifdef __SC_RAW_DECODER_AVOID_MALLOC_0
+  /* Hackish workaroud for LLVM AddressSanitizer's seeming unability to detect
+     overflows on some accesses to empty memory areas. */
+  if (size == 0l) {
+    ptr = malloc (sizeof (unsigned));
+    register_allocated_pointer (ptr);
+
+    return (unsigned*)ptr + 1;
+  }
+# endif
+
+  ptr = malloc (size);
   register_allocated_pointer (ptr);
 
   memcpy (ptr, buff->from, size);

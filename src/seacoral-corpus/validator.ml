@@ -92,6 +92,7 @@ let sanitizers_opts =
 
 let sanitizers_flags =
   [
+    "-O0";                                          (* better safe than sorry *)
     Fmt.str "-fsanitize=%a" PPrt.Strings.pp_comma_separated sanitizers;
   ]
 
