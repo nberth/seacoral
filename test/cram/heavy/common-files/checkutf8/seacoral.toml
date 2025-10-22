@@ -1,0 +1,8 @@
+[project]
+files = ["checkutf8.c"]
+criterion = "CC"
+entrypoint = "checkutf8"
+
+[pointer-handling]
+max-ptr-array-length = 10
+treat-pointer-as-array = ["buffer"]
