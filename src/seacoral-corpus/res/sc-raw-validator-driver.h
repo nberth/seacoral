@@ -11,23 +11,29 @@
 #ifndef __SC_VALIDATOR_DRIVER_H__
 #define __SC_VALIDATOR_DRIVER_H__
 
+/* #include "sc-raw-validator-log.h" (included on command-line) */
 #include <stdlib.h>
-#include <stdio.h>
+
+#define __sc_log_label_id(id) __sc_log ("%u\n", id)
 
 #ifndef __SC_VALIDATOR_IGNORE_LABELS
 
-extern void __sc_buff_set_covered (unsigned int id);
+extern unsigned char __sc_buff_covered (unsigned int id);
 
 # define pc_label(expr, id, ...)		\
   do {						\
-    if (expr)					\
-      __sc_buff_set_covered (id);		\
+    if (expr) {					\
+      if (!__sc_buff_covered (id)) {		\
+	/* log on first reach only */		\
+	__sc_log_label_id (id);			\
+      }						\
+    }						\
   } while (0)
 
 #else  /* ignore labels */
 
 # define pc_label(expr, id, ...)		\
-  do {} while (0)
+  __sc_log_label_id (id)
 
 #endif
 

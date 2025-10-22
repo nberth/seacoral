@@ -23,6 +23,7 @@ let run_section =
       strategy = AllParallel;
       test_timeout = 1.;
       max_validation_concurrency = 16;
+      verbose_validation = false;
     }
   in
   Sc_config.Section.define "run" ~default ~entries:Sc_config.Eztoml.[
@@ -108,6 +109,16 @@ let run_section =
         ~runtime:true
         (fun c i -> { c with max_validation_concurrency = i })
         (fun c -> c.max_validation_concurrency);
+      bool
+        ~key:"verbose-validation"
+        ~doc:"When set, show labels reached during test validation in logs (%a \
+              by default)."
+        ~env:"VERBOSE_VALIDATION"
+        ~runtime:true       (* CHECKME: validator recompilation may be needed *)
+        ~as_flag:(Positive { keys = `Same; doc = `Same })
+        ~default:default.verbose_validation
+        (fun c b -> { c with verbose_validation = b })
+        (fun c -> c.verbose_validation);
     ]
 
 (** {2 Project Section} *)

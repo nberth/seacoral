@@ -295,6 +295,8 @@ let elaborate ~test_repr ({ workspace; codebase; config; label_data;
         test_struct = params.test_struct;
         test_timeout = Some config.project_test_timeout;
         max_concurrent_validations = config.project_max_validation_concurrency;
+        validator_verbosity =
+          if config.project_verbose_validation then 1 else 0;
         init_func = params.init_func;
         oracle_func =
           if params.seek_oracle_failures then params.oracle_func else None;

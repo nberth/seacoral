@@ -76,6 +76,14 @@ let cppflags_for_driver =
     Fmt.str "-D__SC_ASSUMPTION_FAILURE_CODE=%u" assumption_failure_code;
   ]
 
+let cppflags_for_logging validator =
+  let log_h = validator.resdir / "sc-raw-validator-log.h" in
+  [
+    Fmt.str "-D__SC_VALIDATOR_VERBOSITY=%u\
+            " validator.params.validator_verbosity;
+    "-include"; Sc_sys.File.absname log_h;
+  ]
+
 (* --- *)
 
 let sanitizers =
@@ -118,14 +126,14 @@ let bring_n_compile_labelized_file validator =
   let* o_file_with_labels =
     Sc_C.Cmd.clang_c codefile
       ~o_suff:"-enabled"
-      ~cppflags:(cppflags_for_driver @
+      ~cppflags:(cppflags_for_driver @ cppflags_for_logging validator @
                  ["-U__SC_VALIDATOR_IGNORE_LABELS";
                   "-include"; Sc_sys.File.absname driver_h])
       ~cflags:(sanitizers_flags @ sanitizers_opts)
   and* o_file_without_labels =
     Sc_C.Cmd.clang_c codefile
       ~o_suff:"-disabled"
-      ~cppflags:(cppflags_for_driver @
+      ~cppflags:(cppflags_for_driver @ cppflags_for_logging validator @
                  ["-D__SC_VALIDATOR_IGNORE_LABELS";
                   "-include"; Sc_sys.File.absname driver_h])
       ~cflags:(sanitizers_flags @ sanitizers_opts)
@@ -164,7 +172,6 @@ let emit_validator_c (type raw_test) ppf (validator: raw_test t) =
      @\n%t\
      @\n\
      @\nunsigned int __sc_buff_commit (void);\
-     @\n#define log(args...) fprintf (stderr, args)\
      @\n\
      @\nint main (int argc, char *argv[]) {\
      @\n  struct raw_test raw_test;\
@@ -200,6 +207,7 @@ let emit_validator_c (type raw_test) ppf (validator: raw_test t) =
      @\n  __sc_unload_raw_test (&raw_test);\
      @\n#ifndef __SC_VALIDATOR_IGNORE_LABELS\
      @\n  if (__sc_buff_commit () == 0) {\
+     @\n    __sc_log (\"ign\\n\");\
      @\n    exit (%u); /* \"arbitrary\" code that indicates success but no new coverage */\
      @\n  }\
      @\n#endif\
@@ -245,7 +253,7 @@ let gen_n_compile_validator validator decoder_infos () =
   Let_syntax.both begin
     Sc_C.Cmd.clang_c validate_c
       ~o_suff:"-enabled"
-      ~cppflags:(decoder_infos.cppflags @
+      ~cppflags:(decoder_infos.cppflags @ cppflags_for_logging validator @
                  ["-U__SC_VALIDATOR_IGNORE_LABELS"])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
@@ -255,7 +263,7 @@ let gen_n_compile_validator validator decoder_infos () =
   end begin
     Sc_C.Cmd.clang_c validate_c
       ~o_suff:"-disabled"
-      ~cppflags:(decoder_infos.cppflags @
+      ~cppflags:(decoder_infos.cppflags @ cppflags_for_logging validator @
                  ["-D__SC_VALIDATOR_IGNORE_LABELS"])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
@@ -288,7 +296,18 @@ let setup validator : _ ready Lwt.t =
 
 (* --- *)
 
-let replay_with_store_update ready_validator ~exec_validator =
+let validator_log test_ident : (module Ez_logs.T) =
+  Ez_logs.subproc @@ Fmt.str "valid:%s" (Str.first_chars test_ident 7)
+
+let stderr ~log:(module Log: Ez_logs.T) =
+  `Log Log.LWT.debug
+
+let stdout ~log:(module Log: Ez_logs.T) =
+  `Log Log.LWT.debug
+
+(* --- *)
+
+let replay_with_store_update ready_validator ~exec_validator ~log =
   let validator = ready_validator.validator in
   let* store = Sc_store.for_compiled_subprocess validator.store in
   let san_env =
@@ -301,7 +320,8 @@ let replay_with_store_update ready_validator ~exec_validator =
     Sc_sys.Process.join =<< exec_validator
       ~exe:ready_validator.replay_with_store_update_exe
       ~env:(Array.concat [store.env; san_env])
-      ~stderr:`Dev_null
+      ~stdout:(stdout ~log)
+      ~stderr:(stderr ~log)
   in
   match res with
   | Ok () ->
@@ -315,8 +335,6 @@ let replay_with_store_update ready_validator ~exec_validator =
       Lwt.return_error ()
 
 (* --- *)
-
-module Log_validator = (val Ez_logs.subproc "validator")
 
 let read_log ~f ~fallback log =
   Lwt.catch begin fun () ->
@@ -344,19 +362,16 @@ let sanitizer_summary_parsers =
       (fun loc -> Arithmetic_error loc);
   ]
 
-let scan_sanitizer_lines lines=
+let scan_sanitizer_lines ~log:(module Log: Ez_logs.T) lines =
   Lwt_stream.peek @@
   Lwt_stream.filter_map begin fun line ->
     if String.starts_with ~prefix:"SUMMARY: " line            (* early filter *)
-    then (Log_validator.debug "%s" line;
+    then (Log.debug "%s" line;
           try_parse sanitizer_summary_parsers line)
     else None
   end lines
 
-let log_stderr =
-  `Log Log_validator.LWT.debug
-
-let replay_for_rte_identification ready_validator ~exec_validator =
+let replay_for_rte_identification ready_validator ~exec_validator ~log =
   let validator = ready_validator.validator in
   let workdir = validator.workspace.workdir in
   let asan_log_base = Sc_sys.File.absname @@ workdir / "asan"
@@ -371,7 +386,8 @@ let replay_for_rte_identification ready_validator ~exec_validator =
     exec_validator
       ~exe:ready_validator.replay_for_rte_identification_exe
       ~env:san_env
-      ~stderr:log_stderr
+      ~stdout:`Dev_null
+      ~stderr:`Dev_null
   in
   let  pid = Sc_sys.Process.pid  proc in
   let* res = Sc_sys.Process.join proc in
@@ -384,6 +400,7 @@ let replay_for_rte_identification ready_validator ~exec_validator =
       let asan_log = Sc_sys.File.PRETTY.assume "%s.%u" asan_log_base pid
       and ubsan_log = Sc_sys.File.PRETTY.assume "%s.%u" ubsan_log_base pid in
       let fallback () = Lwt.return None in
+      let scan_sanitizer_lines = scan_sanitizer_lines ~log in
       let* a_err  = read_log asan_log  ~f:scan_sanitizer_lines ~fallback in
       let* ub_err = read_log ubsan_log ~f:scan_sanitizer_lines ~fallback in
       let* () = remove_log asan_log <&> remove_log ubsan_log in
@@ -398,11 +415,13 @@ let replay_for_rte_identification ready_validator ~exec_validator =
                     discarding@ %a" Printer.pp_sanitizer_error_summary err';
           Lwt.return_error (Triggering_RTE err)
 
-let validate ?(purpose = For_full_validation) ready_validator ~exec_validator =
+let validate ?(purpose = For_full_validation) ~test_ident ready_validator
+    ~exec_validator =
+  let log = validator_log test_ident in
   ready_validator.launch begin fun () ->
     let* first_stage_res =
       if purpose = For_full_validation
-      then replay_with_store_update ready_validator ~exec_validator
+      then replay_with_store_update ready_validator ~exec_validator ~log
       else Lwt.return_error ()                            (* skip first stage *)
     in
     match first_stage_res with
@@ -410,7 +429,7 @@ let validate ?(purpose = For_full_validation) ready_validator ~exec_validator =
         Lwt.return res
     | Error () ->
         let* second_stage_res =
-          replay_for_rte_identification ready_validator ~exec_validator
+          replay_for_rte_identification ready_validator ~exec_validator ~log
         in
         match second_stage_res with
         | Ok () ->              (* error code in label definition only: ignore *)
@@ -419,9 +438,6 @@ let validate ?(purpose = For_full_validation) ready_validator ~exec_validator =
             Lwt.return (Some e)
   end
 
-let stdout =
-  `Log Log_validator.LWT.debug
-
 let on_error status =
   Lwt.return_error status
 
@@ -429,28 +445,32 @@ let on_success () =
   Lwt.return_ok ()
 
 let validate_raw_test_file ready_validator ?purpose file =
-  validate ready_validator ?purpose ~exec_validator:begin fun ~exe ~env ~stderr ->
-    Sc_sys.Process.exec
-      [| Sc_sys.File.absname exe; Sc_sys.File.absname file |]
-      ~env ~on_success ~on_error ~stdout ~stderr
-      ?timeout:ready_validator.validator.params.test_timeout
-  end
+  let* test_ident = Sc_sys.Lwt_file.digest file in
+  validate ready_validator ?purpose ~test_ident
+    ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
+      Sc_sys.Process.exec
+        [| Sc_sys.File.absname exe; Sc_sys.File.absname file |]
+        ~env ~on_success ~on_error ~stdout ~stderr
+        ?timeout:ready_validator.validator.params.test_timeout
+    end
 
 (** Take care to avoid large amounts of concurrent calls to this function, as
     this may induce an overuse of system pipes.  In these cases, prefer using
     {!validate_raw_test_file}. *)
 let validate_raw_test_string ready_validator ?purpose str =
-  validate ready_validator ?purpose ~exec_validator:begin fun ~exe ~env ~stderr ->
-    let* proc =
-      Sc_sys.Process.exec
-        [| Sc_sys.File.absname exe |]
-        ~env ~on_success ~on_error ~stdout ~stderr
-        ?timeout:ready_validator.validator.params.test_timeout
-    in
-    Sc_sys.Process.stdin_string proc str >>= fun () ->
-    Sc_sys.Process.stdin_close proc >>= fun () ->
-    Lwt.return proc
-  end
+  let test_ident = Digest.to_hex @@ Digest.string str in
+  validate ready_validator ?purpose ~test_ident
+    ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
+      let* proc =
+        Sc_sys.Process.exec
+          [| Sc_sys.File.absname exe |]
+          ~env ~on_success ~on_error ~stdout ~stderr
+          ?timeout:ready_validator.validator.params.test_timeout
+      in
+      Sc_sys.Process.stdin_string proc str >>= fun () ->
+      Sc_sys.Process.stdin_close proc >>= fun () ->
+      Lwt.return proc
+    end
 
 (** Warning for {!validate_raw_test_string} applies. *)
 let validate_raw_test (type raw_test) (ready_validator: raw_test ready)
@@ -462,8 +482,7 @@ let validate_raw_test (type raw_test) (ready_validator: raw_test ready)
 (** Warning for {!validate_raw_test_string} applies. *)
 let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
     ~(corpus: raw_test Main.corpus) ~toolname ?purpose (raw_test: raw_test) =
-  let* outcome = validate_raw_test ready_validator ?purpose raw_test in
-  match outcome with
+  validate_raw_test ready_validator ?purpose raw_test >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
   | Some outcome ->
@@ -473,8 +492,7 @@ let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
 let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test ready)
     ~(corpus: raw_test Main.corpus) ~toolname ?purpose file =
   let module Raw_test = (val ready_validator.validator.params.test_repr) in
-  let* outcome = validate_raw_test_file ready_validator ?purpose file in
-  match outcome with
+  validate_raw_test_file ready_validator ?purpose file >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
   | Some outcome ->

@@ -41,6 +41,9 @@ type 'r validator_params =
     labelized_file: [`C | `labelized] Sc_sys.File.file; (** C file with the
                                                             extra labels. *)
     max_concurrent_validations: int;                       (** no max if null *)
+    validator_verbosity: int;  (** when strictly positive, enable some logging
+                                   from validation executables (only one level
+                                   for now) *)
   }
 
 (** A type that enables tools to either retrieve an actual test inputs value
