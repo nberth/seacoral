@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- More precise versioning during development [#9](https://github.com/ocamlpro/seacoral/pull/9)
 - New Boolean option `run.verbose_validation` (CLI arg: `--verbose-validation`) to help with debugging of validator behaviors [#7](https://github.com/ocamlpro/seacoral/pull/7)
 
 ### Fixed

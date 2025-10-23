@@ -81,3 +81,4 @@ for-test = true
 #  static-clibs = "unix" 
 [fields]
 # ...
+dune-stanzas = "(promote (into ../..) (until-clean))"

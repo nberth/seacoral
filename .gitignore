@@ -9,5 +9,6 @@ _build
 .drom.config
 *.mdl
 .envrc
+*.exe
 
 

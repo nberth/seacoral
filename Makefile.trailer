@@ -20,13 +20,19 @@ ci-tests:
 	opam exec -- dune runtest $(TEST_DIRS) -j 1
 	@echo "Tests ran successfully"
 
+DROM_PROJECT_FLAGS ?=
 .PHONY: project
 project:
-	opam exec -- drom project
+	opam exec -- drom project $(DROM_PROJECT_FLAGS)
 #	Get rid of warnings with dune:
+#       Also: drom version field to let dune-build-info get its job properly:
 	sed -i dune-project \
 	    -e 's/(= version)/(= :version)/g' \
-	    -e '/(allow_approximate_merlin)/d'
+	    -e '/(allow_approximate_merlin)/d' \
+	    -e '/^(version .*)/d'
+	sed -i Makefile \
+	    -e '/\t.\/scripts\/copy-bin.sh .*/d'
+	git add dune-project Makefile
 
 # Make sure `make opam` proceeds even though there exists an `opam`
 # subdirectory.

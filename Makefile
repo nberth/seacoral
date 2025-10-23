@@ -20,7 +20,6 @@ all: build
 build:
 	./scripts/before.sh build
 	opam exec -- dune build @install
-	./scripts/copy-bin.sh seacoral seacoral-lib seacoral-klee seacoral-ltest seacoral-fuzz seacoral-main seacoral-store seacoral-cbmc seacoral-report seacoral-project seacoral-replayer seacoral-sys seacoral-basics seacoral-c ez-logs seacoral-values seacoral-crunch seacoral-config seacoral-strategy seacoral-core seacoral-luncov seacoral-corpus seacoral-cil-shims seacoral-postproc
 	./scripts/after.sh build
 
 build-deps:

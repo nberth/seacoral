@@ -143,11 +143,8 @@ RUN exec >/tmp/motd                                                            \
 # We artificially limit parallelism when running tests as many of the
 # underlying tools are sensitive to CPU and memory availability.
 ARG RUN_TESTS_JOBS=1
-COPY --chown=diver:divers dune* Makefile* seacoral/
-COPY --chown=diver:divers opam seacoral/opam/
-COPY --chown=diver:divers scripts seacoral/scripts/
-COPY --chown=diver:divers src seacoral/src/
-COPY --chown=diver:divers test seacoral/test/
+COPY --chown=diver:divers . seacoral/
+RUN cd seacoral; git describe --always --dirty --abbrev=7 --tags; exit 1
 RUN make -C seacoral                                                           \
  && if [ "$RUN_TESTS" = yes ];                                                 \
     then time make -C seacoral ci-tests CI_TESTS_JOBS=$RUN_TESTS_JOBS;         \
