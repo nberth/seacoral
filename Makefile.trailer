@@ -20,13 +20,20 @@ ci-tests:
 	opam exec -- dune runtest $(TEST_DIRS) -j 1
 	@echo "Tests ran successfully"
 
+DROM_PROJECT_FLAGS ?=
 .PHONY: project
 project:
-	opam exec -- drom project
+	opam exec -- drom project $(DROM_PROJECT_FLAGS)
 #	Get rid of warnings with dune:
 	sed -i dune-project \
 	    -e 's/(= version)/(= :version)/g' \
 	    -e '/(allow_approximate_merlin)/d'
+	git add dune-project
+#	Until https://github.com/OCamlPro/drom/pull/245 is merged...
+	sed -i src/seacoral-main/dune \
+	    -e 's/%{ocaml} unix.cma/%{ocaml} -I +unix unix.cma/'
+	git add src/seacoral-main/dune
+
 
 # Make sure `make opam` proceeds even though there exists an `opam`
 # subdirectory.

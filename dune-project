@@ -4,7 +4,7 @@
 (cram enable)
 (name seacoral)
 (generate_opam_files false)
-(version 0.1.0)
+(version 0.1.1~dev)
 (formatting (enabled_for ocaml reason))
 (using menhir 2.0)
 
@@ -148,7 +148,6 @@
    (seacoral-fuzz (= :version))
    (seacoral-core (= :version))
    (seacoral-cbmc (= :version))
-   (dune-build-info ( >= 3 ))
    lwt
    (fmt ( >= 0.9.0 ))
    ppx_inline_test

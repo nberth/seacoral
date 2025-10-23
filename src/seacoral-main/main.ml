@@ -252,11 +252,6 @@ let generate ?enable_logfile ?(enable_detailed_stats = true) ?enable_console_tim
       end
   end
 
-let version =
-  match Build_info.V1.version () with
-  | Some v -> Build_info.V1.Version.to_string v
-  | None -> "n/a"
-
 ;;
 if (Unix.time () |> Unix.gmtime).Unix.tm_year > 126
 then failwith "Too old for this; please ask seacoral@ocaml.pro for help."
@@ -327,7 +322,7 @@ let load_args ?argv () =
   and check = Cmdliner.Term.map (fun options -> `Check options) gen_term in
   eval_value ~catch:false ?argv @@
   group ~default:generate
-    (info "seacoral" ~version ~doc:"Tests for your project!"
+    (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
        ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
   [
     v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")

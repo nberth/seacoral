@@ -15,7 +15,9 @@ min-edition = "4.14.0"
 name = "seacoral"
 skeleton = "program"
 synopsis = "The Seacoral project"
-version = "0.1.0"
+# Note: we use git tags to define the version in the tool. This
+# particular field is only used when generating opam package files.
+version = "0.1.1~dev"
 
 # keys that you could also define:
 # odoc-target = "...odoc-target..."
@@ -43,7 +45,8 @@ skip = [
   "test/inline-tests/test.ml",
   "test/expect-tests/dune",
   "test/expect-tests/test.ml",
-  "sphinx/index.rst"
+  "sphinx/index.rst",
+  ".github/workflows/workflow.yml"
 ]
 
 # project-wide library dependencies (not for package-specific deps)
