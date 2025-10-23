@@ -143,6 +143,7 @@ RUN exec >/tmp/motd                                                            \
 # We artificially limit parallelism when running tests as many of the
 # underlying tools are sensitive to CPU and memory availability.
 ARG RUN_TESTS_JOBS=1
+ARG SEACORAL_VERSION=
 COPY --chown=diver:divers dune* Makefile* seacoral/
 COPY --chown=diver:divers opam seacoral/opam/
 COPY --chown=diver:divers scripts seacoral/scripts/

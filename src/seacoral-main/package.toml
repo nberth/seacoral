@@ -19,7 +19,7 @@ kind = "library"
 # authors = [ "Me <me@metoo.org>" ]
 
 # name of a file to generate with the current version
-# gen-version = "version.ml"
+gen-version = "version.ml"
 
 # supported file generators are "ocamllex", "ocamlyacc" and "menhir" 
 # default is [ "ocamllex", "ocamlyacc" ] 
@@ -46,14 +46,13 @@ pack = "Sc"
 # preprocess = "pps ppx_deriving_encoding"
 
 # files to skip while updating at package level
-# skip = []
+skip = ["version.mlt"]
 
 # package library dependencies
 #   [dependencies]
 #   ez_file = ">=0.1 <1.3"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
-dune-build-info = ">=3"
 seacoral-cbmc = "version"
 seacoral-core = "version"
 seacoral-fuzz = "version"

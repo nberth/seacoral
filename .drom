@@ -5,7 +5,7 @@ version:0.9.0
 
 # hash of toml configuration files
 # used for generation of all files
-a86d66e50441f5390c2d5811a6c4d088:.
+b14408cc3719220b0dadcddbb66ef46b:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -70,7 +70,7 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for dune-project
 # file dune-project
-341229d6747259ebb70bf4fb877e543e:dune-project
+eb3365b7f8b089fbe66a0f67fc4ddae4:dune-project
 # end context for dune-project
 
 # begin context for opam/ez-logs.opam
@@ -145,7 +145,7 @@ ce71b61b67c700301c5c2e323586c634:opam/seacoral-ltest.opam
 
 # begin context for opam/seacoral-main.opam
 # file opam/seacoral-main.opam
-543f74716dc5e044fbb673038aa6654b:opam/seacoral-main.opam
+958c05135c9f1b6139e0dd57e797e794:opam/seacoral-main.opam
 # end context for opam/seacoral-main.opam
 
 # begin context for opam/seacoral-postproc.opam
@@ -450,7 +450,7 @@ e39fc32969f4d4b98013fabd170919c1:src/seacoral-luncov/package.toml
 
 # begin context for src/seacoral-main/dune
 # file src/seacoral-main/dune
-1a349ff18151fe91fff39d9dbcf0b3b6:src/seacoral-main/dune
+3d016a3c5639a79b7331198fdbf4c423:src/seacoral-main/dune
 # end context for src/seacoral-main/dune
 
 # begin context for src/seacoral-main/index.mld
@@ -462,6 +462,11 @@ d6f2728cf8691ef59249d50ef4565e4b:src/seacoral-main/index.mld
 # file src/seacoral-main/package.toml
 f81a88979778f6152c4e260c03a7ffbe:src/seacoral-main/package.toml
 # end context for src/seacoral-main/package.toml
+
+# begin context for src/seacoral-main/version.mlt
+# file src/seacoral-main/version.mlt
+fb1504b512f9ec6892f760e14511b3ed:src/seacoral-main/version.mlt
+# end context for src/seacoral-main/version.mlt
 
 # begin context for src/seacoral-postproc/dune
 # file src/seacoral-postproc/dune

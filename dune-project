@@ -148,7 +148,6 @@
    (seacoral-fuzz (= :version))
    (seacoral-core (= :version))
    (seacoral-cbmc (= :version))
-   (dune-build-info ( >= 3 ))
    lwt
    (fmt ( >= 0.9.0 ))
    ppx_inline_test
