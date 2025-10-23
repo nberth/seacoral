@@ -2,7 +2,7 @@
 # Do not modify, or add to the `skip` field of `drom.toml`.
 opam-version: "2.0"
 name: "seacoral-values"
-version: "0.1.0"
+version: "0.1.1~dev"
 license: "GPL-3.0-only"
 synopsis: "The Seacoral project"
 description: """\

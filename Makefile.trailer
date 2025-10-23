@@ -31,7 +31,7 @@ project:
 	git add dune-project
 #	Until https://github.com/OCamlPro/drom/pull/245 is merged...
 	sed -i src/seacoral-main/dune \
-	    -e 's/ unix.cma/ -I +unix unix.cma/'
+	    -e 's/%{ocaml} unix.cma/%{ocaml} -I +unix unix.cma/'
 	git add src/seacoral-main/dune
 
 

@@ -137,22 +137,32 @@ RUN exec >/tmp/motd                                                            \
  && sudo mv /tmp/motd /etc/motd                                                \
  && echo "cat /etc/motd" >> ~/.bashrc
 
-# Lastly, actually build (and optionally test) seacoral, and perform
-# final (aggressive) cleanup
+# Run tests (optional)
+#
+# We copy only what's necessary for the tool to build and tests to
+# run.
 #
 # We artificially limit parallelism when running tests as many of the
 # underlying tools are sensitive to CPU and memory availability.
 ARG RUN_TESTS_JOBS=1
-ARG SEACORAL_VERSION=
 COPY --chown=diver:divers dune* Makefile* seacoral/
-COPY --chown=diver:divers opam seacoral/opam/
-COPY --chown=diver:divers scripts seacoral/scripts/
 COPY --chown=diver:divers src seacoral/src/
 COPY --chown=diver:divers test seacoral/test/
-RUN make -C seacoral                                                           \
- && if [ "$RUN_TESTS" = yes ];                                                 \
+RUN if [ "$RUN_TESTS" = yes ];                                                 \
     then time make -C seacoral ci-tests CI_TESTS_JOBS=$RUN_TESTS_JOBS;         \
-    fi                                                                         \
+    fi
+
+# Lastly, actually build and install seacoral, and perform final
+# (aggressive) cleanup (should keep seacoral/_build ... I guess ...)
+#
+# Here we copy the full source tree with its .git so the versioning
+# machinery works properly.
+#
+# Still, we remove seacora/.git directory to accelerate opam pinning
+# (which appears to copy the whole source tree)
+COPY --chown=diver:divers . seacoral
+RUN make -C seacoral                                                           \
+ && rm -rf seacoral/.git                                                       \
  && OPAMINPLACEBUILD=true OPAMYES=true make -C seacoral opam                   \
  && opam repo remove default --all --yes                                       \
  && opam clean --yes                                                           \

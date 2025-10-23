@@ -21,13 +21,9 @@ jobs:
         name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0        # full history and tags
-      -
-        name: Retrieve repository information
-        id: versioning
-        run: |
-           version="$(git describe --always --dirty --tags --abbrev=7)"
-           echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Retrieve full history and tags for versioning. Ideally
+          # we'd checkout until most recent tag...
+          fetch-depth: 0
       -
         name: Setup Docker metadata
         id: meta
@@ -74,7 +70,6 @@ jobs:
           build-args: |
              RUN_TESTS=yes
              RUN_TESTS_JOBS=8
-             SEACORAL_VERSION=${{ steps.versioning.outputs.version }}
           push: ${{ env.doPush == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

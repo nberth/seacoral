@@ -21,13 +21,9 @@ let commit_date =
 let git_version =
   query ("git -C \""^gitdir^"\" describe --always --dirty --tags --abbrev=7")
 let version =
-  match Sys.getenv_opt "SEACORAL_VERSION" with
-  | Some v when v <> "" ->
-      v
-  | Some _ | None ->
-      match git_version with
-      | Some v -> v
-      | None -> "n/a"
+  match git_version with
+  | Some v -> v
+  | None -> "n/a"
 
 let string_option = function
   | None -> "None"
