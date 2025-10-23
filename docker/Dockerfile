@@ -152,20 +152,24 @@ RUN if [ "$RUN_TESTS" = yes ];                                                 \
     then time make -C seacoral ci-tests CI_TESTS_JOBS=$RUN_TESTS_JOBS;         \
     fi
 
-# Lastly, actually build and install seacoral, and perform final
-# (aggressive) cleanup (should keep seacoral/_build ... I guess ...)
+# Lastly, actually build and (optionally) install seacoral, and
+# perform final (aggressive) cleanup (should keep seacoral/_build
+# ... I guess ...)
 #
 # Here we copy the full source tree with its .git so the versioning
 # machinery works properly.
 #
 # Still, we remove seacora/.git directory to accelerate opam pinning
 # (which appears to copy the whole source tree)
+ARG SKIP_INSTALL=no
 COPY --chown=diver:divers . seacoral
 RUN make -C seacoral                                                           \
- && rm -rf seacoral/.git                                                       \
- && OPAMINPLACEBUILD=true OPAMYES=true make -C seacoral opam                   \
- && opam repo remove default --all --yes                                       \
- && opam clean --yes                                                           \
+ && if [ "$SKIP_INSTALL" != yes ];                                             \
+    then rm -rf seacoral/.git                                                  \
+      && OPAMINPLACEBUILD=true OPAMYES=true make -C seacoral opam              \
+      && opam repo remove default --all --yes                                  \
+      && opam clean --yes;                                                     \
+    fi                                                                         \
  && rm -rf seacoral opam                                                       \
            $OPAM_SWITCH_PREFIX/.opam-switch/sources
 

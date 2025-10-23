@@ -70,6 +70,7 @@ jobs:
           build-args: |
              RUN_TESTS=yes
              RUN_TESTS_JOBS=8
+             SKIP_INSTALL=${{ env.doPush != 'true' && 'yes' || 'no' }}
           push: ${{ env.doPush == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
