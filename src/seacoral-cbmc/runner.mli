@@ -20,7 +20,8 @@ type 'a process_result = 'a                                  (* always provided 
     corresponding to unknown proof objectives.  They are matched with their
     location in the C file. *)
 val uncovered_properties
-  : harness_file:[`C] file
+  : mode: OPTIONS.mode
+  -> harness_file:[`C] file
   -> labelized_file: [`C | `labelized] file
   -> cbmc_props:DATA.property list
   -> already_decided:Basics.Ints.t

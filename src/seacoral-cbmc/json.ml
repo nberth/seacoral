@@ -535,31 +535,29 @@ let options options =
   Yojson.Safe.to_string @@ Json_repr.to_yojson json
 
 let read_cbmc_output encoding str =
-  try
-    let yoj = Yojson.Safe.from_string str in
-    let js = Json_repr.from_yojson yoj in
-    Json_encoding.destruct encoding js
-  with
-  | Yojson.Json_error _ as exn ->
-      (* When CBMC fails, it outputs a list of JSON values with a missing ']'.
-         We try here to rebuild the correct JSON. *)
-      try
-        let yoj = Yojson.Safe.from_string (str ^ "]") in
-        let js = Json_repr.from_yojson yoj in
-        let result = Json_encoding.destruct encoding js in
-        (* If we reached this part, it means that CBMC failed and its output
-           was invalid. *)
-        Log.err "CBMC failed (%s). This may happen when the maximum array \
-                 size or pointer depth are too large. Consider \
-                 retrying the analysis with smaller values."
-          (Printexc.to_string exn);
-        result
-      with
-      | Yojson.Json_error _ ->
-          (* We tried fixing the JSON and failed: printing the old exception. *)
-          Log.err "Error while destructing %s" str;
-          raise exn
-      | exn ->
-          log_exn exn;
-          raise exn
+  let js =
+    try
+      let yoj = Yojson.Safe.from_string str in
+      Json_repr.from_yojson yoj
+    with
+    | Yojson.Json_error _ as exn -> begin
+        (* When CBMC fails, it outputs a list of JSON values with a missing ']'.
+           We try here to rebuild the correct JSON. *)
+        try
+          let yoj = Yojson.Safe.from_string (str ^ "]") in
+          Json_repr.from_yojson yoj
+        with
+        | Yojson.Json_error _ ->
+           (* We tried fixing the JSON and failed: printing the old exception. *)
+           (* TODO: print json in log file *)
+           Log.err "Error while parsing %s" str;
+           raise exn
+      end
+  in
+  try Json_encoding.destruct encoding js with
+  | exn ->
+     (* TODO: print json in log file *)
+     Log.err "Error while destructing %s" str;
+     log_exn exn;
+     raise exn
 

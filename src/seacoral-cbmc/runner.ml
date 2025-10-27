@@ -51,7 +51,7 @@ let property_belongs_to_file ~file prop =
 
 let id_from_property_name prop =
   match String.split_on_char '.' prop.pname with
-  | [fname; _; id] -> fname, int_of_string id
+  | [fname; kind; id] -> fname, kind, int_of_string id
   | _ -> assert false
 
 let empty_env =
@@ -59,9 +59,15 @@ let empty_env =
     proof_objectives = PropertyMap.empty;
     already_proven = PropertyMap.empty }
 
+let property_kind_matches_mode ~mode ~kind =
+  match mode with
+  | OPTIONS.Cover -> kind = "coverage"
+  | Assert -> kind = "assertion"
+  | CLabel -> kind = "error_label" 
 (* Takes the list of properties returned by cbmc with the option --show-properties and
    returns the associated proof objectives (the labels to cover). *)
 let uncovered_properties
+    ~mode
     ~harness_file
     ~labelized_file
     ~(cbmc_props : property list)
@@ -78,9 +84,13 @@ let uncovered_properties
   let env =
     List.fold_left begin fun env prop ->
       (* Log.debug "Property %a" Printer.pp_property prop; *)
-      let fname, lbl_id = id_from_property_name prop in
+      let fname, kind, lbl_id = id_from_property_name prop in
+      Log.debug "Property@ %s.%i@ of@ kind@ %s" fname lbl_id kind; 
       (* Checking if the property belongs to the main file and the main function. *)
-      if property_belongs_to_file ~file:harness_file prop && fname = entrypoint then
+      if not (property_kind_matches_mode ~mode ~kind) then
+        { env with
+          extra_required_properties = prop :: env.extra_required_properties }
+      else if property_belongs_to_file ~file:harness_file prop && fname = entrypoint then
         (* Probably unsafe *)
         match Basics.IntMap.find_opt lbl_id lbl_map with
         | None ->                                               (* not a label *)
@@ -278,7 +288,7 @@ let read_json_result ~outputs_json ~encoding ~errors_file =
     let* json_string = let<* ic = outputs_json in Lwt_io.read ic in
     Lwt.return @@ Json.read_cbmc_output encoding json_string
   end begin fun e ->
-    Log.err "Error while reading CBMC's output: %a" Fmt.exn e;
+    Log.err "Error while reading CBMC's output";
     let* () =
       let<* ec = errors_file in
       Lwt_stream.iter_s (Log.LWT.err "stderr: %s") @@ Lwt_io.read_lines ec
