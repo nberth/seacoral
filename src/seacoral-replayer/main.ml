@@ -192,7 +192,7 @@ let play ~wd { dir = _; testcase } =
           Lwt.return false
     end
 
-(** Writes a custom test in the main testcases directory *)
+(** Writes a custom test in the main tests directory *)
 (* TODO: this should just be handed over to the corpus, not written directly
    into the testsuite (as its representation may vary or depend on options and
    choices from another core/project module) *)

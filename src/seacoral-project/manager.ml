@@ -250,7 +250,7 @@ let write_headers_in ~workspace (params: _ project_params) =
 
 let elaborate ~test_repr ({ workspace; codebase; config; label_data;
                             given_entrypoint_name; _ } as preprocessed) =
-  let outdir = workspace.workdir / "testcases" in
+  let outdir = workspace.workdir / "tests" in
   let covdir = outdir / "cov"
   and rtedir = outdir / "rte" in
   let statsdir = workspace.workdir / "stats" in
