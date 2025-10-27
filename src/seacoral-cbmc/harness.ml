@@ -478,7 +478,7 @@ let test_to_literal env t =
           match ivalue with
           | Base Value value ->
             apply_assignment_to_literal_map ~id ~value env map
-          | Base Unknown -> map
+          | Base (Unknown _) -> map
           | _ -> assert false
       )
       StrMap.empty

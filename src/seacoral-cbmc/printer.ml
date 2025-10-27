@@ -98,7 +98,10 @@ let pp_property ppf p =
 
 let pp_base_value ppf b =
   match b with
-  | Unknown -> Fmt.string ppf "{unknown}"
+  | Unknown (n, t) ->
+     Fmt.pf ppf "{name = %s; type = %a}"
+       n
+       Fmt.(option ~none:(fun ppf () -> Fmt.string ppf "unknown") Fmt.string) t
   | Value {vbinary; vdata; vname; vtype; vwidth} ->
       pp_record ppf
         [
@@ -212,3 +215,10 @@ let pp_simple_label_env ppf env =
 let pp_analysis_env (type t) ppf (e : t analysis_env) =
   match e with
   | SimpleLabelEnv e -> pp_simple_label_env ppf e
+
+;; Printexc.register_printer begin function
+  | FAILED_JSON_PARSING {exn; json = _}
+  | FAILED_JSON_DESTRUCT {exn; json = _} ->
+     Some (Printexc.to_string exn)
+  | _ -> None
+  end;;
