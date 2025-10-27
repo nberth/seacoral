@@ -22,7 +22,7 @@ module AP = Sc_C.Access_path
 let log_src = Logs.Src.create ~doc:"Logs of Harness module" "Sc_cbmc.Harness"
 module Log = (val (Ez_logs.from_src log_src))
 
-let nondet_call ppf typ = Fmt.pf ppf "nondet_%s ()" typ
+let nondet_call ppf typ = Fmt.pf ppf "nondet_%s()" typ
 
 let bool_of_value: DATA.effective_base_value -> string = function
   | { vbinary = Some ("00000000" | "00000001"); vdata; _ } -> vdata
