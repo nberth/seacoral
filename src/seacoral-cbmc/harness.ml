@@ -202,13 +202,12 @@ let make_symbolic_base ~env ppf (t, id) =
   (* Checking if we did not already initialize it. *)
   if not @@ StrMap.mem v env.inputs then begin
     let ty = Fmt.str "%a" pp_ctypes_static t |> String.replace_spaces ~by:'_' in
-    let fname = Fmt.str "%a" nondet_call ty in
     env.inputs <- StrMap.add v id env.inputs;
     Fmt.pf
       ppf
-      "%s = %s();@,\
+      "%s = %a;@,\
        __CPROVER_input(%S, %s);"
-      v fname
+      v nondet_call ty
       v v
   end
 
