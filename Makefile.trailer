@@ -34,6 +34,16 @@ project:
 	    -e 's/%{ocaml} unix.cma/%{ocaml} -I +unix unix.cma/'
 	git add src/seacoral-main/dune
 
+# Remove any generated version.ml; used when building docker images,
+# when populating the contents of .git AFTER a first build and tests.
+.PHONY: reset-versions
+reset-versions:
+	if test -d _build; then                                                \
+	  find _build -name version.ml -type f -exec sh -c                     \
+	    'for f;                                                            \
+	     do test -f "$$(dirname "$$f")/version.mlt" && rm -f "$$f" || true;\
+	     done' _ {} \+;                                                    \
+	fi
 
 # Make sure `make opam` proceeds even though there exists an `opam`
 # subdirectory.
