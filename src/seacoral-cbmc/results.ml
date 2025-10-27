@@ -169,12 +169,20 @@ let variable_assigns_from_trace
               (* Log.debug "Label %i is reachable!" (Sc_C.Cov_label.id lbl); *)
               check_trace (Ints.add (Sc_C.Cov_label.id lbl) covered) tl
           | None -> (* Failure on an assertion! *)
-              assert (List.exists
-                        (fun DATA.{pname; _} -> fs.fsproperty = pname)
-                        env.extra_required_properties);
-              Log.debug "Property@ %s@ is@ invalid,@ cannot@ conclude@ on@ the@ \
-                         validity@ of@ the@ trace@ after@ that" fs.fsproperty;
-              None
+             if
+               List.exists
+                 (fun DATA.{pname; _} -> fs.fsproperty = pname)
+                 env.extra_required_properties;
+             then begin
+                 Log.debug "Property@ %s@ is@ invalid,@ cannot@ conclude@ on@ the@ \
+                            validity@ of@ the@ trace@ after@ that" fs.fsproperty;
+                 None
+               end
+             else begin
+                 Log.err "Property@ %s@ is@ unknown" fs.fsproperty;
+                 assert false
+               end
+               
         end
     | _ :: tl -> check_trace covered tl
   in
