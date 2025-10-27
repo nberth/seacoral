@@ -184,7 +184,7 @@ module Output = struct
   let string_or_bool : string encoding = union [
       case string (fun s -> Some s) (fun s -> s);
       case bool bool_of_string_opt string_of_bool;
-                                           ]
+    ]
 
   let known_value_case : base_value case =
     case (
@@ -210,9 +210,9 @@ module Output = struct
 
   let base_value : base_value encoding =
     union [
-        known_value_case;
-        unknown_value_case;
-      ]
+      known_value_case;
+      unknown_value_case;
+    ]
 
   let _structure_field value_encoding : structure_field encoding = conv
       (fun {sfname; sfvalue} -> (sfname, sfvalue))
@@ -538,11 +538,6 @@ let options options =
   Yojson.Safe.to_string @@ Json_repr.to_yojson json
 
 let read_cbmc_output encoding str =
-  (* let gen_err_file str = *)
-  (*   let file = Sc_sys.File.assume_in ~dir:ws.workdir "error.json" in *)
-  (*   Sc_sys.File.touch file; *)
-  (*   Sc_sys.File.safe_open_out file (fun oc -> output_string oc str) *)
-  (* in *)
   let js =
     try
       let yoj = Yojson.Safe.from_string str in
@@ -557,7 +552,6 @@ let read_cbmc_output encoding str =
         with
         | Yojson.Json_error _ ->
            (* We tried fixing the JSON and failed: printing the old exception. *)
-           (* TODO: print json in log file *)
            log_exn exn;
            raise (FAILED_JSON_PARSING {exn; json = str})
       end
@@ -565,6 +559,5 @@ let read_cbmc_output encoding str =
   try Json_encoding.destruct encoding js with
   | exn ->
      log_exn exn;
-     (* TODO: print json in log file *)
      raise (FAILED_JSON_DESTRUCT {exn; json = str})
 
