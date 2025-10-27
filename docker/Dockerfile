@@ -166,6 +166,7 @@ RUN if [ "$RUN_TESTS" = yes ];                                                 \
 ARG SKIP_INSTALL=no
 COPY --chown=diver:divers . seacoral
 RUN make -C seacoral reset-versions                                            \
+ && git  -C seacoral restore docker                                            \
  && make -C seacoral                                                           \
  && if [ "$SKIP_INSTALL" != yes ];                                             \
     then rm -rf seacoral/.git                                                  \
