@@ -307,9 +307,9 @@ let gen_man =
     `Pre "$(mname) $(b,generate)";
     `P "In both cases, $(mname) will perform its test generation job withinh a \
         working directory (named $(i,_sc) by default).  After that, you may find \
-        tests generated for coverage within $(i,_sc/last/testcases/cov), and \
+        tests generated for coverage within $(i,_sc/last/tests/cov), and \
         possibly tests that trigger runtime errors or undefined behaviors in \
-        $(i,_sc/last/testcases/rte).";
+        $(i,_sc/last/tests/rte).";
     `S Cmdliner.Manpage.s_exit_status;
     `S Cmdliner.Manpage.s_bugs;
     `P "Please email bug reports to <seacoral@ocaml.pro>."
