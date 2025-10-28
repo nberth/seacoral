@@ -78,3 +78,14 @@ jobs:
           cache-to: type=gha,scope=shared,mode=max
           provenance: false
           # sbom: true
+      -
+        name: Generate summary of actions
+        if: ${{ env.doPush == 'true' }}
+        run: |
+           exec >> $GITHUB_STEP_SUMMARY
+           echo '### Image published! :rocket:'
+           echo
+           echo "Corresponding tags are:"
+           echo '```'
+           echo "${{ steps.meta.outputs.tags }}"
+           echo '```'
