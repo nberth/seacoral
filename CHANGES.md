@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- Recent version of Z3 in Docker image [#17](https://github.com/ocamlpro/seacoral/pull/17)
 - New Boolean option `run.verbose_validation` (CLI arg: `--verbose-validation`) to help with debugging of validator behaviors [#7](https://github.com/ocamlpro/seacoral/pull/7)
 
 ### Fixed
