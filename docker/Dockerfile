@@ -33,12 +33,6 @@ RUN sudo apt-get update                                                        \
  && sudo apt-get clean --yes                                                   \
  && rm base-depext.sh
 
-# Install CBMC
-ARG CBMC_VERSION=6.6.0
-COPY scripts/install-cbmc.sh .
-RUN bash install-cbmc.sh                                                       \
- && rm install-cbmc.sh
-
 # Install Klee & libfuzzer
 # Environment variables $CLANG and $CLANGXX are used by seacoral
 ARG CLANG_VERSION=14
@@ -52,6 +46,15 @@ RUN sudo apt-get update                                                        \
  && sudo apt-get clean --yes                                                   \
  && bash install-klee.sh                                                       \
  && rm install-klee.sh
+
+# Install a recent version of CBMC, along with Z3
+# Note: impacts choices of software for apt calls.
+RUN echo >/etc/apt/sources.list.d/trixie.list                                  \
+      'deb http://deb.debian.org/debian trixie main'
+RUN sudo apt-get update                                                        \
+ && sudo apt-get install --yes z3 cbmc                                         \
+ && sudo apt-get autoremove --yes                                              \
+ && sudo apt-get clean --yes
 
 ################################################################################
 

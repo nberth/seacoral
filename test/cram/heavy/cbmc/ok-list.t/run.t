@@ -6,7 +6,7 @@
   [A]{Sc} Extracting new testcases from corpus...
   [A]{Sc} Hard work done
   [A]{Sc} Coverage statistics for `length':
-          cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
+          cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 1 test
   [A]{Sc} Covered labels: {1, 2}
   [A]{Sc} Uncoverable labels: {}
   [A]{Sc} Crash statistics: rte: none
