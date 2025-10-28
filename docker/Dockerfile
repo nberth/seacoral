@@ -48,13 +48,15 @@ RUN sudo apt-get update                                                        \
  && rm install-klee.sh
 
 # Install a recent version of CBMC, along with Z3
-# Note: impacts choices of software for apt calls.
+# Restore apt source lists to avoid impacts on choices of software for
+# subsequent apt calls.
 RUN echo >/etc/apt/sources.list.d/trixie.list                                  \
-      'deb http://deb.debian.org/debian trixie main'
-RUN sudo apt-get update                                                        \
+      'deb http://deb.debian.org/debian trixie main'                           \
+ && sudo apt-get update                                                        \
  && sudo apt-get install --yes z3 cbmc                                         \
- && sudo apt-get autoremove --yes                                              \
- && sudo apt-get clean --yes
+ && sudo apt-get clean --yes                                                   \
+ && rm /etc/apt/sources.list.d/trixie.list                                     \
+ && sudo apt-get update
 
 ################################################################################
 
