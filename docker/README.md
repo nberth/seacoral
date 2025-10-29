@@ -7,27 +7,10 @@ image.  To do so, login to https://gitlab.ocamlpro.com and navigate to
 https://gitlab.ocamlpro.com/-/user_settings/personal_access_tokens.
 Create a new token with `read_registry` scope.
 
-Then, create and/or edit the file `~/.docker/config.json`, and add an
-`auths` entry for the registry.  This file should look like:
-```json
-{
-       "auths": {
-               "registry.ocamlpro.com": {
-                       "auth": "<base64token>"
-               }
-       }
-}
-```
-where `<base64token>` is a string of characters that can be generated
-using the following command (replace `<token>` with the token you
-created on gitlab):
+Then, login to the registry using the following command (replace
+`<token>` with the token you created on gitlab):
 ```shell
-echo -n "oauth2accesstoken:<token>" | base64
-```
-
-Login to the registry:
-```shell
-docker login registry.ocamlpro.com
+echo "<token>" | docker login registry.ocamlpro.com -u oauth2accesstoken --password-stdin
 ```
 
 After this, the latest development image can be retrieved using
