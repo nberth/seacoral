@@ -270,8 +270,7 @@ let write_json ek ~runner_options (options : json_options) : [`json] Sc_sys.File
     Sc_sys.File.PRETTY.assume_in ~dir:runner_options.runner_inputs
       "%u-%a-options.json" runner_options.runner_iteration pp_execution_kind ek
   in
-  let>* out = file in
-  let* () = Lwt_io.write out json in
+  let* () = Sc_sys.Lwt_file.write file json in
   Lwt.return file
 
 let out_json ek ~runner_options : [`json] Sc_sys.File.t Lwt.t =
