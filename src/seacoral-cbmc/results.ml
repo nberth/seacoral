@@ -179,8 +179,7 @@ let variable_assigns_from_trace
                  None
                end
              else begin
-                 Log.err "Property@ %s@ is@ unknown" fs.fsproperty;
-                 assert false
+                 raise (UNKNOWN_PROPERTY fs.fsproperty)
                end
                
         end
@@ -215,6 +214,15 @@ let treat_counter_example
             Ints.print covered
             Sc_values.pp_literal_binding test;
           add_tests [test, covered] cr
+      | exception (UNKNOWN_PROPERTY pname) ->
+         (* We reached a property that was not registered as such previously.
+            Discarding the counter example for safety.
+            TODO: we could check whether the validator manages to do something
+            with it, in which case we would not have to raise this exception *)
+         Log.err
+           "Property@ %s@ is@ unknown. Discarding the counter-example"
+           pname;
+         cr
 
 let generic_assertion_check_property (ac: DATA.assertion_check) (cr: t) =
   match ac.acstatus with

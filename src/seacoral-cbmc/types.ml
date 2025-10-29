@@ -8,8 +8,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-exception FAILED_JSON_PARSING of {exn : exn; json: string}
 exception FAILED_JSON_DESTRUCT of {exn: exn; json: string}
+exception FAILED_JSON_PARSING of {exn : exn; json: string}
+exception UNKNOWN_PROPERTY of string
 
 module OPTIONS = struct
 

@@ -220,5 +220,7 @@ let pp_analysis_env (type t) ppf (e : t analysis_env) =
   | FAILED_JSON_PARSING {exn; json = _}
   | FAILED_JSON_DESTRUCT {exn; json = _} ->
      Some (Printexc.to_string exn)
+  | UNKNOWN_PROPERTY pname ->
+     Some (Fmt.str "Unknown property %s" pname)
   | _ -> None
   end;;
