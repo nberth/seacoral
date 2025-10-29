@@ -294,11 +294,7 @@ let read_json_result ~outputs_json ~encoding ~errors_file ~errors_json_file =
       let<* ec = errors_file in
       Lwt_stream.iter_s (Log.LWT.err "stderr: %s") @@ Lwt_io.read_lines ec
     in
-    let* () =
-      let>* ec = errors_json_file in
-      Lwt_io.write ec json
-    in
-    Lwt.return ()
+    Sc_sys.Lwt_file.write errors_json_file json
   in
   Lwt.catch begin fun () ->
     let* json_string = let<* ic = outputs_json in Lwt_io.read ic in
