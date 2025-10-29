@@ -5,7 +5,7 @@
 You first need access to the registry to be able to retrieve the
 image.  To do so, login to https://gitlab.ocamlpro.com and navigate to
 https://gitlab.ocamlpro.com/-/user_settings/personal_access_tokens.
-Create a new token with `read_repository` scope.
+Create a new token with `read_registry` scope.
 
 Then, create and/or edit the file `~/.docker/config.json`, and add an
 `auths` entry for the registry.  This file should look like:
