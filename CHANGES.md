@@ -7,6 +7,7 @@
 - New Boolean option `run.verbose_validation` (CLI arg: `--verbose-validation`) to help with debugging of validator behaviors [#7](https://github.com/ocamlpro/seacoral/pull/7)
 
 ### Fixed
+- Improving the logs when SeaCoral fails to decode CBMC's output and when an unknown property appears in a counter-example [#16](https://github.com/OCamlPro/seacoral/pull/16)
 - Name of the internal directory where testsuites are exported [#12](https://github.com/ocamlpro/seacoral/pull/12)
 - Detection by the validator of buffer overflows on empty arrays [#6](https://github.com/ocamlpro/seacoral/pull/6)
 - Unnecessary generation by Klee, of tests that violate pre-conditions (`sc_assume`) [#5](https://github.com/ocamlpro/seacoral/pull/5)
