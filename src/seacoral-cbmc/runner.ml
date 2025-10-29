@@ -51,7 +51,7 @@ let property_belongs_to_file ~file prop =
 
 let id_from_property_name prop =
   match String.split_on_char '.' prop.pname with
-  | [fname; _; id] -> fname, int_of_string id
+  | [fname; kind; id] -> fname, kind, int_of_string id
   | _ -> assert false
 
 let empty_env =
@@ -59,9 +59,16 @@ let empty_env =
     proof_objectives = PropertyMap.empty;
     already_proven = PropertyMap.empty }
 
+let property_kind_matches_mode ~mode ~kind =
+  match mode with
+  | OPTIONS.Cover -> kind = "coverage"
+  | Assert -> kind = "assertion"
+  | CLabel -> kind = "error_label"
+
 (* Takes the list of properties returned by cbmc with the option --show-properties and
    returns the associated proof objectives (the labels to cover). *)
 let uncovered_properties
+    ~mode
     ~harness_file
     ~labelized_file
     ~(cbmc_props : property list)
@@ -78,9 +85,13 @@ let uncovered_properties
   let env =
     List.fold_left begin fun env prop ->
       (* Log.debug "Property %a" Printer.pp_property prop; *)
-      let fname, lbl_id = id_from_property_name prop in
+      let fname, kind, lbl_id = id_from_property_name prop in
+      Log.debug "Property@ %s.%i@ of@ kind@ %s" fname lbl_id kind; 
       (* Checking if the property belongs to the main file and the main function. *)
-      if property_belongs_to_file ~file:harness_file prop && fname = entrypoint then
+      if not (property_kind_matches_mode ~mode ~kind) then
+        { env with
+          extra_required_properties = prop :: env.extra_required_properties }
+      else if property_belongs_to_file ~file:harness_file prop && fname = entrypoint then
         (* Probably unsafe *)
         match Basics.IntMap.find_opt lbl_id lbl_map with
         | None ->                                               (* not a label *)
@@ -259,8 +270,7 @@ let write_json ek ~runner_options (options : json_options) : [`json] Sc_sys.File
     Sc_sys.File.PRETTY.assume_in ~dir:runner_options.runner_inputs
       "%u-%a-options.json" runner_options.runner_iteration pp_execution_kind ek
   in
-  let>* out = file in
-  let* () = Lwt_io.write out json in
+  let* () = Sc_sys.Lwt_file.write file json in
   Lwt.return file
 
 let out_json ek ~runner_options : [`json] Sc_sys.File.t Lwt.t =
@@ -273,17 +283,34 @@ let err_file ek ~runner_options : [`stderr] Sc_sys.File.t Lwt.t =
   Sc_sys.File.PRETTY.assume_in ~dir:runner_options.runner_outputs
     "%u-%a-errors" runner_options.runner_iteration pp_execution_kind ek
 
-let read_json_result ~outputs_json ~encoding ~errors_file =
-  Lwt.catch begin fun () ->
-    let* json_string = let<* ic = outputs_json in Lwt_io.read ic in
-    Lwt.return @@ Json.read_cbmc_output encoding json_string
-  end begin fun e ->
-    Log.err "Error while reading CBMC's output: %a" Fmt.exn e;
+let err_json ek ~runner_options : [`stderr] Sc_sys.File.t Lwt.t =
+  Lwt.return @@
+  Sc_sys.File.PRETTY.assume_in ~dir:runner_options.runner_outputs
+    "%u-%a-json-error.json" runner_options.runner_iteration pp_execution_kind ek
+
+let read_json_result ~outputs_json ~encoding ~errors_file ~errors_json_file =
+  let log_err json =
     let* () =
       let<* ec = errors_file in
       Lwt_stream.iter_s (Log.LWT.err "stderr: %s") @@ Lwt_io.read_lines ec
     in
-    Lwt.reraise e
+    Sc_sys.Lwt_file.write errors_json_file json
+  in
+  Lwt.catch begin fun () ->
+    let* json_string = let<* ic = outputs_json in Lwt_io.read ic in
+    Lwt.return @@ Json.read_cbmc_output encoding json_string
+    end begin function
+      | (FAILED_JSON_PARSING {exn = _; json} as e) ->
+         Log.err "Error while parsing CBMC's output";
+         let* () = log_err json in
+         Lwt.reraise e
+      | (FAILED_JSON_DESTRUCT {exn = _; json} as e) ->
+         Log.err "Error while destructing CBMC's output";
+         let* () = log_err json in
+         Lwt.reraise e
+      | e -> 
+         Log.err "Unexpected error while reading CBMC's output";
+         Lwt.reraise e
   end
 
 let cbmc_start
@@ -300,7 +327,8 @@ let cbmc_start
   in
   let* inputs_json = write_json ek ~runner_options joptions
   and* outputs_json = out_json ek ~runner_options
-  and* errors_file = err_file ek ~runner_options in
+  and* errors_file = err_file ek ~runner_options
+  and* errors_json_file = err_json ek ~runner_options in
   let* status =
     cbmc_generic_process ~resdir:runner_options.runner_resdir ~store
       ~timeout:options.timeout ~inputs_json ~outputs_json ~errors_file
@@ -309,7 +337,7 @@ let cbmc_start
   | Error (Unix.WSIGNALED -7) when silent_kill ->               (* Manual kill *)
       Lwt.return []
   | _ ->
-      read_json_result ~outputs_json ~encoding ~errors_file
+      read_json_result ~outputs_json ~encoding ~errors_file ~errors_json_file
 
 let cbmc_get_properties ~store ~runner_options ~entrypoint ~files opt =
   cbmc_start GetProperties ~store ~runner_options ~entrypoint ~files opt

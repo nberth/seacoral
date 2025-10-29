@@ -22,6 +22,8 @@ module AP = Sc_C.Access_path
 let log_src = Logs.Src.create ~doc:"Logs of Harness module" "Sc_cbmc.Harness"
 module Log = (val (Ez_logs.from_src log_src))
 
+let nondet_call ppf typ = Fmt.pf ppf "nondet_%s()" typ
+
 let bool_of_value: DATA.effective_base_value -> string = function
   | { vbinary = Some ("00000000" | "00000001"); vdata; _ } -> vdata
   | { vbinary = Some binary; _ } -> "0b"^binary
@@ -199,14 +201,13 @@ let make_symbolic_base ~env ppf (t, id) =
   Log.debug "Symbolizing value %S" v;
   (* Checking if we did not already initialize it. *)
   if not @@ StrMap.mem v env.inputs then begin
-    let fname = Fmt.str "nondet_%a" pp_ctypes_static t in
-    let fname = String.replace_spaces ~by:'_' fname in
+    let ty = Fmt.str "%a" pp_ctypes_static t |> String.replace_spaces ~by:'_' in
     env.inputs <- StrMap.add v id env.inputs;
     Fmt.pf
       ppf
-      "%s = %s();@,\
+      "%s = %a;@,\
        __CPROVER_input(%S, %s);"
-      v fname
+      v nondet_call ty
       v v
   end
 
@@ -248,8 +249,8 @@ let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
   env.empty <- StrMap.add empty_array_flag id env.empty;
   Fmt.pf ppf "@[<v 2>do {@;";
   Fmt.pf ppf "/* Initializing pointer '%s' */@," n;
-  Fmt.pf ppf "char __empty = nondet_char ();@,\
-              __CPROVER_input (\"%s\", __empty);@," empty_array_flag;
+  Fmt.pf ppf "char __empty = %a;@," nondet_call "char";
+  Fmt.pf ppf "__CPROVER_input (\"%s\", __empty);@," empty_array_flag;
   Fmt.pf ppf "if (__empty) { static %a; %s = x; }@,\
              " Sc_values.Printer.c_decl (Array (typ, 0), "x") n;
   Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_var n;
@@ -320,7 +321,7 @@ let rec make_symbolic_cons
                   Fmt.pf ppf "%s = 0;" (AP.to_string new_id);
                | `Carray_with_bound_length max ->
                   let size_var = fresh_size_var () in
-                  Fmt.pf ppf "int %s = nondet_int ();@," size_var;
+                  Fmt.pf ppf "int %s = %a;@," size_var nondet_call "int";
                   pp_static_malloc ~env ~id:new_id ~size_var ~max_size:max ~typ:pted ppf;
                   Fmt.pf ppf "@,";
                   pp_initialize_referenced_values ~id:new_id ~size_var ~max
@@ -351,7 +352,7 @@ let rec make_symbolic_cons
          make_symbolic_base ~env ppf (t, id)
       | Ctypes_static.Union {ufields; _} ->
          let case_var = fresh_cases_var () in
-         Fmt.pf ppf "char %s = __CPROVER_char ();@," case_var;
+         Fmt.pf ppf "char %s = %a;@," case_var nondet_call "char";
          List.iteri
            (fun i (Ctypes_static.BoxedField {fname; ftype; _}) ->
              let id = AP.append_field id fname in
@@ -478,7 +479,7 @@ let test_to_literal env t =
           match ivalue with
           | Base Value value ->
             apply_assignment_to_literal_map ~id ~value env map
-          | Base Unknown -> map
+          | Base (Unknown _) -> map
           | _ -> assert false
       )
       StrMap.empty

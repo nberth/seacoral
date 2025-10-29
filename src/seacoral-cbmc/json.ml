@@ -8,7 +8,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Types.DATA
+open Types
+open DATA
 
 open Json_encoding
 
@@ -185,9 +186,8 @@ module Output = struct
       case bool bool_of_string_opt string_of_bool;
     ]
 
-  let base_value : base_value encoding =
-    let value =
-      case (
+  let known_value_case : base_value case =
+    case (
         obj5
           (opt "binary" string)
           (req "data" string_or_bool)
@@ -195,20 +195,23 @@ module Output = struct
           (opt "type" string)
           (opt "width" int)
       )
-        (function | Value {vbinary; vdata; vname; vtype; vwidth} -> Some (vbinary, vdata, vname, vtype, vwidth) | Unknown -> None)
-        (fun (vbinary, vdata, vname, vtype, vwidth) -> Value {vbinary; vdata; vname; vtype; vwidth})
-    in
-    let unknown =
-      case (
-        obj1
+      (function | Value {vbinary; vdata; vname; vtype; vwidth} -> Some (vbinary, vdata, vname, vtype, vwidth) | Unknown _ -> None)
+      (fun (vbinary, vdata, vname, vtype, vwidth) -> Value {vbinary; vdata; vname; vtype; vwidth})
+    
+
+  let unknown_value_case : base_value case =
+    case (
+        obj2
           (req "name" string)
+          (opt "type" string)
       )
-        (function | Unknown -> Some "unknown" | Value _ -> None)
-        (fun str -> assert (str = "unknown"); Unknown)
-    in
+      (function | Unknown (n, t) -> Some (n, t) | Value _ -> None)
+      (fun (str, t) -> Unknown (str, t))
+
+  let base_value : base_value encoding =
     union [
-      value;
-      unknown;
+      known_value_case;
+      unknown_value_case;
     ]
 
   let _structure_field value_encoding : structure_field encoding = conv
@@ -535,31 +538,26 @@ let options options =
   Yojson.Safe.to_string @@ Json_repr.to_yojson json
 
 let read_cbmc_output encoding str =
-  try
-    let yoj = Yojson.Safe.from_string str in
-    let js = Json_repr.from_yojson yoj in
-    Json_encoding.destruct encoding js
-  with
-  | Yojson.Json_error _ as exn ->
-      (* When CBMC fails, it outputs a list of JSON values with a missing ']'.
-         We try here to rebuild the correct JSON. *)
-      try
-        let yoj = Yojson.Safe.from_string (str ^ "]") in
-        let js = Json_repr.from_yojson yoj in
-        let result = Json_encoding.destruct encoding js in
-        (* If we reached this part, it means that CBMC failed and its output
-           was invalid. *)
-        Log.err "CBMC failed (%s). This may happen when the maximum array \
-                 size or pointer depth are too large. Consider \
-                 retrying the analysis with smaller values."
-          (Printexc.to_string exn);
-        result
-      with
-      | Yojson.Json_error _ ->
-          (* We tried fixing the JSON and failed: printing the old exception. *)
-          Log.err "Error while destructing %s" str;
-          raise exn
-      | exn ->
-          log_exn exn;
-          raise exn
+  let js =
+    try
+      let yoj = Yojson.Safe.from_string str in
+      Json_repr.from_yojson yoj
+    with
+    | Yojson.Json_error _ as exn -> begin
+        (* When CBMC fails, it outputs a list of JSON values with a missing ']'.
+           We try here to rebuild the correct JSON. *)
+        try
+          let yoj = Yojson.Safe.from_string (str ^ "]") in
+          Json_repr.from_yojson yoj
+        with
+        | Yojson.Json_error _ ->
+           (* We tried fixing the JSON and failed: printing the old exception. *)
+           log_exn exn;
+           raise (FAILED_JSON_PARSING {exn; json = str})
+      end
+  in
+  try Json_encoding.destruct encoding js with
+  | exn ->
+     log_exn exn;
+     raise (FAILED_JSON_DESTRUCT {exn; json = str})
 

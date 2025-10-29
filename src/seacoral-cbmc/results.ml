@@ -169,12 +169,19 @@ let variable_assigns_from_trace
               (* Log.debug "Label %i is reachable!" (Sc_C.Cov_label.id lbl); *)
               check_trace (Ints.add (Sc_C.Cov_label.id lbl) covered) tl
           | None -> (* Failure on an assertion! *)
-              assert (List.exists
-                        (fun DATA.{pname; _} -> fs.fsproperty = pname)
-                        env.extra_required_properties);
-              Log.debug "Property@ %s@ is@ invalid,@ cannot@ conclude@ on@ the@ \
-                         validity@ of@ the@ trace@ after@ that" fs.fsproperty;
-              None
+             if
+               List.exists
+                 (fun DATA.{pname; _} -> fs.fsproperty = pname)
+                 env.extra_required_properties;
+             then begin
+                 Log.debug "Property@ %s@ is@ invalid,@ cannot@ conclude@ on@ the@ \
+                            validity@ of@ the@ trace@ after@ that" fs.fsproperty;
+                 None
+               end
+             else begin
+                 raise (UNKNOWN_PROPERTY fs.fsproperty)
+               end
+               
         end
     | _ :: tl -> check_trace covered tl
   in
@@ -207,6 +214,15 @@ let treat_counter_example
             Ints.print covered
             Sc_values.pp_literal_binding test;
           add_tests [test, covered] cr
+      | exception (UNKNOWN_PROPERTY pname) ->
+         (* We reached a property that was not registered as such previously.
+            Discarding the counter example for safety.
+            TODO: we could check whether the validator manages to do something
+            with it, in which case we would not have to raise this exception *)
+         Log.err
+           "Property@ %s@ is@ unknown. Discarding the counter-example"
+           pname;
+         cr
 
 let generic_assertion_check_property (ac: DATA.assertion_check) (cr: t) =
   match ac.acstatus with

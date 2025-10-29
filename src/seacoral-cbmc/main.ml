@@ -155,6 +155,7 @@ let properties_to_verify wd : [`simple] analysis_env option Lwt.t =
       in
       Lwt.return @@ Option.some @@
       Runner.uncovered_properties
+        ~mode:wd.opt.mode
         ~harness_file:wd.harness_file
         ~labelized_file
         (* ~variables:wd.file.FILE.variable_details *)

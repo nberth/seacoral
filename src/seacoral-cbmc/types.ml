@@ -8,6 +8,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+exception FAILED_JSON_DESTRUCT of {exn: exn; json: string}
+exception FAILED_JSON_PARSING of {exn : exn; json: string}
+exception UNKNOWN_PROPERTY of string
+
 module OPTIONS = struct
 
   type mode =
@@ -118,7 +122,7 @@ module DATA = struct
 
   type base_value =
     | Value of effective_base_value
-    | Unknown
+    | Unknown of (string * string option) (* name * type *)
 
   and effective_base_value = {
     vbinary: string option;
