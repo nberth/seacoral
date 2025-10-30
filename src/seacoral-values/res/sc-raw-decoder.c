@@ -36,9 +36,9 @@
 
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
-static struct obstack obstack;	// device for growing [ptrs] array
-static void **ptrs = NULL;	// growing array of malloc'ed pointers
-static unsigned ptrs_count = 0;	// size of ptrs
+static struct obstack obstack;	/* device for growing [ptrs] array */
+static void **ptrs = NULL;	/* growing array of malloc'ed pointers */
+static unsigned ptrs_count = 0;	/* size of ptrs */
 
 void
 __sc_decoder_init (void) {
@@ -47,10 +47,12 @@ __sc_decoder_init (void) {
 
 /* Free every currently allocated block of memory. */
 void
-__sc_decoder_reset (void) {
+__sc_decoder_reset (const unsigned free_memory) {
   unsigned i;		       /* NB: could reversing the `free`s make sense? */
-  for (i = 0; i < ptrs_count; i++) {
-    free (ptrs[i]);
+  if (free_memory) {
+    for (i = 0; i < ptrs_count; i++) {
+      free (ptrs[i]);
+    }
   }
   ptrs = NULL;
   ptrs_count = 0;

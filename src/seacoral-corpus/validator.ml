@@ -203,7 +203,9 @@ let emit_validator_c (type raw_test) ppf (validator: raw_test t) =
      @\n  if (p != NULL) {\
      @\n    @[<v>%a%t@]\
      @\n  }\
-     @\n  __sc_raw_decoder_reset ();\
+     @\n  /* Skip deallocations during decoder reset: this may lead to double-free\
+     @\n     errors, while we are about to exit anyways. */\
+     @\n  __sc_raw_decoder_reset (0);\
      @\n  __sc_unload_raw_test (&raw_test);\
      @\n#ifndef __SC_VALIDATOR_IGNORE_LABELS\
      @\n  if (__sc_buff_commit () == 0) {\
