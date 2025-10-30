@@ -62,6 +62,10 @@ jobs:
           sed -e '/AS base$/ d; /AS executable$/ d' \
               docker/Dockerfile > ${{ runner.temp }}/Dockerfile
       -
+        name: Determine the number of available cores
+        run: |
+          echo "NCORES=$(nproc)" >> $GITHUB_ENV
+      -
         name: Build, test, and push
         uses: docker/build-push-action@v6
         with:
@@ -69,7 +73,7 @@ jobs:
           file: ${{ runner.temp }}/Dockerfile
           build-args: |
              RUN_TESTS=yes
-             RUN_TESTS_JOBS=8
+             RUN_TESTS_JOBS=${{ env.NCORES }}
              SKIP_INSTALL=${{ env.doPush != 'true' && 'yes' || 'no' }}
           push: ${{ env.doPush == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -79,7 +83,7 @@ jobs:
           provenance: false
           # sbom: true
       -
-        name: Generate summary of actions
+        name: Generate a summary of actions
         if: ${{ env.doPush == 'true' }}
         run: |
            exec >> $GITHUB_STEP_SUMMARY
