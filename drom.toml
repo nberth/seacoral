@@ -14,10 +14,10 @@ license = "GPL3"
 min-edition = "4.14.0"
 name = "seacoral"
 skeleton = "program"
-synopsis = "The Seacoral project"
+synopsis = "Collaborative Test Generation Toolset for C"
 # Note: we use git tags to define the version in the tool. This
 # particular field is only used when generating opam package files.
-version = "0.1.1~dev"
+version = "1.0"
 
 # keys that you could also define:
 # odoc-target = "...odoc-target..."
@@ -30,7 +30,7 @@ version = "0.1.1~dev"
 
 [project]
 description = """
-Seacoral is an orchestration tool that is able to combine the power of
+SeaCoral is an orchestration tool that is able to combine the power of
 a wide range of test generation techniques in order to automatically
 produce tests for your C projects.
 """
@@ -98,14 +98,10 @@ dot-gitignore-trailer = """
 .envrc
 """
 readme-trailer = """
-## Running Seacoral in a Docker container
+## Running SeaCoral in a Docker container
 
-Instructions for using Seacoral in a Docker container are provided [in
+Instructions for using SeaCoral in a Docker container are provided [in
 the `docker` subdirectory](docker/README.md).
-
-## Installing Seacoral
-
-Please see [`INSTALL.md`](./INSTALL.md) for further information.
 """
 
 [[package]]

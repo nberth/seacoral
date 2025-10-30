@@ -2,11 +2,11 @@
 # Do not modify, or add to the `skip` field of `drom.toml`.
 opam-version: "2.0"
 name: "ez-logs"
-version: "0.1.1~dev"
+version: "1.0"
 license: "GPL-3.0-only"
 synopsis: "Helper library to setup multi-output logs"
 description: """\
-Seacoral is an orchestration tool that is able to combine the power of
+SeaCoral is an orchestration tool that is able to combine the power of
 a wide range of test generation techniques in order to automatically
 produce tests for your C projects.
 """
