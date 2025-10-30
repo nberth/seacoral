@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0 ( 2025-10-30 )
+## 1.0.0 ( 2025-10-30 )
 
 ### Added
 - Recent version of Z3 in Docker image [#17](https://github.com/ocamlpro/seacoral/pull/17)
@@ -16,6 +16,6 @@
 - Handling of NaNs and floating-point literals in test suites [#2](https://github.com/ocamlpro/seacoral/pull/2)
 
 
-## v0.1.0 ( 2025-10-14 )
+## 0.1.0 ( 2025-10-14 )
 
 * Initial version
