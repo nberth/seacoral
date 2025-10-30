@@ -181,13 +181,3 @@ RUN make -C seacoral reset-versions                                            \
     fi                                                                         \
  && rm -rf seacoral opam                                                       \
            $OPAM_SWITCH_PREFIX/.opam-switch/sources
-
-# Lastly, create a work directory, and make it bindable with both read
-# and write permssions via `--volume <hostdir>:/workdir`.  Also, hack
-# a workaround to volume mounts (note user/group IDs may still be
-# messed up on the host---user namespaces may be a way to solve this).
-RUN sudo mkdir -p /workdir                                                     \
- && sudo chown -R diver:divers /workdir                                        \
- && echo "sudo chown diver:divers /workdir" >> ~/.bashrc
-VOLUME /workdir
-WORKDIR /workdir

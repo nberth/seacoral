@@ -26,10 +26,6 @@ The latter command starts a shell in a new container running the
 image; `seacoral` is available as a command-line utility while in this
 shell.
 
-The default working directory in containers derived from the image is
-`/workdir`.  You can pass the options `--volume .:/workdir` to bind
-the current working directory to `/workdir` in the container.
-
 **Warning**: `seacoral` won't be in the `PATH` if a custom shell is
 specified at the end of the `docker run` command.  In this case, you
 can run `eval $(opam env)` (or equivalent) to update the environment
