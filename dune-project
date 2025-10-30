@@ -4,7 +4,7 @@
 (cram enable)
 (name seacoral)
 (generate_opam_files false)
-(version 1.0.0)
+(version 1.1~dev)
 (formatting (enabled_for ocaml reason))
 (using menhir 2.0)
 
