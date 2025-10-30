@@ -55,7 +55,7 @@ let emit_llvmfuzzer_harness ppf project =
      @\n    });\
      @\n  }\
      @\n  __SC_FUZZ_LABELSONLY_FILTER ();\
-     @\n  __sc_raw_decoder_reset ();\
+     @\n  __sc_raw_decoder_reset (1);\
      @\n  return 0;\
      @\n}"
     Sc_values.Struct.print test_struct

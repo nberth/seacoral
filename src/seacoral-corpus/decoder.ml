@@ -58,7 +58,7 @@ let gen_n_compile_decoder (type r) (decoder: r t) () =
         @\n__sc_raw_decode (const unsigned char *data, size_t size);\
         @\n\
         @\n#define __sc_raw_decoder_init() __sc_decoder_init ()\
-        @\n#define __sc_raw_decoder_reset() __sc_decoder_reset ()\
+        @\n#define __sc_raw_decoder_reset(free) __sc_decoder_reset (free)\
         @\n"
       Sc_C.Printer.pp_typ_defs cil
       Sc_values.Raw_decoder.declare_struct test_struct
