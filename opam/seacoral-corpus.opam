@@ -2,9 +2,9 @@
 # Do not modify, or add to the `skip` field of `drom.toml`.
 opam-version: "2.0"
 name: "seacoral-corpus"
-version: "0.1.1~dev"
+version: "1.0"
 license: "GPL-3.0-only"
-synopsis: "The Seacoral project"
+synopsis: "Collaborative Test Generation Toolset for C"
 description: "Seacoral's library for testcase storage and sharing"
 authors: [
   "Steven de Oliveira <steven.de-oliveira@ocamlpro.com>"

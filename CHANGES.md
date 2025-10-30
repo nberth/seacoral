@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## v1.0 ( 2025-10-30 )
 
 ### Added
 - Recent version of Z3 in Docker image [#17](https://github.com/ocamlpro/seacoral/pull/17)

@@ -4,14 +4,14 @@
 (cram enable)
 (name seacoral)
 (generate_opam_files false)
-(version 0.1.1~dev)
+(version 1.0)
 (formatting (enabled_for ocaml reason))
 (using menhir 2.0)
 
 (package
  (name seacoral)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-main (= :version))
@@ -33,7 +33,7 @@
 
 (package
  (name seacoral-lib)
- (synopsis "The Seacoral project")
+ (synopsis "Collaborative Test Generation Toolset for C")
  (description "Utilities for Seacoral to interact with LTest")
  (depends
    (ocaml (>= 4.14.0))
@@ -66,8 +66,8 @@
 
 (package
  (name seacoral-klee)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-values (= :version))
@@ -90,8 +90,8 @@
 
 (package
  (name seacoral-ltest)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    toml
@@ -112,8 +112,8 @@
 
 (package
  (name seacoral-fuzz)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-store (= :version))
@@ -134,8 +134,8 @@
 
 (package
  (name seacoral-main)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-report (= :version))
@@ -160,7 +160,7 @@
 
 (package
  (name seacoral-store)
- (synopsis "The Seacoral project")
+ (synopsis "Collaborative Test Generation Toolset for C")
  (description "Seacoral's store of label coverage status")
  (depends
    (ocaml (>= 4.14.0))
@@ -179,8 +179,8 @@
 
 (package
  (name seacoral-cbmc)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (yojson (and ( >= 1.7.0 )( < 3.0.0 )))
@@ -204,8 +204,8 @@
 
 (package
  (name seacoral-report)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-store (= :version))
@@ -226,7 +226,7 @@
 (package
  (name seacoral-project)
  (synopsis "Representation and managerement of Seacoral projects")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (yojson ( >= 1.7.0 ))
@@ -249,8 +249,8 @@
 
 (package
  (name seacoral-replayer)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-project (= :version))
@@ -270,8 +270,8 @@
 
 (package
  (name seacoral-sys)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-basics (= :version))
@@ -292,8 +292,8 @@
 
 (package
  (name seacoral-basics)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (terminal_size ( >= 0.2 ))
@@ -312,7 +312,7 @@
 (package
  (name seacoral-c)
  (synopsis "Defintions and concepts related to the C language (based on CIL)")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-sys (= :version))
@@ -334,7 +334,7 @@
 (package
  (name ez-logs)
  (synopsis "Helper library to setup multi-output logs")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (logs ( >= 0.7.0 ))
@@ -350,8 +350,8 @@
 
 (package
  (name seacoral-values)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-crunch (= :version))
@@ -371,8 +371,8 @@
 
 (package
  (name seacoral-crunch)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-sys (= :version))
@@ -389,8 +389,8 @@
 
 (package
  (name seacoral-config)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    toml
@@ -410,8 +410,8 @@
 
 (package
  (name seacoral-strategy)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-basics (= :version))
@@ -428,7 +428,7 @@
 (package
  (name seacoral-core)
  (synopsis "Seacoral's core utilities for manipulating workspaces and tools")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    toml
@@ -449,8 +449,8 @@
 
 (package
  (name seacoral-luncov)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-project (= :version))
@@ -469,7 +469,7 @@
 
 (package
  (name seacoral-corpus)
- (synopsis "The Seacoral project")
+ (synopsis "Collaborative Test Generation Toolset for C")
  (description "Seacoral's library for testcase storage and sharing")
  (depends
    (ocaml (>= 4.14.0))
@@ -490,8 +490,8 @@
 
 (package
  (name seacoral-cil-shims)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (goblint-cil (and ( >= 2 )( < 2.0.7 )))
@@ -507,8 +507,8 @@
 
 (package
  (name seacoral-postproc)
- (synopsis "The Seacoral project")
- (description "Seacoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
+ (synopsis "Collaborative Test Generation Toolset for C")
+ (description "SeaCoral is an orchestration tool that is able to combine the power of\na wide range of test generation techniques in order to automatically\nproduce tests for your C projects.\n")
  (depends
    (ocaml (>= 4.14.0))
    (seacoral-sys (= :version))
