@@ -17,5 +17,18 @@ the `docker` subdirectory](docker/README.md).
 * Website: https://ocamlpro.com/seacoral
 * Sources: https://github.com/ocamlpro/seacoral
 
+## Funding notice
+
+Part of this work was supported by the [AID ("Agence de l'innovation
+de défense")][AID] through the [RAPID ("Régime d'APpui à l'Innovation
+Duale")][RAPID] project AutoCouv: "Génération automatique de tests par
+couverture des labels".
+
+---
+Copyright © 2024-2025 OCamlPro
+
 [ci-badge]: https://github.com/ocamlpro/seacoral/workflows/CI/badge.svg
 [release-badge]: https://img.shields.io/github/release/ocamlpro/seacoral.svg
+
+[AID]: https://www.defense.gouv.fr/aid
+[RAPID]: https://www.defense.gouv.fr/aid/deposez-votre-projet/rapid-regime-dappui-linnovation-duale
