@@ -3,7 +3,7 @@
 opam-version: "2.0"
 name: "ez-logs"
 version: "1.1~dev"
-license: "GPL-3.0-only"
+license: "AGPL"
 synopsis: "Helper library to setup multi-output logs"
 description: """\
 SeaCoral is an orchestration tool that is able to combine the power of

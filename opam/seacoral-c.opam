@@ -3,7 +3,7 @@
 opam-version: "2.0"
 name: "seacoral-c"
 version: "1.1~dev"
-license: "GPL-3.0-only"
+license: "AGPL"
 synopsis: "Defintions and concepts related to the C language (based on CIL)"
 description: """\
 SeaCoral is an orchestration tool that is able to combine the power of
