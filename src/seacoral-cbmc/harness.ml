@@ -150,6 +150,7 @@ module TYPES = struct
       entrypoint: string;
       mutable inputs: AP.t StrMap.t;  (* CBMC input argument => Access_path *)
       mutable empty: AP.t StrMap.t;   (* Pointer => non-NULL empty array flag *)
+      mutable tmp_counter: int; (* A counter for temporary variables to enforce uniqueness *)
     }
 end
 
@@ -162,6 +163,7 @@ let empty_env entrypoint =
     entrypoint;
     inputs = StrMap.empty;
     empty = StrMap.empty;
+    tmp_counter = 0;
   }
 
 let entrypoint t =
@@ -201,14 +203,19 @@ let make_symbolic_base ~env ppf (t, id) =
   Log.debug "Symbolizing value %S" v;
   (* Checking if we did not already initialize it. *)
   if not @@ StrMap.mem v env.inputs then begin
-    let ty = Fmt.str "%a" pp_ctypes_static t |> String.replace_spaces ~by:'_' in
+    let c_ty = Fmt.str "%a" pp_ctypes_static t in
+    let ty = String.replace_spaces ~by:'_' c_ty in
+    let tmp = Format.sprintf "__tmp_%i" env.tmp_counter in
+    env.tmp_counter <- env.tmp_counter + 1;
     env.inputs <- StrMap.add v id env.inputs;
     Fmt.pf
       ppf
-      "%s = %a;@,\
+      "%s %s = %a;@,\
+       %s = %s;@,\
        __CPROVER_input(%S, %s);"
-      v nondet_call ty
-      v v
+      c_ty tmp nondet_call ty
+      v  tmp
+      v tmp
   end
 
 (** Symbolizes each of the [size] cells of the array specified by the
@@ -251,8 +258,11 @@ let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
   Fmt.pf ppf "/* Initializing pointer '%s' */@," n;
   Fmt.pf ppf "char __empty = %a;@," nondet_call "char";
   Fmt.pf ppf "__CPROVER_input (\"%s\", __empty);@," empty_array_flag;
-  Fmt.pf ppf "if (__empty) { static %a; %s = x; }@,\
-             " Sc_values.Printer.c_decl (Array (typ, 0), "x") n;
+  Fmt.pf ppf "if (__empty) {@,";
+  Fmt.pf ppf "  static %a;@," Sc_values.Printer.c_decl (Array (typ, 0), "x");
+  Fmt.pf ppf "  %s = x;@," n;
+  Fmt.pf ppf "  __CPROVER_assume(%s == 0);@," size_var;
+  Fmt.pf ppf "}@,";
   Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_var n;
   for i = 0 to max_size do
     Fmt.pf ppf "else if (%s == %i) %s = malloc(%i);@,\
@@ -451,7 +461,6 @@ let generate ~project ~target ~cbmc_driver =
   let>% ppf = target in
   Log.debug "Writing@ harness@ file@ `%a'" Sc_sys.File.print target;
   pp_include ppf (Sc_sys.File.absname cbmc_driver);
-  pp_include ppf "cbmc_init.h";
   pp_label_decl ppf;
   pp_include ppf (Sc_sys.File.absname labelized_file);
   pp_body ppf

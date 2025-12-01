@@ -53,6 +53,7 @@ val validate_n_share_raw_test
   -> corpus: 'raw_test Main.corpus
   -> toolname: string
   -> ?purpose: validation_purpose
+  -> ?log_outcome: bool
   -> 'raw_test
   -> unit Lwt.t
 
@@ -62,5 +63,6 @@ val validate_n_share_raw_test_file
   -> corpus: 'raw_test Main.corpus
   -> toolname: string
   -> ?purpose: validation_purpose
+  -> ?log_outcome: bool
   -> _ Sc_sys.File.t
   -> unit Lwt.t
