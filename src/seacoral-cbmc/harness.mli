@@ -42,3 +42,6 @@ val test_to_literal : t -> Types.DATA.test -> Sc_values.literal_binding
     binding representation. *)
 val trace_to_literal :
   t -> Types.DATA.instruction list -> Sc_values.literal_binding
+
+(** Returns the number of symbolic variables used in the harness. *)
+val num_symbolic_variables : t -> int

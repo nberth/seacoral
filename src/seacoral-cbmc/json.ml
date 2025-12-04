@@ -49,7 +49,7 @@ module Input = struct
       (fun
         {oarguments; ofunction; ounwind; oproperties;
          oshow_properties; ocover; oerror_label; opointer_check;
-         onondet_static; omalloc_may_fail} ->
+         onondet_static; omalloc_may_fail; oobject_bits} ->
 
         let cover_activated = Option.is_some ocover in
 
@@ -59,7 +59,7 @@ module Input = struct
         (oarguments,
          ((ofunction, ounwind, oproperties, oshow_properties, ocover, oerror_label,
            show_test_suite, unwinding_assertions, onondet_static, opointer_check),
-          omalloc_may_fail
+          (omalloc_may_fail, oobject_bits)
          )
         )
       )
@@ -67,11 +67,11 @@ module Input = struct
         (oarguments,
          ((ofunction, ounwind, oproperties, oshow_properties,
            ocover, oerror_label, _show_test_suite, _unwind_asser,
-           onondet_static, opointer_check), (omalloc_may_fail))
+           onondet_static, opointer_check), (omalloc_may_fail, oobject_bits))
         ) ->
         {oarguments; ofunction; ounwind; oproperties;
          oshow_properties; ocover; oerror_label; onondet_static;
-         opointer_check; omalloc_may_fail
+         opointer_check; omalloc_may_fail; oobject_bits
         }
       )
       (obj2
@@ -90,11 +90,13 @@ module Input = struct
                  (req "nondet-static" bool)
                  (req "pointer-check" bool)
              end
-               malloc_may_fail_encoding
+               (merge_objs
+                  malloc_may_fail_encoding
+                  (obj1 @@ (opt "object-bits" int))
            )
          )
+         )
       )
-
 end
 
 module Output = struct

@@ -22,6 +22,7 @@ type 'a cbmc_run =
   runner_options:runner_options ->
   entrypoint:string ->
   files:[ `C ] Sc_sys.File.t list ->
+  harness:Harness.t ->
   OPTIONS.t ->
   ('a Lwt_stream.t * (unit -> unit Lwt.t)) Lwt.t
 
@@ -254,6 +255,15 @@ let cbmc_generic_process
 (* From the lannot label identifier, returns the corresponding error label for CBMC *)
 let label_of pp s = Format.asprintf "sc_label%a" pp s (* Defined in cbmc_label_driver.h *)
 
+(** Returns the number of bits required to count up to the number of inputs. *)
+let object_bits_from_harness h =
+  let i = Harness.num_symbolic_variables h in
+  let rec loop cpt j =
+    if j >= i then cpt else
+      loop (cpt + 1) (j * 2)
+  in
+  loop 0 1
+
 let sc_opt_to_opt
     ?oproperties
     ?(oshow_properties=false)
@@ -261,6 +271,7 @@ let sc_opt_to_opt
     ?ocover
     ~ofunction
     ~files
+    ~harness
     sc_opt =
   let oproperties =
     match oproperties with
@@ -276,6 +287,10 @@ let sc_opt_to_opt
         in
         Some prop_names
   in
+  let oobject_bits =
+    let obits = object_bits_from_harness harness in
+    if obits <= 8 then None else Some obits
+  in
   {
     oarguments = List.map Sc_sys.File.absname files;
     ofunction;
@@ -287,6 +302,7 @@ let sc_opt_to_opt
     opointer_check = true;
     onondet_static = false;
     omalloc_may_fail = CantFail;
+    oobject_bits;
   }
 
 let error_label_of_simple_lbl (l: Sc_C.Cov_label.simple) : string =
@@ -298,13 +314,15 @@ let opt_encoding_and_cmd_options_from_exec_kind
     (type a) (ek : a exec_kind)
     (ofunction : string)
     (files : [`C] Sc_sys.File.t list)
-    (sc_opt : OPTIONS.t) : json_options * a Json_encoding.encoding =
+    (sc_opt : OPTIONS.t)
+    (harness : Harness.t) : json_options * a Json_encoding.encoding =
   match ek with
   | GetProperties ->
       sc_opt_to_opt
         ~ofunction
         ~oshow_properties:true
         ~files
+        ~harness
         sc_opt,
       Json.Output.(cell properties)
 
@@ -314,6 +332,7 @@ let opt_encoding_and_cmd_options_from_exec_kind
         ~oshow_properties:true
         ~ocover:"cover"
         ~files
+        ~harness
         sc_opt,
       Json.Output.(cell properties)
 
@@ -323,6 +342,7 @@ let opt_encoding_and_cmd_options_from_exec_kind
         ~oshow_properties:true
         ~files
         ~oerror_label:(List.map error_label_of_simple_lbl lbls)
+        ~harness
         sc_opt,
       Json.Output.(cell properties)
 
@@ -332,6 +352,7 @@ let opt_encoding_and_cmd_options_from_exec_kind
         ~ofunction
         ~ocover:"cover"
         ~files
+        ~harness
         sc_opt,
       Json.Output.(cell cbmc_cover_output)
 
@@ -340,6 +361,7 @@ let opt_encoding_and_cmd_options_from_exec_kind
         ~oproperties
         ~ofunction
         ~files
+        ~harness
         sc_opt,
       Json.Output.(cell assert_analysis_result)
 
@@ -354,6 +376,7 @@ let opt_encoding_and_cmd_options_from_exec_kind
         ~ofunction
         ~files
         ~oerror_label
+        ~harness
         sc_opt,
       Json.Output.(cell assert_analysis_result)
 
@@ -383,9 +406,10 @@ let cbmc_start
     ~(store : Sc_store.t)
     ~(entrypoint : string)
     ~(files : [`C] Sc_sys.File.t list)
+    ~harness
     (options : OPTIONS.t) =
   let joptions, encoding =
-    opt_encoding_and_cmd_options_from_exec_kind ek entrypoint files options
+    opt_encoding_and_cmd_options_from_exec_kind ek entrypoint files options harness
   in
   let* inputs_json = write_json ek ~runner_options joptions
   and* outputs_json = out_json ek ~runner_options
@@ -394,25 +418,25 @@ let cbmc_start
     ~store ~timeout:options.timeout ~inputs_json ~outputs_json ~errors_file
 
 let cbmc_get_properties  : property list cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start GetProperties ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start GetProperties ~store ~runner_options ~entrypoint ~files ~harness opt
 
 let cbmc_get_cover_objectives : property list cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start GetCoverObjectives ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start GetCoverObjectives ~store ~runner_options ~entrypoint ~files ~harness opt
 
 let cbmc_get_clabels ~lbls : property list cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start (GetCLabels lbls) ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start (GetCLabels lbls) ~store ~runner_options ~entrypoint ~files ~harness opt
 
 let cbmc_cover_analysis ~to_cover : DATA.cbmc_cover_output DATA.cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start (CoverAnalysis to_cover) ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start (CoverAnalysis to_cover) ~store ~runner_options ~entrypoint ~files ~harness opt
 
 let cbmc_assert_analysis ~to_cover : cbmc_assert_output DATA.cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start (AssertAnalysis to_cover) ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start (AssertAnalysis to_cover) ~store ~runner_options ~entrypoint ~files ~harness opt
 
 let cbmc_clabel_analysis ~to_cover : cbmc_assert_output DATA.cell cbmc_run =
-  fun ~store ~runner_options ~entrypoint ~files opt ->
-  cbmc_start (CLabelAnalysis to_cover) ~store ~runner_options ~entrypoint ~files opt
+  fun ~store ~runner_options ~entrypoint ~files ~harness opt ->
+  cbmc_start (CLabelAnalysis to_cover) ~store ~runner_options ~entrypoint ~files ~harness opt
