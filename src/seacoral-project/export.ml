@@ -143,10 +143,12 @@ let sufficient_cppflags project =
   sufficient_generated_headers project
 
 let emit_c_test_comment ~project ppf
-    { toolname; creatime; crearun = run_num; _ } =
+    { toolname; creatime; crearun = run_num; outcome; _ } =
   let run_ref_time = Run.ref_time_of ~run_num project.config.project_run in
   let time = time_string (creatime -. run_ref_time) in
-  Fmt.pf ppf "/* Found by %s after %s in run %u */" toolname time run_num
+  Fmt.pf ppf "/* Found by %s after %s in run %u */" toolname time run_num;
+  Fmt.pf ppf "@\n";
+  Fmt.pf ppf "/* Outcome: %a */" Sc_corpus.Printer.pp_test_outcome outcome
 
 let emit_test_file (type raw_test) ~(project: raw_test project) ~metadata ppf
     raw_test =
@@ -167,7 +169,7 @@ let emit_test_file (type raw_test) ~(project: raw_test project) ~metadata ppf
      @\n\
      @\n%t\
      @\nint main () {\
-     @\n  %a\
+     @\n  @[%a@]\
      @\n  /* Globals, if any */\
      @\n  @[%t@]\
      @\n  /* Effective argument(s), if any */\
@@ -253,7 +255,7 @@ let emit_testsuite_file (type raw_test) ~(project: raw_test project)
       ignore pp_heap; (* always a no-op (cf Sc_values...instructions_as_c_code) *)
       Lwt_fmt.fprintf ppf
         "@\nvoid %a () {\
-         @\n  %a\
+         @\n  @[%a@]\
          @\n  /* Globals, if any */\
          @\n  @[%t@]\
          @\n  /* Effective argument(s), if any */\
