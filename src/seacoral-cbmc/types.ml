@@ -70,6 +70,8 @@ module DATA = struct
         also randomize already set globals -> must be set to false. *)
     omalloc_may_fail: malloc_may_fail;
     (** Allows malloc to fail and specifies fail strategy. *)
+    oobject_bits: int option;
+    (** Maximum number of inputs is set to 2^[this option]. *)
   }
 
   (** Output of the tool. They are received as JSON values.

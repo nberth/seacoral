@@ -21,6 +21,7 @@ type 'a cbmc_run =
   runner_options:runner_options ->
   entrypoint:string ->
   files:[ `C ] Sc_sys.File.t list ->
+  harness:Harness.t ->
   OPTIONS.t ->
   ('a Lwt_stream.t * (unit -> unit Lwt.t)) Lwt.t
 

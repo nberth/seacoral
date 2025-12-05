@@ -5,6 +5,8 @@
 ### Added
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 
+### Fixed
+- Default maximum number of inputs in CBMC automatically increased [#36](https://github.com/OCamlPro/seacoral/pull/36)
 
 ## 1.0.0 ( 2025-10-30 )
 
@@ -20,7 +22,6 @@
 - Detection by the validator of buffer overflows on empty arrays [#6](https://github.com/ocamlpro/seacoral/pull/6)
 - Unnecessary generation by Klee, of tests that violate pre-conditions (`sc_assume`) [#5](https://github.com/ocamlpro/seacoral/pull/5)
 - Handling of NaNs and floating-point literals in test suites [#2](https://github.com/ocamlpro/seacoral/pull/2)
-
 
 ## 0.1.0 ( 2025-10-14 )
 

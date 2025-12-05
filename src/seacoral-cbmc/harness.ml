@@ -520,3 +520,5 @@ let trace_to_literal (env : t) (trace : DATA.instruction list) =
       Fmt.kstr failwith "Forbidden input %s with a list of values" id
   in
   loop StrMap.empty trace
+
+let num_symbolic_variables t = StrMap.cardinal t.inputs

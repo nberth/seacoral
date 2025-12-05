@@ -103,11 +103,8 @@ let start_cbmc ~wd ~to_cover =
   | Cover ->
      let* stream, cancel_kill =
        Runner.cbmc_cover_analysis
-         ~store
-         ~runner_options
-         ~entrypoint
-         ~files
-         ~to_cover
+         ~store ~runner_options ~harness
+         ~entrypoint ~files ~to_cover
          wd.opt
      in
      Lwt.return
@@ -116,7 +113,7 @@ let start_cbmc ~wd ~to_cover =
   | Assert ->
      let* stream, cancel_kill =
        Runner.cbmc_assert_analysis
-         ~store ~runner_options
+         ~store ~runner_options ~harness
          ~entrypoint ~files ~to_cover wd.opt
      in
      Lwt.return
@@ -125,7 +122,7 @@ let start_cbmc ~wd ~to_cover =
   | CLabel ->
     let* stream, cancel_kill =
       Runner.cbmc_clabel_analysis
-        ~store ~runner_options
+        ~store ~runner_options ~harness
         ~entrypoint ~files ~to_cover wd.opt
     in
     Lwt.return
@@ -165,6 +162,7 @@ let properties_to_verify wd : [`simple] analysis_env option Lwt.t =
       ~entrypoint
       ~files:[wd.harness_file]
       ~lbls:simpl
+      ~harness:wd.harness_repr
       wd.opt
   in
   (* We could process the payload on the fly instead of putting it in a
