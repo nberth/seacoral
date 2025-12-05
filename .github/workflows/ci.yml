@@ -83,11 +83,6 @@ jobs:
           provenance: false
           # sbom: true
       -
-        name: Check Changelog Action
-        uses: tarides/changelog-check-action@v2
-        with:
-          changelog: CHANGES.md
-      -
         name: Generate a summary of actions
         if: ${{ env.doPush == 'true' }}
         run: |

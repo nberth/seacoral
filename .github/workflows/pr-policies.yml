@@ -1,0 +1,14 @@
+name: PR Policies
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - main
+jobs:
+  check-changelog:
+    name: Check Changelog Modification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tarides/changelog-check-action@v3
+        with:
+          changelog: CHANGES.md
