@@ -192,5 +192,9 @@ type elaboration_error =
         formals: Basics.Strings.t;                               (* non-empty *)
         func: Sc_C.Types.func_repr;
       }
+  | Unexpected_initialization_function_with_args of
+      {
+        func: Sc_C.Types.func_repr;
+      }
 
 exception ELABORATION_ERROR of elaboration_error

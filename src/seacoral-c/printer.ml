@@ -175,8 +175,7 @@ let pp_named_loc_assoc ppf nla =
 let emit_testcall ~oracle_assessment ~emit_effective_inputs ~entrypoint
     ?init_func ?oracle_func effective_inputs ppf =
   Option.iter begin fun init ->
-    Fmt.pf ppf "(void) %s (%a);@,"
-      init.func_name emit_effective_inputs effective_inputs
+    Fmt.pf ppf "(void) %s ();@," init.func_name
   end init_func;
   match oracle_func, entrypoint.func_rtyp, entrypoint.func_args with
   | None, _, _ ->

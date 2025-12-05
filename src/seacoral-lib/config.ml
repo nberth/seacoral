@@ -238,8 +238,8 @@ let fixtures_section =
         ~key:"init"
         ~doc:"Initialization function for the entrypoint.  If given, this \
               setting must be the name of a function defined in either the \
-              project codebase or within a file listed in `files`.  Arguments of \
-              this function must also exactly match those of the entrypoint."
+              project codebase or within a file listed in `files`.  This \
+              function must not accept any argument."
         ~runtime:false
         (fun c e -> {c with init = e})
         (fun c -> c.init);

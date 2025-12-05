@@ -83,6 +83,9 @@ let pp_elaboration_error ppf = function
             pf ppf "function@ `%s''s@ formal@ argument@ `%s'@ has@ an@ \
                     unsupported@ type" func.func_name formal
           end) (Basics.Strings.elements formals)
+  | Unexpected_initialization_function_with_args { func } ->
+      Fmt.pf ppf "Elaboration@ failed:@;initialization@ function@ `%s'@ must@ \
+                  not@ accept@ any@ argument" func.func_name
 
 (* --- *)
 

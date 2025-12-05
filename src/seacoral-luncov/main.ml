@@ -67,10 +67,9 @@ let config_section =
 
 (* --- *)
 
-let emit_initcall project effective_inputs ppf =
+let emit_initcall project ppf =
   Option.iter begin fun (init: Sc_C.Types.func_repr) ->
-    Fmt.pf ppf "(void) %s (%a);@,"
-      init.func_name Sc_C.Printer.pp_vars effective_inputs
+    Fmt.pf ppf "(void) %s ();@," init.func_name
   end project.params.init_func
 
 let args project (fname : string) =
@@ -95,7 +94,7 @@ int main (%a) {
     (Sc_ltest.Framac.Arch.to_fc_string opt.architecture)
     (Sc_sys.File.absname project.label_data.labelized_file)
     Sc_C.Printer.pp_formal_decls args
-    (emit_initcall project args)
+    (emit_initcall project)
     func_name Sc_C.Printer.pp_vars args
 
 (* luncov will work on a link of the label file. *)

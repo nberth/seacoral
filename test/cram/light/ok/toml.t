@@ -170,8 +170,7 @@ Show its contents:
   
   # Initialization function for the entrypoint.  If given, this setting must be
   # the name of a function defined in either the project codebase or within a
-  # file listed in `files`.  Arguments of this function must also exactly match
-  # those of the entrypoint.
+  # file listed in `files`.  This function must not accept any argument.
   # init =
   
   # Oracle function for the entrypoint.  Constraints of `init` also apply, with

@@ -1,0 +1,9 @@
+[project]
+files = ["bad-fixture.c"]
+entrypoint = "foo"
+
+[fixtures]
+init = "init"
+
+[run]
+tools = ["klee"]

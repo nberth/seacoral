@@ -279,7 +279,10 @@ let rec voidp_: Cil.typ -> bool = function
   | TPtr (t, _) -> voidp_ t
   | _ -> false
 
-let check_func ~config (func: Sc_C.Types.func_repr) =
+let elaboration_error e =
+  raise @@ ELABORATION_ERROR e
+
+let check_entrypoint_func ~config (func: Sc_C.Types.func_repr) =
   let invalid_formals = List.filter (fun (t, _, _) -> voidp_ t) func.func_args in
   let kept_globals =
     (* Note: at the moment we do not report members of ignored_globals that do
@@ -305,9 +308,14 @@ let check_func ~config (func: Sc_C.Types.func_repr) =
       Seq.map (fun (_, f, _) -> f) @@
       List.to_seq invalid_formals
     in
-    raise @@ ELABORATION_ERROR (Unsupported_formals { formals; func })
+    elaboration_error @@ Unsupported_formals { formals; func }
   end;
   { func with func_env = { glob_vars = kept_globals } }
+
+let check_init_func (func: Sc_C.Types.func_repr) =
+  if func.func_args <> [] then
+    elaboration_error @@ Unexpected_initialization_function_with_args { func };
+  func
 
 let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
   try
@@ -315,7 +323,7 @@ let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
       (Format.asprintf "__%s_inputs" func_name)
       (Sc_C.Defs.func_inputs func)
   with Sc_values.TYPES.SPECIFICATION_ERROR Unknown_field { field_name; _ } ->
-    raise @@ ELABORATION_ERROR
+    elaboration_error
       (Unknown_formals { formals = Strings.singleton field_name; func })
 
 (* NB: just checking there are no extraneous inputs *)
@@ -327,8 +335,7 @@ let[@warning "-unused-value-declaration"] check_array_size_mapping ~config func 
     = inputs_with_constraints config.project_pointer_handling in
   let unknown_inputs = Strings.diff inputs_with_constraints inputs in
   if not (Strings.is_empty unknown_inputs) then
-    raise @@ ELABORATION_ERROR
-      (Unknown_formals { formals = unknown_inputs; func })
+    elaboration_error @@ Unknown_formals { formals = unknown_inputs; func }
 
 let setup_for ~config ~test_repr ~c_file =
   let* full_cil, cil = extract_cils c_file in
@@ -342,7 +349,7 @@ let setup_for ~config ~test_repr ~c_file =
   let init_func =
     match config.project_problem.initialization_function with
     | "" -> None
-    | fn -> Some (Sc_C.Defs.cil_func cil fn)               (* TODO: check_init *)
+    | fn -> Some (check_init_func @@ Sc_C.Defs.cil_func cil fn)
   and oracle_func =
     match config.project_problem.oracle_function with
     | "" -> None
@@ -350,7 +357,7 @@ let setup_for ~config ~test_repr ~c_file =
   in
   (* check_array_size_mapping ~config func_repr; *)
   let func_repr = add_attributes ~config func_repr in
-  let func_repr = check_func ~config func_repr in
+  let func_repr = check_entrypoint_func ~config func_repr in
   let test_struct = test_struct ~typdecls func_repr in
   let seek_oracle_failures = config.project_problem.seek_oracle_failures in
   Lwt.return { typdecls; func_repr; cil; test_struct; test_repr;
