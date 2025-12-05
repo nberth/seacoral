@@ -258,11 +258,7 @@ let label_of pp s = Format.asprintf "sc_label%a" pp s (* Defined in cbmc_label_d
 (** Returns the number of bits required to count up to the number of inputs. *)
 let object_bits_from_harness h =
   let i = Harness.num_symbolic_variables h in
-  let rec loop cpt j =
-    if j >= i then cpt else
-      loop (cpt + 1) (j * 2)
-  in
-  loop 0 1
+  Float.(to_int @@ ceil @@ log2 @@ of_int i)
 
 let sc_opt_to_opt
     ?oproperties
