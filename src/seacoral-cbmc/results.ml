@@ -10,80 +10,101 @@
 
 open Basics
 open Types
-open Lwt.Syntax
 
 module Log =
   (val (Ez_logs.from_src @@
         Logs.Src.create "Sc_cbmc.Results" ~doc:"Logs of CBMC results helper"))
 
-type coverable = [ `Cov of Sc_values.literal_binding * Basics.Ints.t ]
+type test_type =
+  | Labels of Basics.Ints.t
+  | RTE of DATA.assertion_check
+
+type coverable = [ `Test of Sc_values.literal_binding * test_type ]
 
 type res = [
     coverable
   | `Uncov of int
-  | `NonValidExtra of string
+  | `Extra of DATA.assertion_check
   ]
 
+type extra_properties = {
+  valid: string list;
+  invalid: string list;
+  unknown: string list;
+}
+
 type t = {
-  test_inputs: (Sc_values.literal_binding * Ints.t) list;
+  test_inputs: (Sc_values.literal_binding * test_type) list;
   (** The test inputs and the labels they cover *)
   covered: Ints.t;
   (** All the covered labels *)
   uncoverable : Ints.t;
   (** The set of satisfied properties *)
-  non_valid_extra_properties: string list;
-  (** The set of unknown and invalid extra properties. *)
+  extra_properties: extra_properties;
+  (** The set of extra properties. *)
 }
 
 let empty = {
   test_inputs = [];
   covered = Ints.empty;
   uncoverable = Ints.empty;
-  non_valid_extra_properties = [];
+  extra_properties = {valid = []; invalid = []; unknown = []};
 }
 
-let add_test (t, cov) res =
-  let rec loop prev_tests = function
-    | [] -> (t, cov) :: List.rev prev_tests
-    | ((t', cov') as r) :: tl ->
+let add_test ((t, cov) as test) res =
+  let rec loop_labels (cov : Ints.t) prev_tests = function
+    | [] -> (t, Labels cov) :: List.rev prev_tests
+    | ((_, RTE _) as test) :: tl -> loop_labels cov (test :: prev_tests) tl 
+    | ((t', Labels cov') as r) :: tl ->
        if t = t' then
-         List.rev prev_tests @ (t, Ints.union cov cov') :: tl
+         List.rev prev_tests @ (t, Labels (Ints.union cov cov')) :: tl
        else if Ints.subset cov' cov then
          (* Removing test that covers less *)
-         List.rev prev_tests @ (t, cov) :: tl
+         List.rev prev_tests @ (t, Labels cov) :: tl
        else
-         loop (r :: prev_tests) tl
+         loop_labels cov (r :: prev_tests) tl
+  and loop_rte prev_tests = function
+    | [] -> test :: List.rev prev_tests
+    | ((t', _) as test') :: tl ->
+       if t = t'
+       then (List.rev prev_tests) @ tl
+       else loop_rte (test' :: prev_tests) tl
   in
-  if Ints.subset cov res.covered
-  then res
-  else {
-      res with
-      test_inputs = loop [] res.test_inputs
-    ; covered = Ints.union res.covered cov
-    }
+  match cov with
+  | Labels cov ->
+     if Ints.subset cov res.covered
+     then res
+     else {
+         res with
+         test_inputs = loop_labels cov [] res.test_inputs
+       ; covered = Ints.union res.covered cov
+       }
+  | RTE _ ->
+     (* TODO: check if test does not already belong to list *)
+     {res with test_inputs = loop_rte [] res.test_inputs}
 
-let add_tests = List.fold_right add_test
+let add_valid_extra_prop pname e = {e with valid = pname :: e.valid}
+let add_invalid_extra_prop pname e = {e with invalid = pname :: e.invalid}
+let add_unknown_extra_prop pname e = {e with unknown = pname :: e.unknown}
 
-let add_non_valid_extra_property pname res = {
-  res with
-  non_valid_extra_properties = pname :: res.non_valid_extra_properties
-}
-
-let add_non_valid_extra_property_ac ac res =
-  add_non_valid_extra_property ac.DATA.acproperty res
+let add_extra_ac ac res =
+  let pname = ac.DATA.acproperty in
+  match ac.DATA.acstatus with
+  | Success -> {res with extra_properties = add_valid_extra_prop pname res.extra_properties}
+  | Failure_ -> {res with extra_properties = add_invalid_extra_prop pname res.extra_properties}
+  | Unknown _ -> {res with extra_properties = add_unknown_extra_prop pname res.extra_properties}
 
 let add_uncoverable i res =
   {res with uncoverable = Ints.add i res.uncoverable}
-
-let add_uncoverable_label (lbl : [< Sc_C.Types.any] Sc_C.Cov_label.t) res =
-  add_uncoverable (Sc_C.Cov_label.id lbl) res
 
 let get_tests c = c.test_inputs
 
 let get_covered c = c.covered
 
 let get_uncoverable c =
-  if c.non_valid_extra_properties = [] then c.uncoverable else Ints.empty
+  if c.extra_properties.invalid = [] && c.extra_properties.unknown = []
+  then c.uncoverable
+  else Ints.empty
 
 (* Returns the list of labels covered by the test in argument. *)
 let covered_goals_of_test env DATA.{ tcovered_goals; _ } : Ints.t =
@@ -127,16 +148,6 @@ let fold_on_data ?with_print:_ f acc data_list =
     acc
     data_list
 
-let fold_on_data_stream ?with_print:_ data_stream f acc =
-  Lwt_stream.fold_s
-    (fun v acc -> match v with
-     | (DATA.ProgramInfo _ | Message _ | CProverStatus _) as d ->
-        Log.debug "%a" (Printer.pp_cell ~pp_data:(fun _ -> ignore)) d;
-        Lwt.return acc
-     | Data data -> f acc data)
-    data_stream
-    acc
-
 let map_data_stream ?with_print:_ data_stream f =
   Lwt_stream.map_list
     (fun v -> match v with
@@ -151,28 +162,6 @@ let only_data (cells : 'a DATA.cell list) : 'a list =
     (fun acc d -> d :: acc)
     []
     cells
-
-let goal_stream_to_test_cases ~env ~harness ~stream kont =
-  fold_on_data_stream
-    ~with_print:Printer.pp_cbmc_cover_output
-    stream
-    (fun acc -> function
-      | DATA.Goals goal_details ->
-         Log.debug "Goal covered: %i" goal_details.gdgoals_covered;
-         Lwt.return acc
-      | Tests t ->
-         Log.debug "#tests: %i" (List.length t);
-         let new_tests =
-           List.map (fun i ->
-               let test = Harness.test_to_literal harness i in
-               let covered = covered_goals_of_test env i in
-               test, covered
-             ) t
-         in
-         let* () = kont new_tests in
-         Lwt.return @@ add_tests new_tests acc
-    )
-    empty
 
 let goal_stream_to_test_cases_stream ~env ~harness ~stream =
   map_data_stream
@@ -190,7 +179,7 @@ let goal_stream_to_test_cases_stream ~env ~harness ~stream =
                test, covered
              ) t
          in
-         List.map (fun (t, c) -> `Cov (t, c)) new_tests
+         List.map (fun (t, c) -> `Test (t, Labels c)) new_tests
     )  
 
 (* First, reads the trace until it reaches an invalid assertion that does not
@@ -224,7 +213,8 @@ let variable_assigns_from_trace
                     if not invalid then
                       Log.debug
                         "Property@ %s@ is@ invalid,@ cannot@ conclude@ on@ the@ \
-                         validity@ of@ the@ trace@ after@ that" fs.fsproperty;
+                         validity@ of@ the@ trace@ after@ that.@ Keeping@ the@ \
+                         test just in case." fs.fsproperty;
                     check_trace ~invalid:true covered tl
                   end
                 else
@@ -242,19 +232,24 @@ let property_and_lbl_of_ac (env: simple_label_env) (ac : DATA.assertion_check)
   PropertyMap.find_by_name ac.acproperty env.proof_objectives
 
 let treat_counter_example
+    ~for_rte
     (harness : Harness.t)
     (env: simple_label_env)
-    actrace =
-  (* Log.debug "Handling counter example %s" ac.acdescription; *)
-  match actrace with
-  | None -> (* invalid_trace ~trace:[] ~prop:ac.acproperty ~reason:"Counter example without a trace" *)
-      failwith "TODO: invalid_trace"
+    ac =
+  match ac.DATA.actrace with
+  | None ->
+     Log.warn "@[<2>Property@ %s@ has@ no@ trace@ with@ it.@]" ac.acproperty;
+     None
   | Some trace ->
       match variable_assigns_from_trace harness env trace with
       | (test, covered) ->
-          Log.debug "@[<2>Test@ covering@ labels@ %a:@;%a@]"
-            Ints.print covered
-            Sc_values.pp_literal_binding test;
+          if not for_rte then
+            Log.debug "@[<2>Test@ covering@ labels@ %a:@;%a@]"
+              Ints.print covered
+              Sc_values.pp_literal_binding test
+          else
+            Log.debug "@[<2>Test@ raising@ an@ RTE:@;%a@]"
+              Sc_values.pp_literal_binding test;
           Some (test, covered)
       | exception (UNKNOWN_PROPERTY pname) ->
          (* We reached a property that was not registered as such previously.
@@ -266,98 +261,49 @@ let treat_counter_example
            pname;
          None
 
-let assert_data_stream_to_test_cases ~env ~harness ~stream kont =
-  fold_on_data_stream
-    ~with_print:Printer.pp_cbmc_cover_output
-    stream
-    (fun (acc : t) l ->
-      Lwt_list.fold_left_s
-        (fun (acc : t) ac ->
-          match property_and_lbl_of_ac env ac with
-          | None -> ( (* Not a pclabel *)
-            match ac.acstatus with
-            | Success -> Lwt.return acc
-            | Failure_ ->
-               Log.debug "Property@ %s@ is@ invalid:@;ignoring" ac.acproperty;
-               Lwt.return @@ add_non_valid_extra_property_ac ac acc
-            | Unknown _ ->
-               (* Log.debug "Property@ %s@ status@ is@ unknown:@;ignoring" ac.acproperty; *)
-               Lwt.return @@ add_non_valid_extra_property_ac ac acc
-          )
-          | Some (property, sl) ->
-             match ac.acstatus with
-             | Success ->
-                let id = Sc_C.Cov_label.id sl in
-                Log.debug "Label %i is unreachable" id;
-                (* We could check now that non_valid_extra_properties is empty or not. *)
-                let* () = kont (`Uncov id) in
-                Lwt.return @@ add_uncoverable_label sl acc         
-             | Failure_ -> (
-               Log.debug "Label %i (%s) may be reachable:@ handling counter-example\
-                          " (Sc_C.Cov_label.id sl) property.pname;
-               (* A counter-example has been found for the label's negation: it is reachable *)
-               match treat_counter_example harness env ac.actrace with
-               | None -> Lwt.return acc
-               | Some ((test, _) as r) ->
-                  let* () =
-                    if not (List.exists (fun (t, _) -> t = test) acc.test_inputs) then
-                      kont (`Cov r)
-                    else (
-                      Log.debug "Test already generated, not replaying it";
-                      Lwt.return ()
-                    )
-                  in
-                  Lwt.return @@ add_test r acc
-             )
-             | Unknown s ->
-                Log.debug "Unkwown status (%s) of label %s" s ac.acdescription;
-                Lwt.return acc)
-        acc
-        l
-    )
-    empty
-
 let assert_data_stream_to_test_cases_stream ~env ~harness ~stream =
   map_data_stream
     stream
     (fun l ->
       List.fold_left
         (fun acc ac ->
-          match property_and_lbl_of_ac env ac with
-          | None -> ( (* Not a pclabel *)
-            match ac.acstatus with
-            | Success -> acc
-            | Unknown _ ->
-               Log.debug
-                 "Property@ %s@ status@ is@ unknown:@;ignoring"
-                 ac.acproperty;
-               acc @ [`NonValidExtra ac.acproperty]
-            | Failure_ ->
-               Log.debug "Property@ %s@ is@ invalid:@;ignoring" ac.acproperty;
-               acc @ [`NonValidExtra ac.acproperty]
-          )
-          | Some (property, sl) ->
-             match ac.acstatus with
-             | Success ->
-                let id = Sc_C.Cov_label.id sl in
-                Log.debug "Label@ %i@ is@ unreachable" id;
-                (* We could check now that non_valid_extra_properties is empty
-                   or not. *)
-                acc @ [`Uncov id]      
-             | Failure_ -> (
-               Log.debug "Label@ %i@ (%s)@ may@ be@ reachable:@ handling@ \
-                          counter-example\
-                          " (Sc_C.Cov_label.id sl) property.pname;
-               (* A counter-example has been found for the label's negation: it
+          match property_and_lbl_of_ac env ac, ac.acstatus with
+          | None, Failure_ -> begin
+             (* A RTE! *)
+             Log.debug "@[<2>Property@ %s@ is@ an@ rte!@]" ac.acproperty;
+             match treat_counter_example ~for_rte:true harness env ac with
+             | None -> acc
+             | Some (test, _) -> acc @ [ `Test (test, RTE ac) ]
+            end
+          | None, Unknown _ -> begin
+             (* A possible RTE? *)
+              Log.debug "@[<2>Property@ %s@ is@ a@ possible@ rte,@ no@ \
+                         counter-example@ found.@]" ac.acproperty;
+             acc @ [`Extra ac]
+            end
+          | None, Success -> (* For sure, not a RTE *)
+             acc @ [`Extra ac]
+          | Some (_, sl), Success -> begin
+              let id = Sc_C.Cov_label.id sl in
+              Log.debug "Label@ %i@ is@ unreachable" id;
+              (* We could check now that non_valid_extra_properties is empty
+                 or not. *)
+              acc @ [`Uncov id]
+            end
+          | Some (property, sl), Failure_ -> begin
+             Log.debug "Label@ %i@ (%s)@ may@ be@ reachable:@ handling@ \
+                        counter-example\
+                        " (Sc_C.Cov_label.id sl) property.pname;
+             (* A counter-example has been found for the label's negation: it
                   is reachable *)
-               match treat_counter_example harness env ac.actrace with
-               | None -> acc
-               | Some (test, c) -> acc @ [ `Cov (test, c) ]
-             )
-             | Unknown s ->
-                Log.debug "Unkwown@ status@ (%s)@ of@ label@ %s\
-                           " s ac.acdescription;
-                acc
+             match treat_counter_example ~for_rte:false harness env ac with
+             | None -> acc
+             | Some (test, c) -> acc @ [ `Test (test, Labels c) ]
+            end
+          | Some _, Unknown s ->
+             Log.debug "Unkwown@ status@ (%s)@ of@ label@ %s\
+                        " s ac.acdescription;
+             acc
         )
         []
         l
@@ -366,8 +312,8 @@ let assert_data_stream_to_test_cases_stream ~env ~harness ~stream =
 let summing_up l =
   List.fold_left
     (fun (res : t) -> function
-      | `Cov (t, c) -> add_test (t, c) res
+      | `Test t -> add_test t res
       | `Uncov i -> add_uncoverable i res
-      | `NonValidExtra s -> add_non_valid_extra_property s res)
+      | `Extra ac -> add_extra_ac ac res)
     empty
     l

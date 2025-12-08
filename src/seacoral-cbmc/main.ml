@@ -78,7 +78,7 @@ let get_properties ~(mode: Types.OPTIONS.mode) ~lbls =
   | Assert -> Runner.cbmc_get_properties
   | CLabel -> Runner.cbmc_get_clabels ~lbls
 
-let handle_cover_result
+let handle_test
       (type raw_test) ~(wd: raw_test working_data) inputs =
   let params = wd.project.params in
   let module Raw_test = (val params.test_repr) in
@@ -195,14 +195,23 @@ let properties_to_verify wd : [`simple] analysis_env option Lwt.t =
         ~labels:simpl
         ~entrypoint:entrypoint
 
+let test_already_exists (t : Sc_values.literal_binding) (res_list: Results.res list) =
+  List.exists begin function
+    | `Test (t', _) -> t = t'
+    | `Uncov _ | `Extra _ -> false
+  end res_list
+
 let fold_on_res_stream ~wd rs =
   Lwt_stream.fold_s
     (fun (r : Results.res) acc ->
       let* () =
         match r with
-        | `Cov (t, _) -> handle_cover_result ~wd t
+        | `Test (t, Labels _) | `Test (t, RTE _) ->
+           if test_already_exists t acc
+           then Lwt.return ()
+           else handle_test ~wd t
         | `Uncov i -> handle_uncoverable ~wd (Ints.singleton i)
-        | `NonValidExtra _ -> Lwt.return ()
+        | `Extra _ -> Lwt.return ()
       in
       Lwt.return (acc @ [r])
     )

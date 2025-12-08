@@ -297,7 +297,7 @@ let sc_opt_to_opt
     oerror_label;
     opointer_check = true;
     onondet_static = false;
-    omalloc_may_fail = CantFail;
+    omalloc_may_fail = CantFail; (* Forces to have only 1 possible behavior. *)
     oobject_bits;
   }
 
