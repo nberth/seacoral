@@ -3,7 +3,7 @@
 ## Next release
 
 ### Added
-- CBMC with assert and clabel modes now report RTEs [#48](https://github.com/ocamlpro/seacoral/pull/48)
+- CBMC with assert and clabel modes now report RTEs and invalid oracles [#48](https://github.com/ocamlpro/seacoral/pull/48)
 - Comment with test outcomes in generated testsuites [#44](https://github.com/ocamlpro/seacoral/pull/44)
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 

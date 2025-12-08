@@ -226,10 +226,13 @@ let variable_assigns_from_trace
   let covered = check_trace ~invalid:false Ints.empty trace in
   Harness.trace_to_literal harness trace, covered
 
-let property_and_lbl_of_ac (env: simple_label_env) (ac : DATA.assertion_check)
-  : (DATA.property * Sc_C.Cov_label.simple) option =
-  (* Log.debug "Property and label of assertion check %s" ac.acproperty; *)
-  PropertyMap.find_by_name ac.acproperty env.proof_objectives
+let property_and_lbl_of_ac (env: simple_label_env) (ac : DATA.assertion_check) =
+  if ac.DATA.acdescription = Harness.oracle_property_identifier then
+    `Oracle
+  else
+    match PropertyMap.find_by_name ac.acproperty env.proof_objectives with
+    | Some (p, l) -> `Label (p, l)
+    | None -> `CBMC_internal
 
 let treat_counter_example
     ~for_rte
@@ -268,29 +271,37 @@ let assert_data_stream_to_test_cases_stream ~env ~harness ~stream =
       List.fold_left
         (fun acc ac ->
           match property_and_lbl_of_ac env ac, ac.acstatus with
-          | None, Failure_ -> begin
+          | `Oracle, Failure_ -> begin
+             (* A test breaking the oracle! *)
+             Log.debug "@[<2>Found a counter example for the oracle!@]";
+             match treat_counter_example ~for_rte:true harness env ac with
+             | None -> acc
+             | Some (test, _) -> acc @ [ `Test (test, RTE ac) ]
+            end
+          | `Oracle, (Unknown _ | Success) -> acc
+          | `CBMC_internal, Failure_ -> begin
              (* A RTE! *)
              Log.debug "@[<2>Property@ %s@ is@ an@ rte!@]" ac.acproperty;
              match treat_counter_example ~for_rte:true harness env ac with
              | None -> acc
              | Some (test, _) -> acc @ [ `Test (test, RTE ac) ]
             end
-          | None, Unknown _ -> begin
+          | `CBMC_internal, Unknown _ -> begin
              (* A possible RTE? *)
               Log.debug "@[<2>Property@ %s@ is@ a@ possible@ rte,@ no@ \
                          counter-example@ found.@]" ac.acproperty;
              acc @ [`Extra ac]
             end
-          | None, Success -> (* For sure, not a RTE *)
+          | `CBMC_internal, Success -> (* For sure, not a RTE *)
              acc @ [`Extra ac]
-          | Some (_, sl), Success -> begin
+          | `Label (_, sl), Success -> begin
               let id = Sc_C.Cov_label.id sl in
               Log.debug "Label@ %i@ is@ unreachable" id;
               (* We could check now that non_valid_extra_properties is empty
                  or not. *)
               acc @ [`Uncov id]
             end
-          | Some (property, sl), Failure_ -> begin
+          | `Label (property, sl), Failure_ -> begin
              Log.debug "Label@ %i@ (%s)@ may@ be@ reachable:@ handling@ \
                         counter-example\
                         " (Sc_C.Cov_label.id sl) property.pname;
@@ -300,7 +311,7 @@ let assert_data_stream_to_test_cases_stream ~env ~harness ~stream =
              | None -> acc
              | Some (test, c) -> acc @ [ `Test (test, Labels c) ]
             end
-          | Some _, Unknown s ->
+          | `Label _, Unknown s ->
              Log.debug "Unkwown@ status@ (%s)@ of@ label@ %s\
                         " s ac.acdescription;
              acc

@@ -89,7 +89,7 @@ let info_from_property
         (* Sometimes, seacoral adds extra assertions, which makes the [id] from the
            prop.name not the correct one. *)
         match id_from_assert_property_descr prop with
-        | None -> `DiscardProperty
+        | None -> `ExtraProperty
         | Some id -> `Label id
       end
     else `Label id
