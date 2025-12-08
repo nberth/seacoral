@@ -211,8 +211,16 @@ let config_step f =
         Lwt.reraise e
   end
 
-let generate ?enable_logfile ?(enable_detailed_stats = true) ?enable_console_timing
-    ?(only_check_configuration = false) (args: Types.options) () =
+let make_strategy ~replay_only (config : Sc_lib.Types.config) =
+  if replay_only then begin
+    Sc_strategy.Types.Tool Sc_replayer.Main.toolname
+  end else
+    Sc_lib.Strategy.make config.run.tools config.run.strategy
+
+let generate
+    ?enable_logfile ?(enable_detailed_stats = true)
+    ?enable_console_timing ?(only_check_configuration = false)
+    ?(replay_only = false) (args: Types.options) () =
   (* TODO: add an option `--debug-init` to enable logging during the preliminary
      loading phase. *)
   let config, salt = load_config ?enable_console_timing args in
@@ -226,8 +234,7 @@ let generate ?enable_logfile ?(enable_detailed_stats = true) ?enable_console_tim
     end
   and* strategy =
     config_step begin fun () ->
-      Lwt.return @@
-      Sc_lib.Strategy.make config.run.tools config.run.strategy
+      Lwt.return @@ make_strategy ~replay_only config
     end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
@@ -319,7 +326,8 @@ let load_args ?argv () =
   let open Cmdliner.Cmd in
   let gen_term = Options.term ~config_sections_that_show_up_as_arguments in
   let generate = Cmdliner.Term.map (fun options -> `Generate options) gen_term
-  and check = Cmdliner.Term.map (fun options -> `Check options) gen_term in
+  and check = Cmdliner.Term.map (fun options -> `Check options) gen_term
+  and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term in
   eval_value ~catch:false ?argv @@
   group ~default:generate
     (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
@@ -342,6 +350,10 @@ let load_args ?argv () =
     v (info "check" ~man:gen_man
          ~doc:"Check configuration and perform initial project initialization")
       check;
+    v (info "replay" ~man:gen_man
+         ~doc:"Only replays the selected tests without starting any test \
+               generation tool.")
+      replay;
   ]
 
 let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () =
@@ -359,6 +371,9 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
   | Ok `Ok `Check args ->
       with_lwt (generate ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~only_check_configuration:true args)
+  | Ok `Ok `Replay args ->
+      with_lwt (generate ?enable_logfile ?enable_detailed_stats
+                  ?enable_console_timing ~replay_only:true args)
   | Ok `Version
   | Ok `Help ->
       Cmdliner.Cmd.Exit.ok
