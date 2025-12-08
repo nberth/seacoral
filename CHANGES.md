@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- Comment with test outcomes in generated testsuites [#44](https://github.com/ocamlpro/seacoral/pull/44)
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 
 ### Fixed
