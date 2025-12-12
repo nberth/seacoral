@@ -52,36 +52,21 @@ let empty = {
 }
 
 let add_test ((t, cov) as test) res =
-  let rec loop_labels (cov : Ints.t) prev_tests = function
-    | [] -> (t, Labels cov) :: List.rev prev_tests
-    | ((_, RTE _) as test) :: tl -> loop_labels cov (test :: prev_tests) tl 
-    | ((t', Labels cov') as r) :: tl ->
-       if t = t' then
-         List.rev prev_tests @ (t, Labels (Ints.union cov cov')) :: tl
-       else if Ints.subset cov' cov then
-         (* Removing test that covers less *)
-         List.rev prev_tests @ (t, Labels cov) :: tl
-       else
-         loop_labels cov (r :: prev_tests) tl
-  and loop_rte prev_tests = function
+  let rec loop prev_tests = function
     | [] -> test :: List.rev prev_tests
     | ((t', _) as test') :: tl ->
        if t = t'
        then (List.rev prev_tests) @ tl
-       else loop_rte (test' :: prev_tests) tl
+       else loop (test' :: prev_tests) tl
   in
   match cov with
   | Labels cov ->
-     if Ints.subset cov res.covered
-     then res
-     else {
-         res with
-         test_inputs = loop_labels cov [] res.test_inputs
-       ; covered = Ints.union res.covered cov
-       }
+     {
+       res with
+       test_inputs = loop [] res.test_inputs
+     ; covered = Ints.union res.covered cov}
   | RTE _ ->
-     (* TODO: check if test does not already belong to list *)
-     {res with test_inputs = loop_rte [] res.test_inputs}
+     {res with test_inputs = loop [] res.test_inputs}
 
 let add_valid_extra_prop pname e = {e with valid = pname :: e.valid}
 let add_invalid_extra_prop pname e = {e with invalid = pname :: e.invalid}
