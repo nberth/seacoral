@@ -1,0 +1,9 @@
+[project]
+files = ["test.c"]
+entrypoint = "f"
+include-dirs = ["."]
+criterion = "MCC"
+functions-to-cover = "*"
+
+[lreplay]
+enable = true

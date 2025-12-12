@@ -207,6 +207,7 @@ let copy_test_in_testcase_dir ~covdir
      @\n# include %S\
      @\n# include <lreplay_driver_impl.c>\
      @\n#endif\
+     @\n\
     " (Sc_sys.File.absname labelized_file);
   try
     while true do
