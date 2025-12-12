@@ -79,7 +79,7 @@ let get_properties ~(mode: Types.OPTIONS.mode) ~lbls =
   | CLabel -> Runner.cbmc_get_clabels ~lbls
 
 let handle_test
-      (type raw_test) ~(wd: raw_test working_data) inputs =
+      (type raw_test) ~purpose ~(wd: raw_test working_data) inputs =
   let params = wd.project.params in
   let module Raw_test = (val params.test_repr) in
   let v = Raw_test.Val.blank params.test_struct in
@@ -87,7 +87,7 @@ let handle_test
             " Sc_values.pp_literal_binding inputs;
   Raw_test.Val.assign_from_literal params.typdecls v inputs;
   Sc_corpus.Validator.validate_n_share_raw_test wd.validator v
-    ~corpus:wd.project.corpus ~toolname ~log_outcome:true
+    ~corpus:wd.project.corpus ~toolname ~log_outcome:true ~purpose
 
 let handle_uncoverable ~wd i =
   Sc_store.share_status ~toolname wd.project.store `Uncov i
@@ -206,10 +206,14 @@ let fold_on_res_stream ~wd rs =
     (fun (r : Results.res) acc ->
       let* () =
         match r with
-        | `Test (t, Labels _) | `Test (t, RTE _) ->
+        | `Test (t, Labels _) ->
            if test_already_exists t acc
            then Lwt.return ()
-           else handle_test ~wd t
+           else handle_test ~purpose:For_full_validation ~wd t
+        | `Test (t, RTE _) ->
+           if test_already_exists t acc
+           then Lwt.return ()
+           else handle_test ~purpose:For_RTE_identification ~wd t
         | `Uncov i -> handle_uncoverable ~wd (Ints.singleton i)
         | `Extra _ -> Lwt.return ()
       in
