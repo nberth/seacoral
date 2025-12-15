@@ -11,6 +11,7 @@
 type test_type =
   | Labels of Basics.Ints.t
   | RTE of Types.DATA.assertion_check
+  | OracleFail of Types.DATA.assertion_check
 
 type coverable = [ `Test of Sc_values.literal_binding * test_type ]
 

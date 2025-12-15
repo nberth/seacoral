@@ -206,7 +206,8 @@ let fold_on_res_stream ~wd rs =
     (fun (r : Results.res) acc ->
       let* () =
         match r with
-        | `Test (t, Labels _) ->
+        | `Test (t, Labels _)
+        | `Test (t, OracleFail _) ->
            if test_already_exists t acc
            then Lwt.return ()
            else handle_test ~purpose:For_full_validation ~wd t

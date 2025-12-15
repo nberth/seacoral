@@ -18,6 +18,7 @@ module Log =
 type test_type =
   | Labels of Basics.Ints.t
   | RTE of DATA.assertion_check
+  | OracleFail of DATA.assertion_check
 
 type coverable = [ `Test of Sc_values.literal_binding * test_type ]
 
@@ -65,7 +66,7 @@ let add_test ((t, cov) as test) res =
        res with
        test_inputs = loop [] res.test_inputs
      ; covered = Ints.union res.covered cov}
-  | RTE _ ->
+  | RTE _ | OracleFail _ ->
      {res with test_inputs = loop [] res.test_inputs}
 
 let add_valid_extra_prop pname e = {e with valid = pname :: e.valid}
@@ -261,7 +262,7 @@ let assert_data_stream_to_test_cases_stream ~env ~harness ~stream =
              Log.debug "@[<2>Found a counter example for the oracle!@]";
              match treat_counter_example ~for_rte:true harness env ac with
              | None -> acc
-             | Some (test, _) -> acc @ [ `Test (test, RTE ac) ]
+             | Some (test, _) -> acc @ [ `Test (test, OracleFail ac) ]
             end
           | `Oracle, (Unknown _ | Success) -> acc
           | `CBMC_internal, Failure_ -> begin
