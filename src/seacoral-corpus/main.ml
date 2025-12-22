@@ -56,6 +56,7 @@ and 'r given_test =
     toolname: string;
     outcome: test_outcome;
     v: 'r;
+    covers: Basics.Ints.t
   }
 
 (* --- *)
@@ -217,7 +218,7 @@ let cache_existing_tests ({ tests_cache; tests_cache_mutex; _ } as corpus) =
 let receive_new_tests ({ tests_dir; tests_stream;
                          tests_cache; tests_cache_mutex;
                          outcomes; params; _ } as corpus) =
-  Lwt_stream.iter_s begin fun (id, { v; toolname; outcome }) ->
+  Lwt_stream.iter_s begin fun (id, { v; toolname; outcome; covers}) ->
     let id_hex = Digest.to_hex id in
     Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
       if Tests_table.mem tests_cache id then begin
@@ -243,7 +244,7 @@ let receive_new_tests ({ tests_dir; tests_stream;
               | Triggering_RTE err ->
                  add_entry corpus id (`Crash err)
               | Covering_label | Oracle_failure ->
-                 add_entry corpus id (`Cover Ints.empty)
+                 add_entry corpus id (`Cover covers)
             in
             let* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
@@ -287,18 +288,20 @@ let make ~workspace test_repr params =
   Lwt.async (fun () -> receive_new_tests res);
   Lwt.return res
 
-let share_test (type r) ?on_share ~outcome ~toolname
+let share_test (type r) ?on_share ?(covers = Basics.Ints.empty) ~outcome ~toolname
     ({ tests_mbox; test_repr = (module Raw_test); _ }: r corpus) v =
   (* TODO: May need to deal with padding/alignment bytes in v before computing
      the digest *)
   let v_str = Raw_test.Val.to_string v in
   let id = Digest.string v_str in
   let* () = match on_share with Some f -> f id | None -> Lwt.return () in
-  let* () = Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome })) in
+  let* () =
+    Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome; covers }))
+  in
   Lwt.return id
 
-let share_test' ?on_share ~outcome ~toolname corpus v =
-  let* _ = share_test ?on_share ~outcome ~toolname corpus v in
+let share_test' ?on_share ?covers ~outcome ~toolname corpus v =
+  let* _ = share_test ?on_share ?covers ~outcome ~toolname corpus v in
   Lwt.return ()
 
 let on_new_test ({ tests_dir; tests_cache;
