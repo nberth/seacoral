@@ -11,6 +11,9 @@
 (** The harness representation. *)
 type t
 
+(** The property name of the oracle assertion used for fixtures.*)
+val oracle_property_identifier : string
+
 (** [generate ~dry ~project ~target ~cbmc_driver]
 
     Generates a harness to pass to CBMC and writes it in [target].

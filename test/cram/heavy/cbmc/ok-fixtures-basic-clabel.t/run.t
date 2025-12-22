@@ -23,7 +23,7 @@
   [A]{Sc} Covered labels: {}
   [A]{Sc} Uncoverable labels: {}
   [A]{Sc} Crash statistics: rte: none
-  [A]{Sc} Oracle statistics: fails: none
+  [A]{Sc} Oracle statistics: fails: 1 test
   [A]{Sc} No label, no coverage
   $ seacoral --tools cbmc --files uncov.c
   [A]{Sc} Starting to log into `_sc/uncov.c-DC-@1/logs/1.log'

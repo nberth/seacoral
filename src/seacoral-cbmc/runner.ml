@@ -89,7 +89,7 @@ let info_from_property
         (* Sometimes, seacoral adds extra assertions, which makes the [id] from the
            prop.name not the correct one. *)
         match id_from_assert_property_descr prop with
-        | None -> `DiscardProperty
+        | None -> `ExtraProperty
         | Some id -> `Label id
       end
     else `Label id
@@ -297,7 +297,7 @@ let sc_opt_to_opt
     oerror_label;
     opointer_check = true;
     onondet_static = false;
-    omalloc_may_fail = CantFail;
+    omalloc_may_fail = CantFail; (* Forces to have only 1 possible behavior. *)
     oobject_bits;
   }
 

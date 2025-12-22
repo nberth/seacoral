@@ -22,6 +22,8 @@ module AP = Sc_C.Access_path
 let log_src = Logs.Src.create ~doc:"Logs of Harness module" "Sc_cbmc.Harness"
 module Log = (val (Ez_logs.from_src log_src))
 
+let oracle_property_identifier = "oracle condition"
+
 let nondet_call ppf typ = Fmt.pf ppf "nondet_%s()" typ
 
 let bool_of_value: DATA.effective_base_value -> string = function
@@ -420,8 +422,8 @@ let declare_tested_function_args ppf { params = A params; _ } =
     ~f:{ f = declare_arg }
 
 let emit_oracle_assessment_macro ppf =
-  Fmt.pf ppf "#define __sc_assess_oracle(e)                   \\\
-              @\n  __CPROVER_assert (e, \"oracle condition\")@\n"
+  Fmt.pf ppf "#define __sc_assess_oracle(e) \\\
+              @\n  __CPROVER_assert (e, %S)@\n" oracle_property_identifier
 
 let body ({ params = A params; _ } as sd) ppf =
   let env = empty_env "main" in

@@ -8,12 +8,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type coverable = [ `Cov of Sc_values.literal_binding * Basics.Ints.t ]
+type test_type =
+  | Labels of Basics.Ints.t
+  | RTE of Types.DATA.assertion_check
+  | OracleFail of Types.DATA.assertion_check
+
+type coverable = [ `Test of Sc_values.literal_binding * test_type ]
 
 type res = [
     coverable
   | `Uncov of int
-  | `NonValidExtra of string
+  | `Extra of Types.DATA.assertion_check
   ]
 
 type t
@@ -22,7 +27,7 @@ val empty : t
 
 (** Returns the tests registered. *)
 val get_tests :
-  t -> (Sc_values.literal_binding * Basics.Ints.t) list
+  t -> (Sc_values.literal_binding * test_type) list
 
 (** Returns the covered labels. *)
 val get_covered : t -> Basics.Ints.t
@@ -30,26 +35,6 @@ val get_covered : t -> Basics.Ints.t
 (** Returns the uncoverable labels. If there are non valid extra properties,
     returns the empty set. *)
 val get_uncoverable : t -> Basics.Ints.t
-
-(** [goal_stream_to_test_cases ~env ~harness ~stream kont]
-
-    Reads the result of a CBMC cover analysis and calls [kont] on the
-    result. *)
-val goal_stream_to_test_cases :
-  env:Types.simple_label_env
-  -> harness:Harness.t
-  -> stream:Types.DATA.cbmc_cover_output Types.DATA.cell Lwt_stream.t
-  -> ((Sc_values.literal_binding * Basics.Ints.t) list -> unit Lwt.t)
-  -> t Lwt.t
-
-(** Same as [goal_stream_to_test_cases] for a CBMC assert/clabel analysis. *)
-val assert_data_stream_to_test_cases :
-  env:Types.simple_label_env ->
-  harness:Harness.t ->
-  stream:Types.DATA.cbmc_assert_output Types.DATA.cell Lwt_stream.t ->
-  ([ `Cov of (Sc_values.literal_binding * Basics.Ints.t)
-   | `Uncov of int] -> unit Lwt.t) ->
-  t Lwt.t
 
 val goal_stream_to_test_cases_stream :
   env:Types.simple_label_env
