@@ -48,3 +48,11 @@ What happens on unsupported coverage criteria?
           SeaCoral does not support the coverage criterion "CACC".
           Supported criteria: [CUSTOM, EMPTY, BC, CB, CC, DC, ELO, FC, GACC, GICC, IDP, IOB, LIMIT, MCC, NCC, RCC, SLO, STMT, WM].
   [124]
+
+What happens on an unexpected initialization function?
+  $ seacoral --config bad-fixture.toml
+  [A]{Sc} Starting to log into `_sc/bad-fixture.c-CC-@1/logs/1.log'
+  [A]{Sc} Initializing working environment...
+  [E]{Sc} Elaboration failed: initialization function `init' must not accept
+          any argument
+  [124]

@@ -67,8 +67,8 @@ val pp_named_loc_assoc : Format.formatter -> named_loc_assoc -> unit
     a call to the provided [entrypoint] function using the optional functions
     for initialization [init_func] and test oracle [oracle_func].
 
-    If provided, [init_func] should accept the same list of arguments as
-    [entrypoint]; any result it returns is ignored.
+    If provided, [init_func] should not accept any argument; any result it
+    returns is ignored.
 
     If provided, [oracle_func] should accept the same list of arguments as
     [entrypoint], plus an additional parameter with the return type of
