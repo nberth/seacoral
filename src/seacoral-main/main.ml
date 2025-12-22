@@ -351,7 +351,7 @@ let load_args ?argv () =
          ~doc:"Check configuration and perform initial project initialization")
       check;
     v (info "replay" ~man:gen_man
-         ~doc:"Only replays the selected tests without starting any test \
+         ~doc:"Replay the current test suite without starting any test \
                generation tool.")
       replay;
   ]
