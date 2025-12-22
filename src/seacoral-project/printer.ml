@@ -46,8 +46,14 @@ let pp_oracle_failures_info ppf ((_covinfo, corpus_info): Types.info) =
       Fmt.styled `Green @@ Fmt.any "fails:@ none"
   end ppf ()
 
-let pp_setup_error =
-  Sc_ltest.Printer.pp_error
+let pp_preproc_error ppf = function
+  | Missing_entrypoint s -> Fmt.pf ppf "Missing entrypoint %s" s
+  | Missing_cover_target s -> Fmt.pf ppf "Missing cover target %s" s
+
+let pp_setup_error ppf =
+  function
+  | Ltest e -> Sc_ltest.Printer.pp_error ppf e
+  | Preproc l -> Basics.PPrt.pp_lst ~fopen:"" ~fclose:"" pp_preproc_error ppf l
 
 let pp_exn_lines ppf exn =
   Fmt.lines ppf (Printexc.to_string exn)

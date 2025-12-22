@@ -72,7 +72,46 @@ let patch_entrypoint_name config =
 let labeling_error err =
   raise @@ LABELING_ERROR err
 
+let setup_error l =
+  raise @@ SETUP_ERROR (Preproc l)
+
+(* Checks the llvm construction of the project for a 'FunctionDecl' constructor
+   followed by the entrypoint. This ensures the entrypoint is well defined. *)
+let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
+  let rx_of_fun f = Str.regexp @@ Fmt.str ".*FunctionDecl.*%s" f in
+  let ep = config.project_problem.entrypoint in
+  let functions =
+    match config.project_problem.annotated_functions with
+    | `Only l -> List.map (fun f -> f, rx_of_fun f) (ep :: l)
+    | `All | `Auto -> [ep, rx_of_fun ep]
+  in
+  (* Checks if [line] follows the regexp corresponding to the given function. *)
+  let rec loop line rev_tested_funs = function
+    | [] -> List.rev rev_tested_funs
+    | (_, rx) :: tl when Str.string_match rx line 0 ->
+       List.rev_append rev_tested_funs tl
+    | hd :: tl -> loop line (hd :: rev_tested_funs) tl
+  in
+  let* unfound_functions =
+    Lwt_stream.fold
+      (fun l funs -> loop l [] funs)      
+      stream
+      functions
+  in
+  match unfound_functions with
+  | [] -> Lwt.return ()
+  | l ->
+     let errors =
+       List.map begin fun (f, _) ->
+         if f = ep
+         then Missing_entrypoint f
+         else Missing_cover_target f
+       end l
+     in
+     setup_error errors
+
 let do_syntax_check ~incdir ~config c_file =
+  let stdout_lines_mbox = Lwt_mvar.create_empty () in
   let stderr_lines_mbox = Lwt_mvar.create_empty () in
   Lwt.catch begin fun () ->
     (* resources/noop-labels.h provides a dummy implementation of pc_label so as
@@ -82,9 +121,15 @@ let do_syntax_check ~incdir ~config c_file =
       (Sc_C.Cmd.cppflags_of_header_dirs @@
        incdir :: config.project_problem.header_dirs)
     in
-    Sc_C.Cmd.clang_check c_file
-      ~cppflags
-      ~stderr_grabber:(MBox stderr_lines_mbox)
+    let* () =
+      Sc_C.Cmd.clang_check_and_print_llvm c_file
+        ~cppflags
+        ~stdout_grabber:(MBox stdout_lines_mbox)
+        ~stderr_grabber:(MBox stderr_lines_mbox)
+    in
+    let* stream = Lwt_mvar.take stdout_lines_mbox in
+    let* () = check_entrypoint_definition_in_llvm_dump_ast ~config stream in
+    Lwt.return ()
   end begin function
     | Sc_C.Cmd.ERROR cmd_error
       when !Ez_logs.stdout_level_ref <> Some Debug ->

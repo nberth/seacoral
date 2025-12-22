@@ -69,7 +69,7 @@ let check_external_tools_availability () =
   Lwt.catch begin fun () ->
     Sc_ltest.Lannot.check_availability ()
   end begin function
-    | Sc_ltest.Types.ERROR e -> setup_error e
+    | Sc_ltest.Types.ERROR e -> setup_error (Ltest e)
     | e -> Lwt.reraise e
   end
 

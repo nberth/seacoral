@@ -159,7 +159,13 @@ and combined_tests_in_testsuite =
 
 (** {2 Errors & exceptions} *)
 
-type setup_error = Sc_ltest.Types.error                            (* for now *)
+type preproc_error =
+  | Missing_entrypoint of string
+  | Missing_cover_target of string
+
+type setup_error =
+  | Ltest of Sc_ltest.Types.error
+  | Preproc of preproc_error list
 
 exception SETUP_ERROR of setup_error
 

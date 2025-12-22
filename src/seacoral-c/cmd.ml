@@ -123,6 +123,30 @@ let clang_check
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
 
+let clang_check_and_print_llvm
+    ?clang_cmd
+    ?(cflags = ["-g"])
+    ?(cppflags = [])
+    ?stdout_grabber ?stderr_grabber
+    (file: [< `C | `CXX] Sc_sys.File.t)
+  : unit Lwt.t
+  =
+  let file_name = Sc_sys.File.name file in
+  Sc_sys.Process.PRETTY.shell_unit
+    (* TODO: -fcolor-diagnostics only if at least one log reporter accepts TTY
+       control characters. *)
+    "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump"
+    (lazy_cmd ENV.clang_exe clang_cmd)
+    Basics.PPrt.Strings.pp_space_separated_ cflags
+    Basics.PPrt.Strings.pp_space_separated_ cppflags
+    Fmt.(option @@ fmt "%s ") (Lazy.force ENV.cppflags)
+    file_name
+    (* When using `Grab only for stdout, seacoral goes into infinite loop. *)
+    ~stdout:(stream_grab stdout_grabber Log_lwt_clang.LWT.debug) 
+    ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
+    ~on_error:(cc_error Syntax_check_file file_name)
+
+
 (** {2 Compiling C/C++ source code} *)
 
 let o_name ?dir ?(namesuff = "") f =
