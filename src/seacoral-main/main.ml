@@ -212,9 +212,9 @@ let config_step f =
   end
 
 let make_strategy ~replay_only (config : Sc_lib.Types.config) =
-  if replay_only then begin
+  if replay_only then
     Sc_strategy.Types.Tool Sc_replayer.Main.toolname
-  end else
+  else
     Sc_lib.Strategy.make config.run.tools config.run.strategy
 
 let generate
