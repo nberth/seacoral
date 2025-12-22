@@ -14,22 +14,44 @@ open Types
 
 (** {2 RTE "identifiers"} *)
 
-let print_sanitizer_error_summary () = function
+let print_sanitizer_error_summary = function
   | Heap_buffer_overflow addr ->
-      Basics.PPrt.asprintf "heap-buffer-overflow\t0x%Lx" addr
+      Basics.PPrt.asprintf "crash:heap-buffer-overflow\t0x%Lx" addr
   | Invalid_memory_address addr ->
-      Basics.PPrt.asprintf "invalid-memory-address\t0x%Lx" addr
+      Basics.PPrt.asprintf "crash:invalid-memory-address\t0x%Lx" addr
   | Arithmetic_error addr ->
-      Basics.PPrt.asprintf "arithmetic-error\t0x%Lx" addr
+      Basics.PPrt.asprintf "crash:arithmetic-error\t0x%Lx" addr
 
-let scan_sanitizer_error_summary (ic: Scanf.Scanning.in_channel) =
+let print_cover_summary ints =
+  Basics.PPrt.asprintf
+    "cover\t%a"
+    (fun fmt l -> List.iter (fun i -> Fmt.int fmt i; Fmt.string fmt "\t") l)
+    (Basics.Ints.elements ints) 
+
+let print_summary () = function
+  | `Crash err -> print_sanitizer_error_summary err
+  | `Cover i -> print_cover_summary i
+
+let scan_list ic =
+  let rec loop acc =
+    try
+      Scanf.bscanf ic "%i\t" begin fun i ->
+        loop (Basics.Ints.add i acc)
+        end
+    with
+    | End_of_file -> acc
+  in
+  loop Basics.Ints.empty
+
+let scan_summary (ic: Scanf.Scanning.in_channel) =
   Scanf.bscanf ic "%s@\t" begin function
-    | "heap-buffer-overflow" ->
-        Scanf.bscanf ic "0x%Lx" (fun addr -> Heap_buffer_overflow addr)
-    | "invalid-memory-address" ->
-        Scanf.bscanf ic "0x%Lx" (fun addr -> Invalid_memory_address addr)
-    | "arithmetic-error" ->
-        Scanf.bscanf ic "0x%Lx" (fun addr -> Arithmetic_error addr)
+    | "crash:heap-buffer-overflow" ->
+        Scanf.bscanf ic "0x%Lx" (fun addr -> `Crash (Heap_buffer_overflow addr))
+    | "crash:invalid-memory-address" ->
+        Scanf.bscanf ic "0x%Lx" (fun addr -> `Crash (Invalid_memory_address addr))
+    | "crash:arithmetic-error" ->
+        Scanf.bscanf ic "0x%Lx" (fun addr -> `Crash (Arithmetic_error addr))
+    | "cover" -> `Cover (scan_list ic)        
     | key ->
         raise (Scanf.Scan_failure (Fmt.str "unknown sanitizer error key %S" key))
   end
