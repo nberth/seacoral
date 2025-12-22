@@ -74,6 +74,10 @@ module Log_lwt_clang = (val Ez_logs.subproc "clang")
 module Log_lwt_clangxx = (val Ez_logs.subproc "clang++")
 module Log_lwt_ld = (val Ez_logs.subproc "ld")
 
+let stream_grab_xor_log grabber logger = match grabber with
+  | None -> `Log logger
+  | Some grabber -> `Grab grabber
+
 let stream_grab grabber logger = match grabber with
   | None -> `Log logger
   | Some grabber -> `GrabNLog (grabber, logger)
@@ -141,8 +145,7 @@ let clang_check_and_print_llvm
     Basics.PPrt.Strings.pp_space_separated_ cppflags
     Fmt.(option @@ fmt "%s ") (Lazy.force ENV.cppflags)
     file_name
-    (* When using `Grab only for stdout, seacoral goes into infinite loop. *)
-    ~stdout:(stream_grab stdout_grabber Log_lwt_clang.LWT.debug) 
+    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug) 
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
 

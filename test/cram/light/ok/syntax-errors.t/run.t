@@ -28,7 +28,7 @@ Even better, `clang`'s output is not repeated in logs.
   [D]{Sc_project} Initializing
   [I]{Sc_project} Gathering the codebase...
   [I]{Sc_project} Syntax-checking the codebase...
-  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics"
+  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump"
   [D]{(clang)} $TESTCASE_ROOT/./invalid.c:1:16: error: expected ')'
   [D]{(clang)} int foo (int x y) {
   [D]{(clang)}                ^
@@ -36,7 +36,7 @@ Even better, `clang`'s output is not repeated in logs.
   [D]{(clang)} int foo (int x y) {
   [D]{(clang)}         ^
   [D]{(clang)} 1 error generated.
-  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics" terminated with status EXITED(1)
+  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump" terminated with status EXITED(1)
   [E]{Sc} Syntax errors detected in codebase:
           (see log output above for details)
   [124]
