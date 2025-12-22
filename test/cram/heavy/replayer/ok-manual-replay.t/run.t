@@ -61,3 +61,19 @@ Test 3 is redundant with test test 4, so one of them is discarded
                  3: Covered
                  4: Covered
           Coverage: (4/4) 100.0%
+  $ seacoral replay
+  [A]{Sc} Starting to log into `_sc/test.c-MCC-@4/logs/4.log'
+  [A]{Sc} Initializing working environment...
+  [A]{Sc} Skipping `f' (no objective left undecided)
+  [A]{Sc} Hard work done
+  [A]{Sc} Coverage statistics for `f':
+          cov: 4 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with
+          4 tests (4 imported)
+  [A]{Sc} Covered labels: {1, 2, 3, 4}
+  [A]{Sc} Uncoverable labels: {}
+  [A]{Sc} Crash statistics: rte: none
+  [A]{Sc}        1: Covered
+                 2: Covered
+                 3: Covered
+                 4: Covered
+          Coverage: (4/4) 100.0%
