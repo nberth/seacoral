@@ -292,6 +292,12 @@ let share_test (type r) ?on_share ?(covers = Basics.Ints.empty) ~outcome ~toolna
     ({ tests_mbox; test_repr = (module Raw_test); _ }: r corpus) v =
   (* TODO: May need to deal with padding/alignment bytes in v before computing
      the digest *)
+  (* TODO: Remove assert once implemented *)
+  let () =
+    match outcome with
+    | Covering_label -> assert (covers <> Basics.Ints.empty)
+    | _ -> assert (covers = Basics.Ints.empty)
+  in
   let v_str = Raw_test.Val.to_string v in
   let id = Digest.string v_str in
   let* () = match on_share with Some f -> f id | None -> Lwt.return () in
