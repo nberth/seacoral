@@ -28,9 +28,12 @@ let print_cover_summary ints =
     (fun fmt l -> List.iter (fun i -> Fmt.int fmt i; Fmt.string fmt "\t") l)
     (Basics.Ints.elements ints) 
 
+let print_oracle_fail () = "oracle-fail\t"
+
 let print_summary () = function
   | `Crash err -> print_sanitizer_error_summary err
   | `Cover i -> print_cover_summary i
+  | `Oracle_fail -> print_oracle_fail ()
 
 let scan_list ic =
   let rec loop acc =
@@ -51,7 +54,8 @@ let scan_summary (ic: Scanf.Scanning.in_channel) =
         Scanf.bscanf ic "0x%Lx" (fun addr -> `Crash (Invalid_memory_address addr))
     | "crash:arithmetic-error" ->
         Scanf.bscanf ic "0x%Lx" (fun addr -> `Crash (Arithmetic_error addr))
-    | "cover" -> `Cover (scan_list ic)        
+    | "cover" -> `Cover (scan_list ic)
+    | "oracle-fail" -> `Oracle_fail
     | key ->
         raise (Scanf.Scan_failure (Fmt.str "unknown sanitizer error key %S" key))
   end

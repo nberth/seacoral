@@ -11,9 +11,9 @@
 (** Can be used with "%a" in {!Lwt_io.fprintf} format strings *)
 val print_summary
   : unit
-    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t]
+    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t | `Oracle_fail]
     -> string
   
 val scan_summary
   : Scanf.Scanning.in_channel
-    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t]
+    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t  | `Oracle_fail]

@@ -24,7 +24,7 @@ open Sc_sys.Lwt_file.Syntax
 module Tests_table = Hashtbl.Make (Digest)
 
 module Outcomes_ident = struct
-  type t = [`Crash of sanitizer_error_summary | `Cover of Ints.t]
+  type t = [`Crash of sanitizer_error_summary | `Cover of Ints.t | `Oracle_fail ]
   let equal = (=)
   let hash = Hashtbl.hash
 end
@@ -128,15 +128,18 @@ let test_outcome_from_test_suffix { outcomes'; _ } id = function
   | "rte" -> begin
      match Tests_table.find outcomes' id with
      | `Crash err -> Ok (Triggering_RTE err)
-     | `Cover _ -> Error () (* TODO: error message *)
+     | `Cover _ | `Oracle_fail -> Error () (* TODO: error message *)
     end
   | "cover" -> begin
       match Tests_table.find outcomes' id with
       | `Cover i -> Ok (Covering_label i)
-      | `Crash _ -> Error () (* TODO: error message *)
+      | `Crash _ | `Oracle_fail -> Error () (* TODO: error message *)
     end
-  | "fail" ->
-      Ok (Oracle_failure)
+  | "fail" -> begin
+      match Tests_table.find outcomes' id with
+      | `Oracle_fail -> Ok (Oracle_failure)
+      | `Crash _ | `Cover _ -> Error () (* TODO: error message *)
+    end
   | _ ->
       Error ()
 
@@ -248,7 +251,7 @@ let receive_new_tests ({ tests_dir; tests_stream;
               | Covering_label i ->
                  add_entry corpus id (`Cover i)
               | Oracle_failure ->
-                 add_entry corpus id (`Cover Basics.Ints.empty)
+                 add_entry corpus id `Oracle_fail
             in
             let* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
