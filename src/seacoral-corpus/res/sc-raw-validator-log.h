@@ -16,8 +16,6 @@
 
 extern FILE* labels_file;
 
-extern void initFile();
-
 #if __SC_VALIDATOR_VERBOSITY > 0
 # define __sc_pretty_log(msg...) do { fprintf (stderr, msg); } while (0)
 #else
@@ -26,7 +24,6 @@ extern void initFile();
 
 #define __sc_log(msg...)			  \
   do {						  \
-    initFile();					  \
     __sc_pretty_log(msg);			  \
     if (labels_file) fprintf(labels_file, msg);   \
   } while (0)

@@ -123,18 +123,20 @@ let bring_n_compile_labelized_file validator =
   let codefile = validator.workspace.workdir / "code-with-labels.c" in
   let driver_h = validator.resdir / "sc-raw-validator-driver.h" in
   let* () = Sc_sys.Lwt_file.link validator.params.labelized_file codefile in
+  let* covinfo = Sc_store.covinfo validator.store in
+  let max_id_var = Fmt.str "-D__SC_MAX_ID=%i" covinfo.num_ids in
   let* o_file_with_labels =
     Sc_C.Cmd.clang_c codefile
       ~o_suff:"-enabled"
       ~cppflags:(cppflags_for_driver @ cppflags_for_logging validator @
-                 ["-U__SC_VALIDATOR_IGNORE_LABELS";
+                 ["-U__SC_VALIDATOR_IGNORE_LABELS"; max_id_var;
                   "-include"; Sc_sys.File.absname driver_h])
       ~cflags:(sanitizers_flags @ sanitizers_opts)
   and* o_file_without_labels =
     Sc_C.Cmd.clang_c codefile
       ~o_suff:"-disabled"
       ~cppflags:(cppflags_for_driver @ cppflags_for_logging validator @
-                 ["-D__SC_VALIDATOR_IGNORE_LABELS";
+                 ["-D__SC_VALIDATOR_IGNORE_LABELS"; max_id_var;
                   "-include"; Sc_sys.File.absname driver_h])
       ~cflags:(sanitizers_flags @ sanitizers_opts)
   in
@@ -210,9 +212,11 @@ let emit_validator_c (type raw_test) ppf (validator: raw_test t) =
      @\n#ifndef __SC_VALIDATOR_IGNORE_LABELS\
      @\n  if (__sc_buff_commit () == 0) {\
      @\n    __sc_log (\"ign\\n\");\
+     @\n    deinitFileAndBuff();
      @\n    exit (%u); /* \"arbitrary\" code that indicates success but no new coverage */\
      @\n  }\
      @\n#endif\
+     @\n  deinitFileAndBuff();
      @\n  exit (EXIT_SUCCESS);\
      @\n}"
     (Sc_sys.File.absname validator.params.func_header)
@@ -252,11 +256,13 @@ let gen_n_compile_validator validator decoder_infos () =
        replay_for_rte_identification_exe =
     provide_validator validator ()
   in
+  let* covinfo = Sc_store.covinfo validator.store in
+  let max_id_var = Fmt.str "-D__SC_MAX_ID=%i" covinfo.num_ids in
   Let_syntax.both begin
     Sc_C.Cmd.clang_c validate_c
       ~o_suff:"-enabled"
       ~cppflags:(decoder_infos.cppflags @ cppflags_for_logging validator @
-                 ["-U__SC_VALIDATOR_IGNORE_LABELS"])
+                 ["-U__SC_VALIDATOR_IGNORE_LABELS"; max_id_var])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
       ~ldflags:(sanitizers_flags @ decoder_infos.libs @ store_infos.libs)
@@ -266,7 +272,7 @@ let gen_n_compile_validator validator decoder_infos () =
     Sc_C.Cmd.clang_c validate_c
       ~o_suff:"-disabled"
       ~cppflags:(decoder_infos.cppflags @ cppflags_for_logging validator @
-                 ["-D__SC_VALIDATOR_IGNORE_LABELS"])
+                 ["-D__SC_VALIDATOR_IGNORE_LABELS"; max_id_var])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
       ~ldflags:(sanitizers_flags @ decoder_infos.libs)

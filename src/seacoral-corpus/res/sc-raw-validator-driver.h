@@ -16,26 +16,48 @@
 
 #define __sc_log_label_id(id) __sc_log ("%u\n", id)
 
-FILE* labels_file;
+extern unsigned char __sc_buff_covered (unsigned int id);
 
-void initFile() {
+FILE* labels_file;
+unsigned char* covered_buff;
+
+void initFileAndBuff() {
   char* file = getenv("__SC_VALIDATOR_LABEL_FILE");
-  if (file && !labels_file)
-    labels_file = fopen(file, "w");
+  if (file && !labels_file) labels_file = fopen(file, "w");
+  if (!covered_buff) covered_buff = calloc(__SC_MAX_ID, sizeof(unsigned char));
   return;
 }
 
-extern unsigned char __sc_buff_covered (unsigned int id);
+unsigned char is_covered(unsigned int id) {
+  return covered_buff[id - 1];
+}
+
+void set_covered(unsigned int id) {
+  covered_buff[id - 1] = '\001';
+}
+
+void deinitFileAndBuff() {
+  if (labels_file) { fclose(labels_file); labels_file = NULL; }
+  if (covered_buff) { free(covered_buff); covered_buff = NULL; }
+  return;
+}
 
 #ifndef __SC_VALIDATOR_IGNORE_LABELS
 
+// When entering a label, initializes the buffer and file, if
+// any specified. Then, checks in the store if the label is
+// uncovered (and performs mandatory side effects) or in the
+// local buffer (because we want duplicates) and, if so,
+// marks it as covered in the local buffer.
 # define pc_label(expr, id, ...)		\
   do {						\
     if (expr) {					\
-      if (!__sc_buff_covered (id)) {		\
-        initFile();				\
+      initFileAndBuff();			\
+      if (!__sc_buff_covered (id)		\
+	  || !is_covered (id)) {		\ 
+        set_covered(id);			\
 	/* log on first reach only */		\
-	__sc_log_label_id (id);	\
+	__sc_log_label_id (id);			\
       }						\
     }						\
   } while (0)
