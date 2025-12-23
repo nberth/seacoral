@@ -24,7 +24,7 @@ open Sc_sys.Lwt_file.Syntax
 module Tests_table = Hashtbl.Make (Digest)
 
 module Outcomes_ident = struct
-  type t = [`Crash of sanitizer_error_summary | `Cover of Ints.t | `Oracle_fail ]
+  type t = test_outcome
   let equal = (=)
   let hash = Hashtbl.hash
 end
@@ -127,18 +127,18 @@ let format_file run_num serialnum toolname id outcome =
 let test_outcome_from_test_suffix { outcomes'; _ } id = function
   | "rte" -> begin
      match Tests_table.find outcomes' id with
-     | `Crash err -> Ok (Triggering_RTE err)
-     | `Cover _ | `Oracle_fail -> Error () (* TODO: error message *)
+     | (Triggering_RTE _ as err) -> Ok err
+     | Covering_label _ | Oracle_failure -> Error () (* TODO: error message *)
     end
   | "cover" -> begin
       match Tests_table.find outcomes' id with
-      | `Cover i -> Ok (Covering_label i)
-      | `Crash _ | `Oracle_fail -> Error () (* TODO: error message *)
+      | (Covering_label _ as c) -> Ok c
+      | Triggering_RTE _ | Oracle_failure -> Error () (* TODO: error message *)
     end
   | "fail" -> begin
       match Tests_table.find outcomes' id with
-      | `Oracle_fail -> Ok (Oracle_failure)
-      | `Crash _ | `Cover _ -> Error () (* TODO: error message *)
+      | Oracle_failure -> Ok Oracle_failure
+      | Triggering_RTE _ | Covering_label _ -> Error () (* TODO: error message *)
     end
   | _ ->
       Error ()
@@ -229,7 +229,7 @@ let receive_new_tests ({ tests_dir; tests_stream;
       if Tests_table.mem tests_cache id then begin
         Log.LWT.debug "Input@ %s@ already@ known" id_hex
       end else begin match outcome with
-        | Triggering_RTE err when Outcomes_table.mem outcomes (`Crash err) ->
+        | Triggering_RTE _ when Outcomes_table.mem outcomes outcome ->
             Log.LWT.debug "Input@ %s@ triggers@ an@ already@ known@ crash:@ \
                            discarding" id_hex
         | _ ->
@@ -245,14 +245,7 @@ let receive_new_tests ({ tests_dir; tests_stream;
               format_file params.run_num serialnum toolname id outcome
             in
             let file = tests_dir / basename in
-            let* () = match outcome with
-              | Triggering_RTE err ->
-                 add_entry corpus id (`Crash err)
-              | Covering_label i ->
-                 add_entry corpus id (`Cover i)
-              | Oracle_failure ->
-                 add_entry corpus id `Oracle_fail
-            in
+            let* () = add_entry corpus id outcome in
             let* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
             Lwt.return ()
@@ -299,8 +292,6 @@ let share_test (type r) ?on_share ~outcome ~toolname
     ({ tests_mbox; test_repr = (module Raw_test); _ }: r corpus) v =
   (* TODO: May need to deal with padding/alignment bytes in v before computing
      the digest *)
-  (* TODO: Remove assert once implemented *)
-  Log.debug "[share_test] Sharing test!";
   let v_str = Raw_test.Val.to_string v in
   let id = Digest.string v_str in
   let* () = match on_share with Some f -> f id | None -> Lwt.return () in
@@ -356,7 +347,7 @@ let info ({ tests_cache; outcomes'; bypassed_count;_ } as corpus): info =
     Tests_table.fold
       (fun _ b acc ->
         match b with
-        | `Crash _ -> acc + 1
+        | Triggering_RTE _ -> acc + 1
         | _ -> acc)
       outcomes'
       0

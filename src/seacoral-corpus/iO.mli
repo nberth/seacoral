@@ -9,11 +9,6 @@
 (**************************************************************************)
 
 (** Can be used with "%a" in {!Lwt_io.fprintf} format strings *)
-val print_summary
-  : unit
-    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t | `Oracle_fail]
-    -> string
+val print_summary : unit -> Types.test_outcome -> string
   
-val scan_summary
-  : Scanf.Scanning.in_channel
-    -> [`Crash of Types.sanitizer_error_summary | `Cover of Basics.Ints.t  | `Oracle_fail]
+val scan_summary : Scanf.Scanning.in_channel -> Types.test_outcome 
