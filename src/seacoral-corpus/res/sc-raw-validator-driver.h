@@ -16,11 +16,18 @@
 
 #define __sc_log_label_id(id) __sc_log ("%u\n", id)
 
+// Defined in store
 extern unsigned char __sc_buff_covered (unsigned int id);
 
+// The file in which we will store the labels covered by the given test.
 FILE* labels_file;
+
+// The labels covered by the test. Used to not register a label twice in
+// [labels_file].
 unsigned char* covered_buff;
 
+// Initializes [labels_file] if "__SC_VALIDATOR_LABEL_FILE" is defined.
+// Then defines [covered_buff].
 void initFileAndBuff() {
   char* file = getenv("__SC_VALIDATOR_LABEL_FILE");
   if (file && !labels_file) labels_file = fopen(file, "w");
@@ -28,18 +35,22 @@ void initFileAndBuff() {
   return;
 }
 
-unsigned char is_covered(unsigned int id) {
-  return covered_buff[id - 1];
-}
-
-void set_covered(unsigned int id) {
-  covered_buff[id - 1] = '\001';
-}
-
+// Closes labels_file & covered_buff properly. Must be called after any call
+// to __sc_log.
 void deinitFileAndBuff() {
   if (labels_file) { fclose(labels_file); labels_file = NULL; }
   if (covered_buff) { free(covered_buff); covered_buff = NULL; }
   return;
+}
+
+// Checks if a label already has been covered by the test.
+unsigned char is_covered(unsigned int id) {
+  return covered_buff[id - 1];
+}
+
+// Sets a label as covered.
+void set_covered(unsigned int id) {
+  covered_buff[id - 1] = '\001';
 }
 
 #ifndef __SC_VALIDATOR_IGNORE_LABELS

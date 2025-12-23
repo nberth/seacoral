@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Defined in sc-raw-validator-driver.h
 extern FILE* labels_file;
 
 #if __SC_VALIDATOR_VERBOSITY > 0

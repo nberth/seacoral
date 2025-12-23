@@ -128,17 +128,17 @@ let test_outcome_from_test_suffix { outcomes'; _ } id = function
   | "rte" -> begin
      match Tests_table.find outcomes' id with
      | (Triggering_RTE _ as err) -> Ok err
-     | Covering_label _ | Oracle_failure -> Error () (* TODO: error message *)
+     | _ -> Error ()
     end
   | "cover" -> begin
       match Tests_table.find outcomes' id with
       | (Covering_label _ as c) -> Ok c
-      | Triggering_RTE _ | Oracle_failure -> Error () (* TODO: error message *)
+      | _ -> Error ()
     end
   | "fail" -> begin
       match Tests_table.find outcomes' id with
       | Oracle_failure -> Ok Oracle_failure
-      | Triggering_RTE _ | Covering_label _ -> Error () (* TODO: error message *)
+      | _ -> Error ()
     end
   | _ ->
       Error ()
