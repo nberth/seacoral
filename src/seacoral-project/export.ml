@@ -78,7 +78,7 @@ let assume_test_file ~project { serialnum; toolname; creatime; outcome; _ }
   in
   let time = time_string (creatime -. run_ref_time) in
   match outcome, project.faildir with
-  | Covering_label, _ ->
+  | Covering_label _, _ ->
       Sc_sys.File.PRETTY.assume_in ~dir:project.covdir "%s+%s.c" basename time
   | Triggering_RTE _, _ ->
       Sc_sys.File.PRETTY.assume_in ~dir:project.rtedir "%s+%s.c" basename time
@@ -323,7 +323,7 @@ let write_testsuite ?exclude project =
         let* file = write_test_file ~project test_view in
         Lwt.return @@
         match test_view.metadata.outcome with
-        | Covering_label -> file :: cov, rte, fail
+        | Covering_label _ -> file :: cov, rte, fail
         | Triggering_RTE _ -> cov, file :: rte, fail
         | Oracle_failure -> cov, rte, file :: fail
       end ([], [], []) tests
@@ -336,7 +336,7 @@ let write_testsuite ?exclude project =
     let cov, rte, fail =
       List.fold_left begin fun (cov, rte, fail) test_view ->
         match test_view.metadata.outcome with
-        | Covering_label -> test_view :: cov, rte, fail
+        | Covering_label _ -> test_view :: cov, rte, fail
         | Triggering_RTE _ -> cov, test_view :: rte, fail
         | Oracle_failure -> cov, rte, test_view :: fail
       end ([], [], []) tests

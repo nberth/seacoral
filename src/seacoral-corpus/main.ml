@@ -56,7 +56,6 @@ and 'r given_test =
     toolname: string;
     outcome: test_outcome;
     v: 'r;
-    covers: Basics.Ints.t
   }
 
 (* --- *)
@@ -91,7 +90,7 @@ let internal_error e =
   raise @@ INTERNAL_ERROR e
 
 let pp_outcome ppf = function
-  | Covering_label -> Fmt.string ppf "cover"
+  | Covering_label _ -> Fmt.string ppf "cover"
   | Triggering_RTE _ -> Fmt.string ppf "rte"
   | Oracle_failure -> Fmt.string ppf "fail"
 
@@ -131,8 +130,11 @@ let test_outcome_from_test_suffix { outcomes'; _ } id = function
      | `Crash err -> Ok (Triggering_RTE err)
      | `Cover _ -> Error () (* TODO: error message *)
     end
-  | "cover" ->
-      Ok (Covering_label)
+  | "cover" -> begin
+      match Tests_table.find outcomes' id with
+      | `Cover i -> Ok (Covering_label i)
+      | `Crash _ -> Error () (* TODO: error message *)
+    end
   | "fail" ->
       Ok (Oracle_failure)
   | _ ->
@@ -218,7 +220,7 @@ let cache_existing_tests ({ tests_cache; tests_cache_mutex; _ } as corpus) =
 let receive_new_tests ({ tests_dir; tests_stream;
                          tests_cache; tests_cache_mutex;
                          outcomes; params; _ } as corpus) =
-  Lwt_stream.iter_s begin fun (id, { v; toolname; outcome; covers}) ->
+  Lwt_stream.iter_s begin fun (id, { v; toolname; outcome }) ->
     let id_hex = Digest.to_hex id in
     Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
       if Tests_table.mem tests_cache id then begin
@@ -229,7 +231,7 @@ let receive_new_tests ({ tests_dir; tests_stream;
                            discarding" id_hex
         | _ ->
             let verdict = match outcome with
-              | Covering_label -> "ok"
+              | Covering_label _ -> "ok"
               | Triggering_RTE _ -> "rte"
               | Oracle_failure -> "fail"
             in
@@ -243,8 +245,10 @@ let receive_new_tests ({ tests_dir; tests_stream;
             let* () = match outcome with
               | Triggering_RTE err ->
                  add_entry corpus id (`Crash err)
-              | Covering_label | Oracle_failure ->
-                 add_entry corpus id (`Cover covers)
+              | Covering_label i ->
+                 add_entry corpus id (`Cover i)
+              | Oracle_failure ->
+                 add_entry corpus id (`Cover Basics.Ints.empty)
             in
             let* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
@@ -288,26 +292,22 @@ let make ~workspace test_repr params =
   Lwt.async (fun () -> receive_new_tests res);
   Lwt.return res
 
-let share_test (type r) ?on_share ?(covers = Basics.Ints.empty) ~outcome ~toolname
+let share_test (type r) ?on_share ~outcome ~toolname
     ({ tests_mbox; test_repr = (module Raw_test); _ }: r corpus) v =
   (* TODO: May need to deal with padding/alignment bytes in v before computing
      the digest *)
   (* TODO: Remove assert once implemented *)
-  let () =
-    match outcome with
-    | Covering_label -> assert (covers <> Basics.Ints.empty)
-    | _ -> assert (covers = Basics.Ints.empty)
-  in
+  Log.debug "[share_test] Sharing test!";
   let v_str = Raw_test.Val.to_string v in
   let id = Digest.string v_str in
   let* () = match on_share with Some f -> f id | None -> Lwt.return () in
   let* () =
-    Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome; covers }))
+    Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome; }))
   in
   Lwt.return id
 
-let share_test' ?on_share ?covers ~outcome ~toolname corpus v =
-  let* _ = share_test ?on_share ?covers ~outcome ~toolname corpus v in
+let share_test' ?on_share ~outcome ~toolname corpus v =
+  let* _ = share_test ?on_share ~outcome ~toolname corpus v in
   Lwt.return ()
 
 let on_new_test ({ tests_dir; tests_cache;
@@ -362,7 +362,7 @@ let info ({ tests_cache; outcomes'; bypassed_count;_ } as corpus): info =
     Tests_table.fold begin fun _ { file; _ } ->
       match test_outcome corpus file with
       | Error ()
-      | Ok (Covering_label | Triggering_RTE _) -> Fun.id
+      | Ok (Covering_label _ | Triggering_RTE _) -> Fun.id
       | Ok Oracle_failure -> succ
     end tests_cache 0
   in

@@ -122,10 +122,14 @@ let crosscheck_with_lreplay_results ~project
                   " Basics.Ints.print store_only;
     (* TODO: when test->covered labels info will be available, we may filter
        what we print below. *)
+    let covers_labels (t : 'a Sc_corpus.Types.test_view) =
+      match t.metadata.outcome with
+      | Sc_corpus.Types.Covering_label _ -> true
+      | _ -> false
+    in
     let* tests =
-      let open Sc_corpus.Types in
       Sc_corpus.existing_tests project.corpus |>
-      Lwt_stream.filter (fun t -> t.metadata.outcome = Covering_label) |>
+      Lwt_stream.filter covers_labels |>
       Lwt_stream.to_list
     in
     Log.LWT.warn "@[<v>@[Label-covering@ tests:@]@;%a@]"

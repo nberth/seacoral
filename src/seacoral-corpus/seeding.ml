@@ -32,9 +32,14 @@ let init_seeds
      (re-)imported form the runtime database). *)
   Log.debug "Reinitializing corpus";
   let* () = Sc_sys.Lwt_file.unlink_files_of_dir seedsdir in
+  let covers_labels m =
+    match m.outcome with
+    | Covering_label _ -> true
+    | _ -> false
+  in
   let* local_corpus =
     Sharing.import_tests corpus seedsdir
-      ~filter:(fun m -> m.outcome = Covering_label)
+      ~filter:covers_labels
   in
   let num_imported = Digests.cardinal local_corpus in
   if num_imported > 1 then begin

@@ -282,9 +282,14 @@ let import_seeds wd indir =
      (re-)imported form the runtime database). *)
   Log.debug "Importing seeds, if any";
   let* () = Sc_sys.Lwt_file.unlink_files_of_dir indir in
+  let covers_labels (m : Sc_corpus.Types.test_metadata) =
+    match m.outcome with
+    | Sc_corpus.Types.Covering_label _ -> true
+    | _ -> false
+  in
   let* seeds =
     Sc_corpus.Sharing.import_tests wd.project.corpus indir
-      ~filter:(fun m -> m.outcome = Covering_label)
+      ~filter:covers_labels
       ~import_suff:".ktest"
       ~write_test:(`Func (write_ktest wd))
   in

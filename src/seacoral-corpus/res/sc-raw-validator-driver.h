@@ -16,24 +16,33 @@
 
 #define __sc_log_label_id(id) __sc_log ("%u\n", id)
 
-#ifndef __SC_VALIDATOR_IGNORE_LABELS
+FILE* labels_file;
+
+void initFile() {
+  char* file = getenv("__SC_VALIDATOR_LABEL_FILE");
+  if (file && !labels_file)
+    labels_file = fopen(file, "w");
+  return;
+}
 
 extern unsigned char __sc_buff_covered (unsigned int id);
+
+#ifndef __SC_VALIDATOR_IGNORE_LABELS
 
 # define pc_label(expr, id, ...)		\
   do {						\
     if (expr) {					\
       if (!__sc_buff_covered (id)) {		\
+        initFile();				\
 	/* log on first reach only */		\
-	__sc_log_label_id (id);			\
+	__sc_log_label_id (id);	\
       }						\
     }						\
   } while (0)
 
 #else  /* ignore labels */
 
-# define pc_label(expr, id, ...)		\
-  __sc_log_label_id (id)
+# define pc_label(expr, id, ...) __sc_log_label_id (id)
 
 #endif
 

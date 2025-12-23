@@ -309,7 +309,21 @@ let stdout ~log:(module Log: Ez_logs.T) =
 
 (* --- *)
 
-let replay_with_store_update ready_validator ~exec_validator ~log =
+let read_labels_from_file f =
+  let res = ref Basics.Ints.empty in
+  let< chan = f in
+  try while true do
+    match input_line chan with
+    | "ign" -> raise End_of_file
+    | i -> res := Basics.Ints.add (int_of_string i) !res
+    done;
+    !res
+  with
+  | End_of_file -> !res
+
+let replay_with_store_update
+      ready_validator ~test_ident
+      ~exec_validator ~log =
   let validator = ready_validator.validator in
   let* store = Sc_store.for_compiled_subprocess validator.store in
   let san_env =
@@ -318,16 +332,26 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
       "UBSAN_OPTIONS=symbolize=0";
     |]
   in
+  (* S: Probably could be put somewhere better, but for now putting it
+     here. *)
+  let label_file =
+    Sc_sys.File.assume_in ~dir:validator.workspace.workdir test_ident
+  in
+  let cov_env =
+    [|
+      Fmt.str "__SC_VALIDATOR_LABEL_FILE=%s" (Sc_sys.File.absname label_file) 
+    |]
+  in
   let* res =
     Sc_sys.Process.join =<< exec_validator
       ~exe:ready_validator.replay_with_store_update_exe
-      ~env:(Array.concat [store.env; san_env])
+      ~env:(Array.concat [store.env; san_env; cov_env])
       ~stdout:(stdout ~log)
       ~stderr:(stderr ~log)
   in
   match res with
   | Ok () ->
-      Lwt.return_ok (Some Covering_label)
+      Lwt.return_ok (Some (Covering_label (read_labels_from_file label_file)))
   | Error Unix.WEXITED code when code = oracle_failure_code ->
       Lwt.return_ok (Some Oracle_failure)
   | Error Unix.WEXITED code when code = no_new_coverage_code ||
@@ -423,7 +447,7 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
   ready_validator.launch begin fun () ->
     let* first_stage_res =
       if purpose = For_full_validation
-      then replay_with_store_update ready_validator ~exec_validator ~log
+      then replay_with_store_update ready_validator ~test_ident ~exec_validator ~log
       else Lwt.return_error ()                            (* skip first stage *)
     in
     match first_stage_res with
