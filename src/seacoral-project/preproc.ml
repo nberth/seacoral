@@ -128,8 +128,7 @@ let do_syntax_check ~incdir ~config c_file =
         ~stderr_grabber:(MBox stderr_lines_mbox)
     in
     let* stream = Lwt_mvar.take stdout_lines_mbox in
-    let* () = check_entrypoint_definition_in_llvm_dump_ast ~config stream in
-    Lwt.return ()
+    check_entrypoint_definition_in_llvm_dump_ast ~config stream
   end begin function
     | Sc_C.Cmd.ERROR cmd_error
       when !Ez_logs.stdout_level_ref <> Some Debug ->
