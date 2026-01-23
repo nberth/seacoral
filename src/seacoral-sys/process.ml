@@ -287,16 +287,10 @@ let exec ?env ?cwd
   let async_out_stream s ~log_header ~line_stream =
     match s with
     | `Grab grabber ->
-       (* S: Without this, the command may be stuck in an infinite loop.
-          Check for Sc_C.Cmd.clang_check_and_print_llvm, called in
-          Sc_project.Preproc.do_syntax_check.
-          I'm guessing this is due to some bad stream initialization. *)
-       let s1 = line_stream p in
-       let s2 = Lwt_stream.clone s1 in
-       Lwt.join [
-         grab_stream grabber s1;
-         log_lines (fun ?header:_ _ _ -> Lwt.return ()) s2
-       ]
+       (* S: This branch may lead to an infinite loop.
+          I'm guessing this is due to some bad stream initialization but I can't
+          find where's the problem. *)
+       grab_stream grabber (line_stream p)
     | `Log logger ->
         log_lines logger ~header:log_header (line_stream p)
     | `GrabNLog (grabber, logger) ->

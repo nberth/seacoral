@@ -76,7 +76,10 @@ module Log_lwt_ld = (val Ez_logs.subproc "ld")
 
 let stream_grab_xor_log grabber logger = match grabber with
   | None -> `Log logger
-  | Some grabber -> `Grab grabber
+  | Some grabber ->
+     (* S: Using `GrabNLog with dummy logger because using `Grab
+        leads to an infinite loop. *)
+     `GrabNLog (grabber, (fun ?header:_ _ _ -> Lwt.return ()))
 
 let stream_grab grabber logger = match grabber with
   | None -> `Log logger
