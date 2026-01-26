@@ -22,6 +22,7 @@ type workspace =
 type initialization_options =
   {
     force_preprocess: bool;
+    replay_mode: bool;
   }
 
 type 'a generic_preprocessing_error =

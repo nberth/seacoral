@@ -22,3 +22,10 @@ val generate
   -> encoding_params: Sc_values.TYPES.encoding_params
   -> generation_options
   -> unit Lwt.t
+
+(** Entrypoint for the replayer. *)
+val replay
+  : project_config: Sc_project.Types.project_config
+  -> encoding_params: Sc_values.TYPES.encoding_params
+  -> generation_options
+  -> unit Lwt.t

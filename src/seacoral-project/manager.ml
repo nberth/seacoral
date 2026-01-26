@@ -248,7 +248,7 @@ let write_headers_in ~workspace (params: _ project_params) =
   in
   Lwt.return (types_h, entry_h)
 
-let elaborate ~test_repr ({ workspace; codebase; config; label_data;
+let elaborate ~replay_mode ~test_repr ({ workspace; codebase; config; label_data;
                             given_entrypoint_name; _ } as preprocessed) =
   let outdir = workspace.workdir / "tests" in
   let covdir = outdir / "cov"
@@ -275,7 +275,7 @@ let elaborate ~test_repr ({ workspace; codebase; config; label_data;
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "store" in
     Sc_store.make ~workspace
       { num_labels = List.length labels.any;
-        inhibit_auto_termination = params.oracle_func <> None }
+        inhibit_auto_termination = replay_mode || params.oracle_func <> None }
   and* decoder =
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "decoder" in
     Sc_corpus.Decoder.make ~workspace { test_struct = params.test_struct;
@@ -342,7 +342,7 @@ let initialize
       end
     >>= fun preprocessed ->
     Lwt.catch
-      (fun () -> elaborate ~test_repr preprocessed)
+      (fun () -> elaborate ~replay_mode:initialization_options.replay_mode ~test_repr preprocessed)
       (failed_elaboration)
   end
 

@@ -211,10 +211,7 @@ let config_step f =
         Lwt.reraise e
   end
 
-let make_strategy ~replay_only (config : Sc_lib.Types.config) =
-  if replay_only then
-    Sc_strategy.Types.Tool Sc_replayer.Main.toolname
-  else
+let make_strategy (config : Sc_lib.Types.config) =
     Sc_lib.Strategy.make config.run.tools config.run.strategy
 
 let generate
@@ -232,14 +229,22 @@ let generate
     config_step begin fun () ->
       Sc_lib.Setup.test_encoding_params config
     end
-  and* strategy =
-    config_step begin fun () ->
-      Lwt.return @@ make_strategy ~replay_only config
-    end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
     log_config_info config;
-    if only_check_configuration then Lwt.return () else
+    if only_check_configuration then Lwt.return ()
+    else if replay_only then
+      Sc_lib.Main.replay ~project_config ~encoding_params
+        { run = config.run;
+          enable_detailed_stats;
+          strategy = Nothing;
+          print_statistics = args.print_statistics }                (* temp *)
+    else
+      let* strategy = 
+        config_step begin fun () ->
+          Lwt.return @@ make_strategy config
+          end
+      in
       Lwt.catch begin fun () ->
         Sc_lib.Main.generate ~project_config ~encoding_params
           { run = config.run;

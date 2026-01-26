@@ -453,11 +453,13 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
     | Ok (res: test_outcome option) ->
         Lwt.return res
     | Error () ->
+        Log.debug "First stage of validation failed";
         let* second_stage_res =
           replay_for_rte_identification ready_validator ~exec_validator ~log
         in
         match second_stage_res with
         | Ok () ->              (* error code in label definition only: ignore *)
+            Log.debug "Second stage of validation successful";
             Lwt.return None
         | Error (e: test_outcome) ->
             Lwt.return (Some e)

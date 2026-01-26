@@ -172,7 +172,8 @@ let generate ~project_config ~encoding_params (options: generation_options) =
 
   let initialization_options =
     Sc_core.Types.{
-      force_preprocess = options.run.force_preprocess
+      force_preprocess = options.run.force_preprocess;
+      replay_mode = false;
     }
   in
 
@@ -302,3 +303,62 @@ let generate ~project_config ~encoding_params (options: generation_options) =
             " Sc_project.Manager.print_tool_statistics project;
 
   Lwt.return ()
+
+let replay ~project_config ~encoding_params (options: generation_options) =
+  (* If replay_mode = true && force_preprocess = true, should the project
+     replay the tests in a fresh environment? *)
+  let initialization_options =
+    Sc_core.Types.{
+      force_preprocess = options.run.force_preprocess;
+      replay_mode = true;
+    }
+  in
+
+  Log.app "Initializing@ working@ environment...";
+
+  let module Raw_test = (val make_test_repr_module encoding_params) in
+  let* project =
+    Lwt.catch begin fun () ->
+      Sc_project.Manager.initialize ~initialization_options
+        ~test_repr:(module Raw_test)
+        ~config:project_config
+    end begin function
+      | SETUP_ERROR e ->
+          generation_error @@ Project_setup_error e
+      | LABELING_ERROR e ->
+          generation_error @@ Project_labeling_error e
+      | ELABORATION_ERROR e ->
+          generation_error @@ Project_elaboration_error e
+      | e ->
+          Lwt.reraise e
+    end
+  in
+
+  let* validator = Sc_corpus.Validator.setup project.validator in
+  
+  (* Revalidation of tests *)
+  Log.app "Replaying@ tests.";
+  let corpus = Sc_corpus.existing_tests project.corpus in
+
+  Lwt_stream.iter_s
+    (fun (test : Raw_test.Val.t Sc_corpus.Types.test_view) ->
+      let* outcome =
+        Sc_corpus.Validator.validate_raw_test validator (Lazy.force test.raw)
+      in
+      let () =
+        match outcome with
+        | None ->
+           Log.err "Validator returned no outcome for test %i; expected outcome %a"
+             test.metadata.serialnum
+             Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+        | Some o ->
+           Log.app
+             "Outcome@ for@ test@ %i:@ %a.@"
+             test.metadata.serialnum
+             Sc_corpus.Printer.pp_test_outcome o;
+           if o <> test.metadata.outcome then
+             Log.err "Expected@ outcome:@ %a." Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+      in
+      Lwt.return ()
+    )
+    corpus
