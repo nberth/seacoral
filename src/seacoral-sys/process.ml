@@ -287,7 +287,10 @@ let exec ?env ?cwd
   let async_out_stream s ~log_header ~line_stream =
     match s with
     | `Grab grabber ->
-        grab_stream grabber (line_stream p)
+       (* S: This branch may lead to an infinite loop.
+          I'm guessing this is due to some bad stream initialization but I can't
+          find where's the problem. *)
+       grab_stream grabber (line_stream p)
     | `Log logger ->
         log_lines logger ~header:log_header (line_stream p)
     | `GrabNLog (grabber, logger) ->

@@ -2,7 +2,7 @@ An empty C file does what?
   $ seacoral --config empty-c-file.toml
   [A]{Sc} Starting to log into `_sc/empty.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
-  [E]{Sc} Elaboration failed: function `foo' not found in empty.c
+  [E]{Sc} Labeling failed: Missing entrypoint foo
   [124]
 
 Meaningful errors should be reported when entries of
@@ -55,4 +55,11 @@ What happens on an unexpected initialization function?
   [A]{Sc} Initializing working environment...
   [E]{Sc} Elaboration failed: initialization function `init' must not accept
           any argument
+  [124]
+
+What happens on unknown entrypoint and cover targets?
+  $ seacoral --config invalid-entrypoint.toml
+  [A]{Sc} Starting to log into `_sc/basic-array.c-CC-@4/logs/1.log'
+  [A]{Sc} Initializing working environment...
+  [E]{Sc} Labeling failed: Missing entrypoint foo, Missing cover target bar
   [124]

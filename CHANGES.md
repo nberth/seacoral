@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- A pretty error message when entrypoints or cover targers are missing from the C code [#52](https://github.com/OCamlPro/seacoral/pull/52)
 - Reporting of RTEs and unsatisfied oracles by CBMC in `assert` and `clabel` modes [#48](https://github.com/ocamlpro/seacoral/pull/48)
 - Comment with test outcomes in generated testsuites [#44](https://github.com/ocamlpro/seacoral/pull/44)
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
