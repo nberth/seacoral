@@ -23,12 +23,12 @@ open Sc_sys.Lwt_file.Syntax
 (* module TestsCache = Ephemeron.K1.Make (String) *)
 module Tests_table = Hashtbl.Make (Digest)
 
-module Outcomes_ident = struct
+module Outcome_ident = struct
   type t = test_outcome
   let equal = (=)
   let hash = Hashtbl.hash
 end
-module Outcomes_table = Hashtbl.Make (Outcomes_ident)
+module Outcomes_table = Hashtbl.Make (Outcome_ident)
 
 type 'r corpus =
   {
@@ -38,7 +38,7 @@ type 'r corpus =
     tests_cache: 'r registered_test Tests_table.t;
     tests_cache_mutex: Lwt_mutex.t;
     outcomes: Digest.t Outcomes_table.t;
-    outcomes': Outcomes_ident.t Tests_table.t;
+    outcomes': Outcome_ident.t Tests_table.t;
     outcomes_file: [`text] file;
     bypassed_count: int ref;
     bypassed_count_mutex: Lwt_mutex.t;
@@ -245,8 +245,8 @@ let receive_new_tests ({ tests_dir; tests_stream;
               format_file params.run_num serialnum toolname id outcome
             in
             let file = tests_dir / basename in
-            let* () = add_entry corpus id outcome in
-            let* () = write_test corpus file v in
+            let* () = add_entry corpus id outcome
+            and* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
             Lwt.return ()
       end
@@ -284,7 +284,7 @@ let make ~workspace test_repr params =
     }
   in
   let* () = load_outcomes_table res in
-  let* () = cache_existing_tests res in
+  let* () = cache_existing_tests res in (* note: not in parallel as `cache_existing_tests` relies on outcome table *)
   Lwt.async (fun () -> receive_new_tests res);
   Lwt.return res
 
