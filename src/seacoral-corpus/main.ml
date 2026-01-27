@@ -124,30 +124,11 @@ let format_file run_num serialnum toolname id outcome =
   Fmt.str "%04u-@%u-%s-%s-%a"
     serialnum run_num (Digest.to_hex id) toolname pp_outcome outcome
 
-let test_outcome_from_test_suffix { outcomes'; _ } id = function
-  | "rte" -> begin
-     match Tests_table.find outcomes' id with
-     | (Triggering_RTE _ as err) -> Ok err
-     | _ -> Error ()
-    end
-  | "cover" -> begin
-      match Tests_table.find outcomes' id with
-      | (Covering_label _ as c) -> Ok c
-      | _ -> Error ()
-    end
-  | "fail" -> begin
-      match Tests_table.find outcomes' id with
-      | Oracle_failure -> Ok Oracle_failure
-      | _ -> Error ()
-    end
-  | _ ->
-      Error ()
-
 let test_outcome corpus f =
   try
-    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%s" @@ fun id_hex ->
-    test_outcome_from_test_suffix corpus @@ Digest.from_hex id_hex
-  with Scanf.Scan_failure _ | Failure _ | End_of_file ->
+    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%s" @@ fun id_hex _effect_suffix ->
+      Ok (Tests_table.find corpus.outcomes' (Digest.from_hex id_hex))
+  with Scanf.Scan_failure _ | Failure _ | End_of_file | Not_found ->
     Error ()
 
 let test_metadata corpus f =
@@ -155,13 +136,13 @@ let test_metadata corpus f =
   try
     Lwt.return @@
     Scanf.sscanf (Sc_sys.File.basename f) "%u-%@%u-%s@-%s@-%s"
-      begin fun serialnum crearun id_hex toolname effect_suffix ->
+      begin fun serialnum crearun id_hex toolname _effect_suffix ->
         let id = Digest.from_hex id_hex in
         let outcome =
-          match test_outcome_from_test_suffix corpus id effect_suffix with
-          | Ok outcome ->
+          match Tests_table.find corpus.outcomes' id with
+          | outcome ->
               outcome
-          | Error () ->
+          | exception Not_found ->
               internal_error @@ Unexpected_filename f        (* TODO: silent? *)
         in
         { serialnum; id; toolname; creatime = stat.st_mtime; crearun; outcome; }
