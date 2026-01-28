@@ -88,6 +88,9 @@ val test_struct: _ corpus -> Sc_values.Struct.typ
 val info: _ corpus -> Types.info
 val has_crashes: Types.info -> bool
 val has_oracle_failures: Types.info -> bool
+val is_covering : Types.test_outcome -> bool
+val is_triggering_rte : Types.test_outcome -> bool
+val is_oracle_failure : Types.test_outcome -> bool 
 
 (* --- *)
 
