@@ -334,17 +334,18 @@ let is_oracle_failure = function
   | Oracle_failure -> true
   | _ -> false
 
+let count_rtes outcomes =
+  Tests_table.fold
+    (fun _ b acc ->
+      if is_triggering_rte b
+      then acc + 1
+      else acc)
+    outcomes
+    0
+
 let info ({ tests_cache; outcomes'; bypassed_count;_ } as corpus): info =
   let total = Tests_table.length tests_cache in
-  let rte =
-    Tests_table.fold
-      (fun _ b acc ->
-        if is_triggering_rte b
-        then acc + 1
-        else acc)
-      outcomes'
-      0
-  in
+  let rte = count_rtes outcomes' in
   let fails =
     Tests_table.fold begin fun _ { file; _ } ->
       match test_outcome corpus file with
