@@ -126,7 +126,7 @@ let format_file run_num serialnum toolname id outcome =
 
 let test_outcome corpus f =
   try
-    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%s" @@ fun id_hex _effect_suffix ->
+    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%_s" @@ fun id_hex ->
       Ok (Tests_table.find corpus.outcomes' (Digest.from_hex id_hex))
   with Scanf.Scan_failure _ | Failure _ | End_of_file | Not_found ->
     Error ()
