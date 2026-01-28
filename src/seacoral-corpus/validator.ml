@@ -316,16 +316,14 @@ let stdout ~log:(module Log: Ez_logs.T) =
 (* --- *)
 
 let read_labels_from_file f =
-  let res = ref Basics.Ints.empty in
-  let< chan = f in
-  try while true do
-    match input_line chan with
-    | "ign" -> raise End_of_file
-    | i -> res := Basics.Ints.add (int_of_string i) !res
-    done;
-    !res
-  with
-  | End_of_file -> !res
+  let<* chan = f in
+  let lines = Lwt_io.read_lines chan in
+  Lwt_stream.fold_s
+    (fun l acc -> Lwt.return @@ match l with
+     | "ign" -> acc
+     | i -> Basics.Ints.add (int_of_string i) acc)
+    lines
+    Basics.Ints.empty
 
 let replay_with_store_update
       ready_validator ~test_ident
@@ -357,7 +355,8 @@ let replay_with_store_update
   in
   match res with
   | Ok () ->
-      Lwt.return_ok (Some (Covering_label (read_labels_from_file label_file)))
+      let* lbls = read_labels_from_file label_file in
+      Lwt.return_ok (Some (Covering_label lbls))
   | Error Unix.WEXITED code when code = oracle_failure_code ->
       Lwt.return_ok (Some Oracle_failure)
   | Error Unix.WEXITED code when code = no_new_coverage_code ||
