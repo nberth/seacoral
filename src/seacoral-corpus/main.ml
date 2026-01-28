@@ -139,11 +139,9 @@ let test_metadata corpus f =
       begin fun serialnum crearun id_hex toolname _effect_suffix ->
         let id = Digest.from_hex id_hex in
         let outcome =
-          match Tests_table.find corpus.outcomes' id with
-          | outcome ->
-              outcome
-          | exception Not_found ->
-              internal_error @@ Unexpected_filename f        (* TODO: silent? *)
+          try Tests_table.find corpus.outcomes' id with
+          | Not_found ->
+             internal_error @@ Unexpected_filename f         (* TODO: silent? *)
         in
         { serialnum; id; toolname; creatime = stat.st_mtime; crearun; outcome; }
       end
