@@ -335,15 +335,8 @@ let rec make_symbolic_cons
                   pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Carray_with_length_field f ->
                   let size_ap =
-                    if AP.suffix id = None then begin
-                      (* Initialize the size variable if not already done *)
-                      let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
-                      let BoxedType t = Sc_values.struct_field_typ f.length_field in
-                      make_symbolic_base ~env ppf (t, size_ap);
-                      AP.to_string size_ap
-                    end else begin
-                      AP.to_string @@ AP.subst_rigthmost_suffix new_id f.ap_suffix
-                    end
+                    AP.to_string @@
+                    emit_size_ap ~env ~id ~constrained_ptr_id:new_id ppf f
                   in
                   Fmt.pf ppf "@,";
                   let max = Test_repr.Params.encoding_params.max_ptr_array_length in
@@ -381,6 +374,17 @@ let rec make_symbolic_cons
       | t ->
          make_symbolic_base ~env ppf (t, id)
   }
+
+and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) =
+  if AP.suffix id = None then begin
+    (* Initialize the size variable if not already done *)
+    let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
+    let BoxedType t = Sc_values.struct_field_typ f.length_field in
+    make_symbolic_base ~env ppf (t, size_ap);
+    size_ap
+  end else begin
+    AP.subst_rigthmost_suffix constrained_ptr_id f.ap_suffix
+  end
 
 (** Takes a variable name [v] of type [t], and prints its symbolization
     for the CBMC harness on [ppf]. *)
