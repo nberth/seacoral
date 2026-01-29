@@ -78,7 +78,6 @@ void __attribute__((constructor)) __store_initialize () {
 
   /* shift `covered` backward by one byte */
   covered -= 1;
-
   max_id = (unsigned int) s.st_size;
 
   /* Initialize tool identifier */
