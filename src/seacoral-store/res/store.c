@@ -232,7 +232,7 @@ void __sc_set_covered (unsigned int id) {
    as well as the status of labels already committed upon startup. */
 static unsigned char* covered_buff = NULL;
 
-// Array containing all the labels covered by the current run
+/* Array that contains the status of labels covered by the current run only. */
 static unsigned char* exact_covered_buff = NULL;
 
 inline static
