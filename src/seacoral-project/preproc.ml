@@ -94,7 +94,7 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
   in
   let* unfound_functions =
     Lwt_stream.fold
-      (fun l funs -> loop l [] funs)      
+      (fun l funs -> loop l [] funs)
       stream
       functions
   in
@@ -275,14 +275,6 @@ let extract_cils (c_file: [`C | `labelized] file) =
   let cil = Sc_C.Defs.diff_globals full_cil lib_cil in
   Lwt.return (full_cil, cil)
 
-let inputs_with_constraints pointer_handling =
-  List.fold_left begin fun acc -> function
-    | Sc_C.Types.Distinct_variables { pointer_var; _ } ->
-        Strings.add pointer_var acc
-    | _ ->
-        acc
-  end Strings.empty pointer_handling.array_size_mapping
-
 let add_cil_var_attributes ptr_config cil_var =
   let varname = Sc_C.Defs.var_name cil_var in
   let size =
@@ -396,17 +388,6 @@ let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
   with Sc_values.TYPES.SPECIFICATION_ERROR Unknown_field { field_name; _ } ->
     elaboration_error
       (Unknown_formals { formals = Strings.singleton field_name; func })
-
-(* NB: just checking there are no extraneous inputs *)
-(* TODO: check those that are ok are actually pointers (could be done
-   Sc_values?) *)
-let[@warning "-unused-value-declaration"] check_array_size_mapping ~config func =
-  let inputs = Sc_C.Defs.(varset @@ func_inputs func) in
-  let inputs_with_constraints
-    = inputs_with_constraints config.project_pointer_handling in
-  let unknown_inputs = Strings.diff inputs_with_constraints inputs in
-  if not (Strings.is_empty unknown_inputs) then
-    elaboration_error @@ Unknown_formals { formals = unknown_inputs; func }
 
 let setup_for ~config ~test_repr ~c_file =
   let* full_cil, cil = extract_cils c_file in
