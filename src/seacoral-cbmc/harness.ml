@@ -349,11 +349,7 @@ let rec make_symbolic_cons
                   Fmt.pf ppf "@,"
            }
       | Ctypes_static.Struct {fields; _} ->
-         List.iter
-           (fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
-             let id = AP.append_field id fname in
-             (make_symbolic_cons ~sd ~env ppf id).f ftype)
-           fields
+         emit_struct_fields ~sd ~env ~id ppf fields
       | Ctypes_static.Union {ufields = []; _} ->
          (* Is this even possible? *)
          make_symbolic_base ~env ppf (t, id)
@@ -375,7 +371,7 @@ let rec make_symbolic_cons
          make_symbolic_base ~env ppf (t, id)
   }
 
-and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) =
+and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) : AP.t =
   if AP.suffix id = None then begin
     (* Initialize the size variable if not already done *)
     let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
@@ -385,6 +381,26 @@ and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) =
   end else begin
     AP.subst_rigthmost_suffix constrained_ptr_id f.ap_suffix
   end
+
+and emit_struct_fields:
+  type s. sd:_ -> env:_ -> id:_ -> _ -> s Ctypes_static.boxed_field list -> unit =
+  fun ~sd ~env ~id ppf fields ->
+  List.iter begin fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
+    match ftype with
+    | Primitive _ ->
+        let id = AP.append_field id fname in
+        (make_symbolic_cons ~sd ~env ppf id).f ftype
+    | _ ->
+        ()
+  end fields;
+  List.iter begin fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
+    match ftype with
+    | Primitive _ ->
+        ()
+    | _ ->
+        let id = AP.append_field id fname in
+        (make_symbolic_cons ~sd ~env ppf id).f ftype
+  end fields
 
 (** Takes a variable name [v] of type [t], and prints its symbolization
     for the CBMC harness on [ppf]. *)
