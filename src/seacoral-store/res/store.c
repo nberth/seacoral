@@ -228,8 +228,8 @@ void __sc_set_covered (unsigned int id) {
   __check_uncoverable (id, status);
 }
 
-/* Array containing all the labels covered by the current run +
-   all the labels. */
+/* Array that contains the status of labels covered by the current run,
+   as well as the status of labels already committed upon startup. */
 static unsigned char* covered_buff = NULL;
 
 // Array containing all the labels covered by the current run
