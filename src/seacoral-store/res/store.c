@@ -189,7 +189,6 @@ unsigned char __sc_covered (unsigned int id) {
     flock_start_writing (&l);
     covered[id] = tool_id;
   }
-  
   flock_release (&l);
 
   __check_uncoverable (id, res);
