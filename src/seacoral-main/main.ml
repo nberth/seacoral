@@ -212,7 +212,8 @@ let config_step f =
   end
 
 let generate ?enable_logfile ?(enable_detailed_stats = true) ?enable_console_timing
-    ?(only_check_configuration = false) (args: Types.options) () =
+      ?enable_display_outcomes ?(only_check_configuration = false)
+      (args: Types.options) () =
   (* TODO: add an option `--debug-init` to enable logging during the preliminary
      loading phase. *)
   let config, salt = load_config ?enable_console_timing args in
@@ -237,6 +238,7 @@ let generate ?enable_logfile ?(enable_detailed_stats = true) ?enable_console_tim
         Sc_lib.Main.generate ~project_config ~encoding_params
           { run = config.run;
             enable_detailed_stats;
+            enable_display_outcomes;
             strategy;
             print_statistics = args.print_statistics }                (* temp *)
       end begin function
@@ -344,7 +346,7 @@ let load_args ?argv () =
       check;
   ]
 
-let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () =
+let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?enable_display_outcomes ?argv () =
 
   Basics.PPrt.init_formatters ();
 
@@ -354,10 +356,10 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
   | Ok `Ok `Config_init ->
       init_config_file ()
   | Ok `Ok `Generate args ->
-      with_lwt (generate ?enable_logfile ?enable_detailed_stats
+      with_lwt (generate ?enable_logfile ?enable_detailed_stats ?enable_display_outcomes
                   ?enable_console_timing args)
   | Ok `Ok `Check args ->
-      with_lwt (generate ?enable_logfile ?enable_detailed_stats
+      with_lwt (generate ?enable_logfile ?enable_detailed_stats ?enable_display_outcomes
                   ?enable_console_timing ~only_check_configuration:true args)
   | Ok `Version
   | Ok `Help ->

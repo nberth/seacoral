@@ -25,6 +25,7 @@ type generation_options =
   {
     run: run_config;
     enable_detailed_stats: bool;
+    enable_display_outcomes: [`Yes | `Verbose] option;
     strategy: Sc_strategy.Types.t;
     print_statistics: bool;
   }
@@ -225,6 +226,28 @@ let generate ~project_config ~encoding_params (options: generation_options) =
           ~store_cov_info:cov_info
   in
 
+  (* Display output table *)
+  let* () =
+    match options.enable_display_outcomes with
+    | None -> Lwt.return ()
+    | Some v -> 
+       let tests = Sc_corpus.existing_tests project.corpus in
+       let pp =
+         match v with
+         | `Verbose ->
+            fun fmt (t : Raw_test.Val.t Sc_corpus.Types.test_view) ->
+            Format.fprintf fmt "Test %a: %a"
+              Raw_test.Val.print (Lazy.force t.raw)
+              Sc_corpus.Printer.pp_test_outcome t.metadata.outcome
+         | `Yes ->
+            fun fmt (t : Raw_test.Val.t Sc_corpus.Types.test_view) ->
+            Format.fprintf fmt "Test %i: %a"
+              t.metadata.serialnum
+              Sc_corpus.Printer.pp_test_outcome t.metadata.outcome
+       in
+       Lwt_stream.iter (Log.app "%a" pp) tests
+  in
+    
   (* E-ACSL *)
   let* () =
     Sc_postproc.Eacsl.run project testsuite >>= function

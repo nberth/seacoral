@@ -1,4 +1,5 @@
   $ export CBMC_MODE=cover
+  $ export SC_ENABLE_DISPLAY_OUTCOMES=1
   $ seacoral --tools cbmc
   [A]{Sc} Starting to log into `_sc/get_sign.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
@@ -16,3 +17,6 @@
                  3: Covered
                  4: Covered
           Coverage: (4/4) 100.0%
+  [A]{Sc} Test 1: covering labels {2, 4}
+  [A]{Sc} Test 2: covering labels {2, 3}
+  [A]{Sc} Test 3: covering labels {1}

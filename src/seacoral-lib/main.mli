@@ -12,6 +12,7 @@ type generation_options =
   {
     run: Types.run_config;
     enable_detailed_stats: bool;
+    enable_display_outcomes: [`Yes | `Verbose] option;
     strategy: Sc_strategy.Types.t;
     print_statistics: bool;
   }
