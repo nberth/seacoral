@@ -236,3 +236,5 @@ let for_compiled_subprocess ?(ld_preload_var = "LD_PRELOAD")
     ];
     cppflags = [];
   }
+
+let size t = t.array_size
