@@ -69,6 +69,10 @@ let append: t -> suffix -> t = fun ap s' ->
   | Access_path { origin; suffix } ->
       Access_path { origin; suffix = NEL.append suffix s' }
 
+let append': t -> suffix option -> t = fun ap -> function
+  | Some s -> append ap s
+  | None -> ap
+
 let append_field t f = append t (field f)
 
 let append_index t i = append t (index i)
@@ -120,6 +124,23 @@ let compare i j =
 (*   | Access_path_suffix One _ -> None *)
 (*   | Access_path_suffix (_ :: suffix) *)
 (*   | Access_path { suffix; _ } -> Some suffix *)
+
+let subst_rigthmost_suffix_element: suffix -> suffix -> suffix = fun s ns ->
+  let rec aux: suffix -> suffix = function
+    | One _ -> ns
+    | hd :: tl -> hd :: aux tl
+  in
+  aux s
+
+let subst_rigthmost_suffix: t -> suffix -> t = fun ap suff ->
+  match ap with
+  | Access_path_origin origin ->
+      from origin (Some suff)
+  | Access_path_suffix suffix ->
+      Access_path_suffix (subst_rigthmost_suffix_element suffix suff)
+  | Access_path { origin; suffix } ->
+      let suffix = subst_rigthmost_suffix_element suffix suff in
+      Access_path { origin; suffix }
 
 (** Various (hackish / brittle) stuff *)
 module HACK = struct

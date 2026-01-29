@@ -251,7 +251,7 @@ let pp_cstring_input ~env ~id ~buff_len ppf =
 
 (** Prints a set of instruction for allocating a pointer [id] to a dynamic size,
     but with static_calls up to a given [max_size]. *)
-let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
+let pp_static_malloc ~env ~id ~size_ap ~max_size ~typ ppf =
   let typ_size = Ctypes_static.sizeof typ in
   let n = AP.to_string id in
   let empty_array_flag = Fmt.str "empty-array:%s" n in
@@ -263,12 +263,12 @@ let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
   Fmt.pf ppf "if (__empty) {@,";
   Fmt.pf ppf "  static %a;@," Sc_values.Printer.c_decl (Array (typ, 0), "x");
   Fmt.pf ppf "  %s = x;@," n;
-  Fmt.pf ppf "  __CPROVER_assume(%s == 0);@," size_var;
+  Fmt.pf ppf "  __CPROVER_assume(%s == 0);@," size_ap;
   Fmt.pf ppf "}@,";
-  Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_var n;
+  Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_ap n;
   for i = 0 to max_size do
     Fmt.pf ppf "else if (%s == %i) %s = malloc(%i);@,\
-               " size_var i n (typ_size * i)
+               " size_ap i n (typ_size * i)
   done;
   Fmt.pf ppf "else __CPROVER_assume(0);";
   Fmt.pf ppf "@]@,} while (0);"
@@ -308,11 +308,11 @@ let rec make_symbolic_cons
             (size, id)).f t
       | Ctypes_static.Pointer pted ->
          Log.debug "Symbolizing pointer %a" AP.print id;
-         let pp_initialize_referenced_values ~id ~size_var ~max =
+         let pp_initialize_referenced_values ~id ~size_ap ~max =
            Fmt.pf ppf "@[<v>/* Initializing referenced values */@,";
            for cpt = 0 to max - 1 do
              let new_id = AP.append_index id cpt in
-             Fmt.pf ppf "@[<v 2>if (%s > %i) {@," size_var cpt;
+             Fmt.pf ppf "@[<v 2>if (%s > %i) {@," size_ap cpt;
              (make_symbolic_cons ~sd ~env ppf new_id).f pted;
              Fmt.pf ppf "@]@,}@,"
            done;
@@ -320,11 +320,7 @@ let rec make_symbolic_cons
          in
          Encoding.ctyp_fold_direct_access_paths t () ~f_ptr:{
              f = fun _ ap_suffix _pv () ->
-               let new_id =
-                 match ap_suffix with
-                 | None -> id
-                 | Some suff -> AP.append id suff
-               in
+               let new_id = AP.append' id ap_suffix in
                match AP.Map.find new_id sd.pointer_memory_map with
                | exception Not_found ->
                   Log.debug
@@ -332,22 +328,28 @@ let rec make_symbolic_cons
                     AP.print new_id;
                   Fmt.pf ppf "%s = 0;" (AP.to_string new_id);
                | `Carray_with_bound_length max ->
-                  let size_var = fresh_size_var () in
-                  Fmt.pf ppf "int %s = %a;@," size_var nondet_call "int";
-                  pp_static_malloc ~env ~id:new_id ~size_var ~max_size:max ~typ:pted ppf;
+                  let size_ap = fresh_size_var () in
+                  Fmt.pf ppf "int %s = %a;@," size_ap nondet_call "int";
+                  pp_static_malloc ~env ~id:new_id ~size_ap ~max_size:max ~typ:pted ppf;
                   Fmt.pf ppf "@,";
-                  pp_initialize_referenced_values ~id:new_id ~size_var ~max
+                  pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Carray_with_length_field f ->
-                  let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
-                  let size_var = AP.to_string size_ap in
-                  let BoxedType t = Sc_values.struct_field_typ f.length_field in
-                  (* Initializing the size variable if not already done *)
-                  make_symbolic_base ~env ppf (t, size_ap);
+                  let size_ap =
+                    if AP.suffix id = None then begin
+                      (* Initialize the size variable if not already done *)
+                      let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
+                      let BoxedType t = Sc_values.struct_field_typ f.length_field in
+                      make_symbolic_base ~env ppf (t, size_ap);
+                      AP.to_string size_ap
+                    end else begin
+                      AP.to_string @@ AP.subst_rigthmost_suffix new_id f.ap_suffix
+                    end
+                  in
                   Fmt.pf ppf "@,";
                   let max = Test_repr.Params.encoding_params.max_ptr_array_length in
-                  pp_static_malloc ~env ~id:new_id ~size_var ~max_size:max ~typ:pted ppf;
+                  pp_static_malloc ~env ~id:new_id ~size_ap ~max_size:max ~typ:pted ppf;
                   Fmt.pf ppf "@,";
-                  pp_initialize_referenced_values ~id:new_id ~size_var ~max
+                  pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Cstring ->
                   pp_cstring_input ~env ~id:new_id ppf
                     ~buff_len:Test_repr.Params.encoding_params.max_cstring_length;

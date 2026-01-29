@@ -277,45 +277,72 @@ let extract_cils (c_file: [`C | `labelized] file) =
 
 let inputs_with_constraints pointer_handling =
   List.fold_left begin fun acc -> function
-    | Sc_C.Types.Separate_variables { array; _ } ->
-        Strings.add (Fmt.str "%a" Sc_C.Printer.pp_named_location array) acc
+    | Sc_C.Types.Distinct_variables { pointer_var; _ } ->
+        Strings.add pointer_var acc
     | _ ->
         acc
   end Strings.empty pointer_handling.array_size_mapping
 
-let add_cil_attributes ptr_config cil_var =
+let add_cil_var_attributes ptr_config cil_var =
   let varname = Sc_C.Defs.var_name cil_var in
   let size =
     (* Calculating size if constrained by array_size_mapping *)
-    let sz =
-      Sc_C.Named_loc.find_assoc
-        ~varname
-        ~access_path:[]
-        ptr_config.array_size_mapping
-    in
-    Option.map begin fun (v, p) ->
-      let nl = Sc_C.Named_loc.of_varname ~access_path:p v in
-      `Var (Format.asprintf "%a" Sc_C.Printer.pp_named_location nl)
-    end sz
+    match Sc_C.Named_loc.find_var ~varname ptr_config.array_size_mapping with
+    | Some v -> Some (`Var v)
+    | None -> None
   and carray =
     Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_array
   and cstring =
     Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_cstring
   in
   match size, carray, cstring with           (* carray if in size mapping *)
-  | Some _,  _,    _ -> Sc_C.Defs.as_pointer_to_carray ?size cil_var
+  | Some s,  _,    _ -> Sc_C.Defs.as_pointer_to_carray ~size:s cil_var
   | None, true,    _ -> Sc_C.Defs.as_pointer_to_carray cil_var
   | None,    _, true -> Sc_C.Defs.as_pointer_to_cstring cil_var
   | None,    _,    _ -> cil_var
 
-(** Adds attributes to function input given the array constraints
-    of the configuration module (treat_pointer_as_array/cstring &
-    array_size_mapping) *)
+(** Adds attributes to function parameters based on given pointer constraints
+    stored in [config] (treat_pointer_as_array/cstring & array_size_mapping) *)
 (* /!\ Non-variable constraints (contraints on pointers of pointers for
    example) are not stored in attributes. *)
-let add_attributes ~config func_repr =
+let add_var_attributes ~config func_repr =
   Sc_C.Defs.map_func_inputs func_repr ~f:begin fun _ v ->
-    add_cil_attributes config.project_pointer_handling v
+    add_cil_var_attributes config.project_pointer_handling v
+  end
+
+let add_struct_type_attributes ~config (compinfo: Cil.compinfo) =
+  let struct_name = compinfo.cname in
+  let cfields =
+    List.map begin fun (Cil.{ fname = field_name; _ } as field) ->
+      let size =
+        Sc_C.Named_loc.find_field ~struct_name ~field_name
+          config.project_pointer_handling.array_size_mapping
+      and carray =
+        Sc_C.Named_loc.field_mem ~struct_name ~field_name
+          config.project_pointer_handling.treat_pointer_as_array
+      and cstring =
+        Sc_C.Named_loc.field_mem ~struct_name ~field_name
+          config.project_pointer_handling.treat_pointer_as_cstring
+      in
+      match size, carray, cstring with
+      | Some f,  _,    _ ->
+          Sc_C.Defs.as_pointer_field_to_carray_field ~size:(`Var f) field
+      | None, true,    _ ->
+          Sc_C.Defs.as_pointer_field_to_carray_field field
+      | None,    _, true ->
+          Sc_C.Defs.as_pointer_field_to_cstring_field field
+      | None,    _,    _ ->
+          field
+    end compinfo.cfields
+  in
+  { compinfo with cfields }
+
+let add_global_type_attributes ~config cil =
+  Sc_C.Defs.map_globals cil ~f:begin function
+    | GCompTag ({ cstruct; _ } as s, loc) when cstruct ->
+        GCompTag (add_struct_type_attributes ~config s, loc)
+    | x ->
+        x
   end
 
 let rec voidp_: Cil.typ -> bool = function
@@ -386,6 +413,7 @@ let setup_for ~config ~test_repr ~c_file =
   patch_cil_file_types full_cil;
   let cil_typing_info = patch_and_inspect_cil_file_types cil in
   (* TODO: add Sc_values-specific attributes to some of the types *)
+  let full_cil = add_global_type_attributes ~config full_cil in
   let typdecls = Sc_values.typdecls_from_cil_file full_cil in
   (* TODO: extract globals/function environment from the function
      representation. *)
@@ -400,7 +428,7 @@ let setup_for ~config ~test_repr ~c_file =
     | fn -> Some (Sc_C.Defs.cil_func cil fn)             (* TODO: check_oracle *)
   in
   (* check_array_size_mapping ~config func_repr; *)
-  let func_repr = add_attributes ~config func_repr in
+  let func_repr = add_var_attributes ~config func_repr in
   let func_repr = check_entrypoint_func ~config func_repr in
   let test_struct = test_struct ~typdecls func_repr in
   let seek_oracle_failures = config.project_problem.seek_oracle_failures in

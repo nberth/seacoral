@@ -57,16 +57,25 @@ named_loc:
 
 /* TODO: make a simpler syntax for structures */
 named_loc_assoc:
-  | STRUCT access_path COLON access_path {
-      From_same_struct {struct_name = $1; array = $2; size = $4}
+  (* | STRUCT access_path COLON access_path { *)
+  (*     From_same_struct {struct_name = $1; array = $2; size = $4} *)
+  (*   } *)
+  | STRUCT COLON ID COLON ID {
+      From_same_struct {
+          struct_name = $1;
+          pointer_field_name = $3;
+          size_field_name = $5;
+        }
     }
-  | STRUCT access_path COLON ID access_path {
-      Separate_variables {
-        array = {prefix = Struct $1; access_path = $2}; size = ($4, $5)
-      }
-    }
-  | ID access_path COLON ID access_path {
-      Separate_variables {
-        array = {prefix = Variable $1; access_path = $2}; size = ($4, $5)
+  (* | STRUCT access_path COLON ID access_path { *)
+  (*     Distinct_variables { *)
+  (*       array = {prefix = Struct $1; access_path = $2}; size = ($4, $5) *)
+  (*     } *)
+  (*   } *)
+  | ID (* access_path *) COLON ID (* access_path *) {
+      Distinct_variables {
+          pointer_var = $1;
+          size_var = $3;
+        (* array = {prefix = Variable $1; access_path = $2}; size = ($4, $5) *)
       }
     }

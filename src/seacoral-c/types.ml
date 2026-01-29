@@ -142,20 +142,25 @@ type named_location =
 (** A memory location associated to another variable.
     Used to map arrays to their (variable) size. *)
 type named_loc_assoc =
-  | Separate_variables of {
-    array: named_location;
-    (** The array *)
-    size: string * abstract_access_path
-    (** The variable path of the array. *)
-  }
-  | From_same_struct of {
-      struct_name: string;
-      (** The structure type name. *)
-      array: abstract_access_path;
-      (** How to access the array from a value of type [struct_name]. *)
-      size: abstract_access_path;
-      (** How to access the arrat size from the same value than for [array]. *)
-    }
+  | Distinct_variables of
+      {
+        pointer_var: string;
+        size_var: string;
+        (* array: named_location; *)
+        (* (\** The array *\) *)
+        (* size: string * abstract_access_path *)
+        (* (\** The variable path of the array. *\) *)
+      }
+  | From_same_struct of
+      {
+        struct_name: string;                     (** The structure type name. *)
+        pointer_field_name: string;
+        size_field_name: string;
+        (* array: abstract_access_path; *)
+        (* (\** How to access the array from a value of type [struct_name]. *\) *)
+        (* size: abstract_access_path; *)
+        (* (\** How to access the arrat size from the same value than for [array]. *\) *)
+      }
 
 (** {2 Exceptions} *)
 

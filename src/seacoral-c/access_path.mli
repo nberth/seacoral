@@ -31,6 +31,7 @@ val append_to_suffix': suffix option -> suffix -> suffix
 val origin_only: string -> t
 val suffix_only: suffix -> t
 val append: t -> suffix -> t
+val append': t -> suffix option -> t
 val append_field : t -> string -> t
 val append_index : t -> int -> t
 
@@ -44,6 +45,11 @@ val suffix' : t -> suffix
 
 (** {2 Miscellaneous} *)
 val compare : t -> t -> int
+
+(** {2 Substitutions} *)
+
+val subst_rigthmost_suffix_element: suffix -> suffix -> suffix
+val subst_rigthmost_suffix: t -> suffix -> t
 
 (** Various (hackish / brittle) stuff *)
 module HACK: sig

@@ -174,8 +174,8 @@ let declare_support_functions ppf (sd: support_data) =
         match pv with
         | `Carray_with_bound_length l ->
             emit_carray_init sd ppf (t, ap, l, "depth")
-        | `Carray_with_length_field { ap_suffix; length_field } ->
-            let size_ap = AP.append ap ap_suffix in
+        | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
+            let size_ap = AP.subst_rigthmost_suffix ap len_suffix in
             let BoxedType size_typ = Sc_values.struct_field_typ length_field in
             emit_constrained_carray_init sd ppf (t, ap, size_typ,
                                                  size_ap, "depth")
@@ -200,12 +200,16 @@ let symbolize_inputs ppf ({ params = A params; _ } as sd) =
       let symbolize_var t v () =
         make_symbolic ppf (t, v)
       and symbolize_reachable_heap t ap_suffix pv () =
-        let ap = AP.HACK.forget_first_suffix_punct @@ Option.get ap_suffix in
+        let ap_suffix = Option.get ap_suffix in                 (* never None *)
+        let ap = AP.HACK.forget_first_suffix_punct ap_suffix in
         match pv with
         | `Carray_with_bound_length l ->
             emit_carray_init sd ppf (t, ap, l, "0")
-        | `Carray_with_length_field { ap_suffix; length_field } ->
-            let size_ap = AP.HACK.forget_first_suffix_punct ap_suffix in
+        | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
+            let size_ap =
+              AP.HACK.forget_first_suffix_punct @@
+              AP.subst_rigthmost_suffix_element ap_suffix len_suffix
+            in
             let BoxedType size_typ = Sc_values.struct_field_typ length_field in
             emit_constrained_carray_init sd ppf (t, ap, size_typ, size_ap, "0")
         | `Cstring ->

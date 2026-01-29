@@ -32,14 +32,25 @@ val var_mem : string -> named_location list -> bool
 
     Returns the variable and the access path corresponding to the size of the
     array referenced by [varname] and accessed with [access_path]. *)
-val find_assoc :
-  varname:string ->
-  access_path:abstract_access_path ->
-  named_loc_assoc list ->
-  (string * abstract_access_path) option
+val find_var
+  : varname: string
+  (* -> ?access_path: abstract_access_path *)
+  -> named_loc_assoc list
+  -> (string (* * abstract_access_path *)) option
 
-(** [find_assoc' nl nlal]
+val field_mem
+  : struct_name: string
+  -> field_name: string
+  -> named_location list -> bool
 
-    Same as [find_assoc], but works with named location. *)
-val find_assoc':
-  named_location -> named_loc_assoc list -> named_location option
+val find_field
+  : struct_name: string
+  -> field_name: string
+  -> named_loc_assoc list
+  -> string option
+
+(* (\** [find_assoc' nl nlal] *)
+
+(*     Same as [find_assoc], but works with named location. *\) *)
+(* val find_assoc': *)
+(*   named_location -> named_loc_assoc list -> named_location option *)

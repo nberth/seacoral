@@ -1,0 +1,16 @@
+[project]
+files = ["complex.c"]
+entrypoint = "complex"
+criterion = "CC"
+
+[pointer-handling]
+array-size-mapping = ["{struct s}:a:n"]
+max-ptr-array-length = 2
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 500
+seed = 2
