@@ -78,6 +78,7 @@ void __attribute__((constructor)) __store_initialize () {
 
   /* shift `covered` backward by one byte */
   covered -= 1;
+
   max_id = (unsigned int) s.st_size;
 
   /* Initialize tool identifier */
@@ -188,6 +189,7 @@ unsigned char __sc_covered (unsigned int id) {
     flock_start_writing (&l);
     covered[id] = tool_id;
   }
+  
   flock_release (&l);
 
   __check_uncoverable (id, res);
@@ -226,16 +228,25 @@ void __sc_set_covered (unsigned int id) {
   __check_uncoverable (id, status);
 }
 
+/* Array containing all the labels covered by the current run +
+   all the labels. */
 static unsigned char* covered_buff = NULL;
+
+// Array containing all the labels covered by the current run
+static unsigned char* exact_covered_buff = NULL;
 
 inline static
 void buff_initialize_maybe (void) {
   struct flock l;
 
-  if (covered_buff)
+  if (covered_buff && exact_covered_buff)
     return;
 
-  if (! (covered_buff = malloc ((size_t) (max_id + 1))))
+  if (!(covered_buff || (covered_buff = malloc ((size_t) (max_id + 1)))))
+    handle_error ("calloc");
+  
+  if (!(exact_covered_buff ||
+	(exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char)))))
     handle_error ("calloc");
 
   flock_init_full (&l);
@@ -255,6 +266,8 @@ void __sc_buff_set_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
+  if (!exact_covered_buff[id])
+    exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
 }
@@ -270,6 +283,8 @@ unsigned char __sc_buff_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
+  if (!exact_covered_buff[id])
+    exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
 
@@ -277,6 +292,15 @@ unsigned char __sc_buff_covered (unsigned int id) {
     return __sc_is_covered (id); /* return up-to-date status */
   } else {
     return status;
+  }
+}
+
+void __sc_write_exact_labels(FILE* file){
+  int id;
+  if (!file) return;
+  for (id = 1; id <= max_id; id++) {
+    if (exact_covered_buff[id])
+      fprintf(file, "%i\n", id);
   }
 }
 
@@ -297,6 +321,11 @@ unsigned int __sc_buff_commit (void) {
       committed++;
     }
   }
+  
+  // Writing in exact labels in file if provided 
+  char* file = getenv("__SC_EXACT_LABELS_FILE");
+  if (file) __sc_write_exact_labels(fopen(file, "w"));
+  
   flock_release (&l);
 
   return committed;
