@@ -235,20 +235,25 @@ static unsigned char* covered_buff = NULL;
 /* Array that contains the status of labels covered by the current run only. */
 static unsigned char* exact_covered_buff = NULL;
 
+char* exact_label_file() {
+  return (getenv("__SC_EXACT_LABELS_FILE"));
+}
+
 inline static
 void buff_initialize_maybe (void) {
   struct flock l;
 
-  if (covered_buff && exact_covered_buff)
+  if (exact_label_file () &&
+      !(exact_covered_buff ||
+	(exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char)))))
+    handle_error ("calloc");
+
+  if (covered_buff)
     return;
 
   if (!(covered_buff || (covered_buff = malloc ((size_t) (max_id + 1)))))
     handle_error ("calloc");
   
-  if (!(exact_covered_buff ||
-	(exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char)))))
-    handle_error ("calloc");
-
   flock_init_full (&l);
   flock_start_reading (&l);
   (void) memcpy (covered_buff + 1, covered + 1, (size_t) max_id);
@@ -266,7 +271,7 @@ void __sc_buff_set_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
-  if (!exact_covered_buff[id])
+  if (exact_covered_buff && !exact_covered_buff[id])
     exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
@@ -283,7 +288,7 @@ unsigned char __sc_buff_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
-  if (!exact_covered_buff[id])
+  if (exact_covered_buff && !exact_covered_buff[id])
     exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
@@ -323,8 +328,10 @@ unsigned int __sc_buff_commit (void) {
   }
   
   // Writing in exact labels in file if provided 
-  char* file = getenv("__SC_EXACT_LABELS_FILE");
-  if (file) __sc_write_exact_labels(fopen(file, "w"));
+  if (exact_covered_buff) {
+    char* file = exact_label_file ();
+    if (file) __sc_write_exact_labels(fopen(file, "w"));
+  }
   
   flock_release (&l);
 
