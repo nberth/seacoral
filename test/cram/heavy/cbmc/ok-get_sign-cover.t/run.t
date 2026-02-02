@@ -1,6 +1,5 @@
   $ export CBMC_MODE=cover
-  $ export SC_ENABLE_DISPLAY_OUTCOMES=1
-  $ seacoral --tools cbmc
+  $ seacoral --tools cbmc --debug 5
   [A]{Sc} Starting to log into `_sc/get_sign.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Doing the hard work...

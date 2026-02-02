@@ -13,7 +13,6 @@ val main
   : ?enable_console_timing:bool
   -> ?enable_detailed_stats:bool
   -> ?enable_logfile:bool
-  -> ?enable_display_outcomes:[`Yes | `Verbose]
   -> ?argv:string array
   -> unit
   -> Cmdliner.Cmd.Exit.code

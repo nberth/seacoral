@@ -337,7 +337,7 @@ let replay_with_store_update
   in
   let store_env =
     [|
-      Fmt.str "__SC_EXACT_LABELS_FILE=%s" (Sc_sys.File.absname label_file) 
+      Fmt.str "SC_EXACT_LABELS_FILE=%s" (Sc_sys.File.absname label_file) 
     |]
   in
   let* res =

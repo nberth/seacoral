@@ -25,7 +25,6 @@ type generation_options =
   {
     run: run_config;
     enable_detailed_stats: bool;
-    enable_display_outcomes: [`Yes | `Verbose] option;
     strategy: Sc_strategy.Types.t;
     print_statistics: bool;
   }
@@ -228,9 +227,9 @@ let generate ~project_config ~encoding_params (options: generation_options) =
 
   (* Display output table *)
   let* () =
-    match options.enable_display_outcomes with
-    | None -> Lwt.return ()
-    | Some v -> 
+    match options.run.display_outcomes with
+    | `No -> Lwt.return ()
+    | (`Yes | `Verbose) as v -> 
        let tests = Sc_corpus.existing_tests project.corpus in
        let pp =
          match v with

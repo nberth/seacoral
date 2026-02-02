@@ -18,11 +18,5 @@ let () =
     match Sys.getenv_opt "SC_ENABLE_DETAILED_STATS" with
     | Some ("no" | "0") -> false
     | _ -> true
-  and enable_display_outcomes =
-    match Sys.getenv_opt "SC_ENABLE_DISPLAY_OUTCOMES" with
-    | None
-    | Some ("no" | "0") -> None
-    | Some ("v" | "verbose") -> Some `Verbose
-    | Some _ -> Some `Yes
   in
-  exit (Sc.Main.main ~enable_console_timing ~enable_detailed_stats ?enable_display_outcomes ())
+  exit (Sc.Main.main ~enable_console_timing ~enable_detailed_stats ())
