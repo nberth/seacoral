@@ -97,8 +97,9 @@ val fold_typ_defs: Cil.file -> (Cil.global -> 'a -> 'a) -> 'a -> 'a
     relying on source file locations to check equality.  *)
 val diff_globals: Cil.file -> Cil.file -> Cil.file
 
-(** Warning: inplace mutation of the given CIL file. *)
-val map_globals: f:(Cil.global -> Cil.global) -> Cil.file -> Cil.file
+(** [visit_globals ~f cil] replaces every global definition [g] of the given CIL
+    file [f] with the result of [f g]. *)
+val replace_globals: f:(Cil.global -> Cil.global) -> Cil.file -> unit
 
 (* Other stuff: *)
 

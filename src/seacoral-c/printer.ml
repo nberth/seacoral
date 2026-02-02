@@ -160,15 +160,6 @@ let pp_named_location ppf nl =
 
 let pp_named_loc_assoc ppf nla =
   match nla with
-  (* | Distinct_variables { array; size } -> *)
-  (*     Fmt.pf ppf "%a:%s%a" *)
-  (*       pp_named_location array (fst size) *)
-  (*       pp_access_path' (snd size) *)
-  (* | From_same_struct { struct_name; array; size } -> *)
-  (*     Fmt.pf ppf "{struct %s}%a:%a" *)
-  (*       struct_name *)
-  (*       pp_access_path' array *)
-  (*       pp_access_path' size *)
   | Distinct_variables { pointer_var; size_var } ->
       Fmt.pf ppf "%s:%s" pointer_var size_var
   | From_same_struct { struct_name; pointer_field_name; size_field_name } ->

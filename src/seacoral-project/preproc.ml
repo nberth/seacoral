@@ -330,7 +330,7 @@ let add_struct_type_attributes ~config (compinfo: Cil.compinfo) =
   { compinfo with cfields }
 
 let add_global_type_attributes ~config cil =
-  Sc_C.Defs.map_globals cil ~f:begin function
+  Sc_C.Defs.replace_globals cil ~f:begin function
     | GCompTag ({ cstruct; _ } as s, loc) when cstruct ->
         GCompTag (add_struct_type_attributes ~config s, loc)
     | x ->
@@ -394,7 +394,7 @@ let setup_for ~config ~test_repr ~c_file =
   patch_cil_file_types full_cil;
   let cil_typing_info = patch_and_inspect_cil_file_types cil in
   (* TODO: add Sc_values-specific attributes to some of the types *)
-  let full_cil = add_global_type_attributes ~config full_cil in
+  add_global_type_attributes ~config full_cil;    (* Note: after CIL patching *)
   let typdecls = Sc_values.typdecls_from_cil_file full_cil in
   (* TODO: extract globals/function environment from the function
      representation. *)

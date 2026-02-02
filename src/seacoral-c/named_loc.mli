@@ -23,34 +23,34 @@ val of_string : string -> named_location
     loc association *)
 val assoc_of_string : string -> named_loc_assoc
 
-(** [var_mem v l]
+(** [var_mem v gap_list] holds whenever the size of an array referenced by a
+    pointer variable [v] is constrained according to [gap_list]. . *)
+val var_mem
+  : string
+  -> named_location list
+  -> bool
 
-    Returns [true] if variable [v] with no access is in [l]. *)
-val var_mem : string -> named_location list -> bool
-
-(** [find_assoc ~typname ~varname ~access_path]
-
-    Returns the variable and the access path corresponding to the size of the
-    array referenced by [varname] and accessed with [access_path]. *)
+(** [find_var ~varname gap_list] returns the name of the variable that holds the
+    size of the array referenced by a pointer [varname], if any. *)
 val find_var
   : varname: string
-  (* -> ?access_path: abstract_access_path *)
   -> named_loc_assoc list
-  -> (string (* * abstract_access_path *)) option
+  -> string option
 
+(** [field_mem ~struct_name ~field_name gap_list] returns [true] iff a field of
+    a structure [struct_name] holds the size of the array referenced by a
+    pointer field [field_name] in the same structure. *)
 val field_mem
   : struct_name: string
   -> field_name: string
-  -> named_location list -> bool
+  -> named_location list
+  -> bool
 
+(** [find_field ~struct_name ~field_name gap_list] returns the name of the field
+    of any structure [struct_name] that holds the size of the array referenced
+    by a pointer field [field_name] in the same structure. *)
 val find_field
   : struct_name: string
   -> field_name: string
   -> named_loc_assoc list
   -> string option
-
-(* (\** [find_assoc' nl nlal] *)
-
-(*     Same as [find_assoc], but works with named location. *\) *)
-(* val find_assoc': *)
-(*   named_location -> named_loc_assoc list -> named_location option *)

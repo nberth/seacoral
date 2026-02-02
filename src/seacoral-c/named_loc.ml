@@ -10,7 +10,8 @@
 
 open Types
 
-let of_varname ?(access_path = []) s = {prefix = Variable s; access_path}
+let of_varname ?(access_path = []) s =
+  { prefix = Variable s; access_path }
 
 let if_varname nl =
   match nl.prefix with
@@ -32,24 +33,13 @@ let field_mem ~struct_name ~field_name l =
   List.mem { prefix = Struct struct_name;
              access_path = [Access_field field_name] } l
 
-let find_var ~varname (* ?(access_path = []) *)
-    (nlal : named_loc_assoc list) : (string (* * abstract_access_path *)) option =
+let find_var ~varname (nlal : named_loc_assoc list) : string option =
   List.find_map begin function
     | Distinct_variables { pointer_var; size_var } when pointer_var = varname ->
-        (* If they are separate variables, we can just check if the array is
-           the same. *)
-        (* if array = {prefix = Variable varname; access_path} then *)
-          Some size_var
-        (* else *)
-    (*   None *)
+        Some size_var
     | Distinct_variables _
     | From_same_struct _ ->
-        (* | From_same_struct {struct_name = _; array; size} -> *)
-        (*     if access_path <> array then *)
-        (*       (\* The types or accesses are different. *\) *)
         None
-        (* else *)
-        (*   Some (varname, size) *)
   end nlal
 
 let find_field ~struct_name:sn ~field_name =
@@ -61,18 +51,3 @@ let find_field ~struct_name:sn ~field_name =
     | Distinct_variables _ ->
         None
   end
-
-(* let find_assoc' nl nlal = *)
-(*   match nl.prefix with *)
-(*   | Variable v -> *)
-(*       begin *)
-(*         match find_assoc ~varname:v ~access_path:nl.access_path nlal with *)
-(*         | Some (v, access_path) -> Some {prefix = Variable v; access_path} *)
-(*         | None -> None *)
-(*       end *)
-(*   | Struct _ -> *)
-(*       begin *)
-(*         match find_assoc ~varname:"" ~access_path:nl.access_path nlal with *)
-(*         | Some (_, access_path) -> Some {nl with access_path} *)
-(*         | None -> None *)
-(*       end *)

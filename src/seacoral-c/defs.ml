@@ -145,9 +145,8 @@ let get_fun (fname : string) (gl : Cil.global list) : Cil.varinfo =
   in
   loop gl
 
-let map_globals ~f cil =
-  Cil.mapGlobals cil f;
-  cil
+let replace_globals ~f cil =
+  Cil.mapGlobals cil f
 
 let map_filter_globals f cil =
   Cil.foldGlobals cil begin fun acc g ->
