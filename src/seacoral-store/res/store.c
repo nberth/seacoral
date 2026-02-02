@@ -100,12 +100,6 @@ void __attribute__((constructor)) __store_initialize () {
       tool_id = tool_id_str[0];
     }
   }
-
-  /* Initializing the exact covered labels buffer */
-  if (exact_label_file () &&
-      !(exact_covered_buff ||
-	(exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char)))))
-    handle_error ("calloc");
 }
 
 void __attribute__((destructor)) __store_finalize () {
@@ -121,8 +115,6 @@ void __attribute__((destructor)) __store_finalize () {
 
   log ("success\n");
   covered = NULL;
-  free(exact_covered_buff);
-  exact_covered_buff = NULL;
   fd = -1;
 }
 
@@ -250,12 +242,18 @@ inline static
 void buff_initialize_maybe (void) {
   struct flock l;
 
+  /* Initializing the exact covered labels buffer */
+  if (exact_label_file () &&
+      (!(exact_covered_buff ||
+	 (exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char))))))
+    handle_error ("calloc");
+  
   if (covered_buff)
     return;
 
   if (! (covered_buff = malloc ((size_t) (max_id + 1))))
     handle_error ("malloc");
-  
+
   flock_init_full (&l);
   flock_start_reading (&l);
   (void) memcpy (covered_buff + 1, covered + 1, (size_t) max_id);
@@ -315,6 +313,7 @@ unsigned int __sc_buff_commit (void) {
   unsigned int id;
   unsigned int committed = 0;
   struct flock l;
+  char* file;
 
   if (! covered_buff)		/* nothing to commit */
     return 0u;
@@ -329,13 +328,13 @@ unsigned int __sc_buff_commit (void) {
     }
   }
   
-  // Writing in exact labels in file if provided 
-  if (exact_covered_buff) {
-    char* file = exact_label_file ();
-    if (file) {
-      __sc_write_exact_labels(fopen(file, "w"));
-      fclose(file);
-    }    
+  // Writing in exact labels in file if provided
+  
+  if (file = exact_label_file ()) {
+    FILE* f = fopen(file, "w");
+    if (exact_covered_buff)
+      __sc_write_exact_labels(f);
+    fclose(f);
   }
   
   flock_release (&l);
