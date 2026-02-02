@@ -212,20 +212,7 @@ let generate ~project_config ~encoding_params (options: generation_options) =
   Log.app "Hard work done";
   let* cov_info, _ = retrieve_and_log_statistics ~options ~project in
 
-  let* () =
-    Sc_postproc.Lreplay.run project testsuite >>= function
-    | None ->
-        Lwt.return ()
-    | Some lreplay_results ->
-        if options.enable_detailed_stats
-        then show_lreplay_results lreplay_results
-        else Log.app "Skipped reporting of lreplay results";
-
-        crosscheck_with_lreplay_results ~project ~lreplay_results
-          ~store_cov_info:cov_info
-  in
-
-  (* Display output table *)
+  (* Display outcome table *)
   let* () =
     match options.run.display_outcomes with
     | `No -> Lwt.return ()
@@ -246,7 +233,21 @@ let generate ~project_config ~encoding_params (options: generation_options) =
        in
        Lwt_stream.iter (Log.app "%a" pp) tests
   in
-    
+  
+  let* () =
+    Sc_postproc.Lreplay.run project testsuite >>= function
+    | None ->
+        Lwt.return ()
+    | Some lreplay_results ->
+        if options.enable_detailed_stats
+        then show_lreplay_results lreplay_results
+        else Log.app "Skipped reporting of lreplay results";
+
+        crosscheck_with_lreplay_results ~project ~lreplay_results
+          ~store_cov_info:cov_info
+  in
+  
+  
   (* E-ACSL *)
   let* () =
     Sc_postproc.Eacsl.run project testsuite >>= function

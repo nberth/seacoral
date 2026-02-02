@@ -340,7 +340,6 @@ let replay_with_store_update
       Fmt.str "SC_EXACT_LABELS_FILE=%s" (Sc_sys.File.absname label_file) 
     |]
   in
-  Log.app "SC_EXACT_LABELS_FILE=%s" (Sc_sys.File.absname label_file);
   let* res =
     Sc_sys.Process.join =<< exec_validator
       ~exe:ready_validator.replay_with_store_update_exe
