@@ -57,12 +57,20 @@ let import_error ppf (test_id, exn) =
 
 let with_bidirectional_channel
     ?(import_suff = ".imported") ?(import_filter = fun _ -> Lwt.return true)
-    ?(write_test = `Link) ~share corpus indir f =
+    ?(validation_purpose = Validator.For_full_validation)
+    ?read_test ?(write_test = `Link) ~toolname corpus validator indir f =
+  let read_test = match read_test with
+    | Some f -> f
+    | None -> Main.read_raw_test corpus
+  in
   let setup_uplink { on_share; _ } =
     Sc_sys.Lwt_watch.ASYNC.monitor_dir indir ~on_close:begin fun f ->
       if Sc_sys.File.check_suffix f import_suff
       then Lwt.return ()
-      else on_share @@ Sc_sys.File.basename f >>= fun () -> share f
+      else
+        on_share @@ Sc_sys.File.basename f >>= fun () ->
+        Validator.validate_n_share_raw_test validator
+          ~corpus ~toolname ~purpose:validation_purpose =<< read_test f
     end
   and setup_downlink { filter; _ } =
     Main.on_new_test corpus begin fun ({ metadata = { id; _ } as metadata;
@@ -79,7 +87,7 @@ let with_bidirectional_channel
         if not ok then Lwt.return () else
           Lwt.catch begin fun () ->
             match write_test with
-            | `Func write -> write f' (Lazy.force v.raw)
+            | `Func write -> write f' =<< Lazy.force v.raw
             | `Link -> v.link f'
           end begin fun e ->
             Log.LWT.err "%a" (Fmt.styled `Red import_error) (id, e);
@@ -105,7 +113,7 @@ let import_tests ?(import_suff = ".imported") ?(write_test = `Link)
       Lwt.catch begin fun () ->
         let* () = match write_test with
           | `Link -> v.link f
-          | `Func write -> write f (Lazy.force v.raw)
+          | `Func write -> write f =<< Lazy.force v.raw
         in
         Lwt.return (Basics.Digests.add id acc)
       end begin fun e ->  (* internal: simply log any error detail and proceeed. *)

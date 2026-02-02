@@ -440,16 +440,15 @@ let exec_fuzzer (type raw_test) (wd: raw_test working_data) ?env exe outdir
    usage as it reads the file only once.  If we get [EMFILE] Unix errors we may
    need to switch to the slightly less efficient variant where the raw test file
    is read several times. *)
-let validate_n_share_test (type r) purpose (wd: r working_data) file =
-  let module Raw_test = (val wd.project.params.test_repr) in
-  let* test_str = Sc_sys.Lwt_file.read file in
+let validate_n_share_test purpose wd file =
   Sc_corpus.Validator.validate_n_share_raw_test wd.validator
-    ~corpus:wd.project.corpus ~toolname ~purpose @@
-  Raw_test.Val.of_string wd.project.params.test_struct test_str
+    ~corpus:wd.project.corpus ~toolname ~purpose =<<
+  Sc_corpus.read_raw_test wd.project.corpus file
 
-let with_dynamic_tests_sharing wd ~f dir =
-  Sc_corpus.Sharing.with_bidirectional_channel wd.project.corpus dir f
-    ~share:(validate_n_share_test For_full_validation wd)
+let with_dynamic_tests_sharing (type r) (wd: r working_data) ~f dir =
+  Sc_corpus.Sharing.with_bidirectional_channel
+    wd.project.corpus wd.validator dir f ~toolname
+    ~validation_purpose:For_full_validation
     ~import_suff:".imported"
     ~import_filter:begin fun m ->
       Lwt.return (m.outcome = Covering_label && m.toolname <> toolname)
