@@ -3,7 +3,7 @@
 ## Next release
 
 ### Added
-- Partial support for constrained pointer fields
+- Partial support for constrained pointer fields [#58](https://github.com/OCamlPro/seacoral/pull/58)
 - A pretty error message when entrypoints or cover targers are missing from the C code [#52](https://github.com/OCamlPro/seacoral/pull/52)
 - Reporting of RTEs and unsatisfied oracles by CBMC in `assert` and `clabel` modes [#48](https://github.com/ocamlpro/seacoral/pull/48)
 - Comment with test outcomes in generated testsuites [#44](https://github.com/ocamlpro/seacoral/pull/44)
