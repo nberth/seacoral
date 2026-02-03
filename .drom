@@ -25,7 +25,7 @@ c8f70450e7d78c0387644864ffe8cbd5:.ocamlformat-ignore
 
 # begin context for LICENSE.md
 # file LICENSE.md
-3b106da887e3613f77b4930119533b30:LICENSE.md
+162338f94f788c5678b9832adc9aa936:LICENSE.md
 # end context for LICENSE.md
 
 # begin context for Makefile
@@ -230,7 +230,7 @@ b243cb6f630e2b0483b76eef1572ff95:scripts/static-build.sh
 
 # begin context for sphinx/license.rst
 # file sphinx/license.rst
-8be6ae20b8df8f4951234125670cac8e:sphinx/license.rst
+b921e4a35783021787d5a9381ef75ba8:sphinx/license.rst
 # end context for sphinx/license.rst
 
 # begin context for src/ez-logs/dune
@@ -265,7 +265,7 @@ a46b470cd761269540a31b35932d17d2:src/seacoral-basics/dune
 
 # begin context for src/seacoral-c/dune
 # file src/seacoral-c/dune
-3fa288705ca18e73098ef28bdbfc3873:src/seacoral-c/dune
+6691ff540e42e3717f30f94940e39109:src/seacoral-c/dune
 # end context for src/seacoral-c/dune
 
 # begin context for src/seacoral-c/index.mld

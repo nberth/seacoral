@@ -34,9 +34,9 @@ type project_config =
 (** Pointer-specific configuration *)
 and pointer_handling =
   {
-    treat_pointer_as_array: Sc_C.Types.named_location list;
-    treat_pointer_as_cstring: Sc_C.Types.named_location list;
-    array_size_mapping: Sc_C.Types.named_loc_assoc list;
+    treat_pointer_as_array: Sc_C.Types.pointer_refs;
+    treat_pointer_as_cstring: Sc_C.Types.pointer_refs;
+    array_size_mapping: Sc_C.Types.pointer_constraints;
   }
 
 (** Info on previous and current runs. *)

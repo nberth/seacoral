@@ -13,8 +13,8 @@
   
   )
 
-(menhir (modules named_loc_parser))
-(ocamllex named_loc_lexer)
+(menhir (modules ptr_specs_parser))
+(ocamllex ptr_specs_lexer)
 
 (documentation
   (package seacoral-c))

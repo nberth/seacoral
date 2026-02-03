@@ -190,13 +190,13 @@ let project ?clean_start ~salt (config: config) =
     project_pointer_handling =
       {
         treat_pointer_as_array =
-          List.map Sc_C.Named_loc.of_string
+          List.map Sc_C.Ptr_specs.pointer_ref_of_string
             config.pointer_handling.treat_pointer_as_array;
         treat_pointer_as_cstring =
-          List.map Sc_C.Named_loc.of_string
+          List.map Sc_C.Ptr_specs.pointer_ref_of_string
             config.pointer_handling.treat_pointer_as_cstring;
         array_size_mapping =
-          List.map Sc_C.Named_loc.assoc_of_string
+          List.map Sc_C.Ptr_specs.pointer_constraint_of_string
             config.pointer_handling.array_size_mapping;
       };
     project_srcdir_root = srcdir_root;

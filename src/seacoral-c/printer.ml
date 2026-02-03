@@ -141,25 +141,15 @@ let pp_fundecl ?enable_static_attr ppf { func_name; func_rtyp; func_args; _ } =
     (string_of_typ ?enable_static_attr func_rtyp) func_name
     (pp_argdecl_typs ?enable_static_attr) func_args
 
-(** {2 Generalized pointer access path} *)
+(** {2 Pointer specifications} *)
 
-let pp_access_path_node ppf = function
-  | Access_field s -> Fmt.pf ppf ".%s" s
-  | Access_ptr -> Fmt.pf ppf "[_]"
+let pp_pointer_ref ppf = function
+  | Variable { pointer_var } ->
+      Fmt.string ppf pointer_var
+  | Struct_field { struct_name; pointer_field_name } ->
+      Fmt.pf ppf "{struct %s}.%s" struct_name pointer_field_name
 
-let pp_access_path' ppf =
-  List.iter (pp_access_path_node ppf)
-
-let pp_named_location_prefix ppf = function
-  | Variable s -> Fmt.string ppf s
-  | Struct s -> Fmt.pf ppf "{struct %s}" s
-
-let pp_named_location ppf nl =
-  pp_named_location_prefix ppf nl.prefix;
-  pp_access_path' ppf nl.access_path
-
-let pp_named_loc_assoc ppf nla =
-  match nla with
+let pp_pointer_constraint ppf = function
   | Distinct_variables { pointer_var; size_var } ->
       Fmt.pf ppf "%s:%s" pointer_var size_var
   | From_same_struct { struct_name; pointer_field_name; size_field_name } ->

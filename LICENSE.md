@@ -1,4 +1,4 @@
-Copyright (c) 2025 OCamlPro
+Copyright (c) 2026 OCamlPro
 
 This software is distributed under license "AGPL".
 

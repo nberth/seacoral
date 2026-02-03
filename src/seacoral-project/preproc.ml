@@ -276,16 +276,18 @@ let extract_cils (c_file: [`C | `labelized] file) =
   Lwt.return (full_cil, cil)
 
 let add_cil_var_attributes ptr_config cil_var =
-  let varname = Sc_C.Defs.var_name cil_var in
+  let pointer_var = Sc_C.Defs.var_name cil_var in
   let size =
     (* Calculating size if constrained by array_size_mapping *)
-    match Sc_C.Named_loc.find_var ~varname ptr_config.array_size_mapping with
+    match
+      Sc_C.Ptr_specs.find_var ~pointer_var ptr_config.array_size_mapping
+    with
     | Some v -> Some (`Var v)
     | None -> None
   and carray =
-    Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_array
+    Sc_C.Ptr_specs.var_mem ~pointer_var ptr_config.treat_pointer_as_array
   and cstring =
-    Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_cstring
+    Sc_C.Ptr_specs.var_mem ~pointer_var ptr_config.treat_pointer_as_cstring
   in
   match size, carray, cstring with           (* carray if in size mapping *)
   | Some s,  _,    _ -> Sc_C.Defs.as_pointer_to_carray ~size:s cil_var
@@ -305,15 +307,15 @@ let add_var_attributes ~config func_repr =
 let add_struct_type_attributes ~config (compinfo: Cil.compinfo) =
   let struct_name = compinfo.cname in
   let cfields =
-    List.map begin fun (Cil.{ fname = field_name; _ } as field) ->
+    List.map begin fun (Cil.{ fname = pointer_field_name; _ } as field) ->
       let size =
-        Sc_C.Named_loc.find_field ~struct_name ~field_name
+        Sc_C.Ptr_specs.find_field ~struct_name ~pointer_field_name
           config.project_pointer_handling.array_size_mapping
       and carray =
-        Sc_C.Named_loc.field_mem ~struct_name ~field_name
+        Sc_C.Ptr_specs.field_mem ~struct_name ~pointer_field_name
           config.project_pointer_handling.treat_pointer_as_array
       and cstring =
-        Sc_C.Named_loc.field_mem ~struct_name ~field_name
+        Sc_C.Ptr_specs.field_mem ~struct_name ~pointer_field_name
           config.project_pointer_handling.treat_pointer_as_cstring
       in
       match size, carray, cstring with
