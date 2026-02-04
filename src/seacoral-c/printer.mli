@@ -51,7 +51,7 @@ val pp_fundecl: ?enable_static_attr:bool -> func_repr Fmt.t
 
 (* --- *)
 
-(** Pointer specifications *)
+(** {2 Pointer specifications} *)
 
 val pp_pointer_ref: pointer_ref Fmt.t
 val pp_pointer_constraint: pointer_constraint Fmt.t
@@ -79,3 +79,9 @@ val emit_testcall
   -> ?oracle_func: func_repr
   -> 'a
   -> Format.formatter -> unit
+
+(* --- *)
+
+(** {2 Errors} *)
+
+val pp_error: error Fmt.t

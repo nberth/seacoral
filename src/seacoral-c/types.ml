@@ -155,7 +155,14 @@ and pointer_constraint =
         size_field_name: string;    (** Name of the constraining size field *)
       }               (** Constraint between two fields of the same structure *)
 
-(** {2 Exceptions} *)
+(** {2 Errors and exceptions} *)
+
+type error =
+  | Syntax_error of { expected: parsed_item; string: string }
+
+and parsed_item =
+  | Pointer_reference
+  | Pointer_constraint
 
 exception Unknown_function of string
 exception Invalid_attribute_payload of Cil.attribute

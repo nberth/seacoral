@@ -10,8 +10,15 @@
 
 open Types
 
-val pointer_ref_of_string: string -> pointer_ref
-val pointer_constraint_of_string: string -> pointer_constraint
+(** [pointer_ref_of_string s] parses the string [s] for a pointer reference.
+    Expected format is [<variable_name> | "{struct" <struct_name> "}" "."
+    <field_name>]. *)
+val pointer_ref_of_string: string -> (pointer_ref, error) result
+
+(** [pointer_ref_of_string s] parses the string [s] for a pointer reference.
+    Expected format is [<variable_name> | "{struct" <struct_name> "}" "."
+    <field_name>]. *)
+val pointer_constraint_of_string: string -> (pointer_constraint, error) result
 
 (* --- *)
 

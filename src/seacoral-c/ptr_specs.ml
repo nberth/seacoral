@@ -10,15 +10,20 @@
 
 open Types
 
-let parse_string entry str =
+let parse_string ~parsed_item ptr_specs_entry str =
   let lexbuf = Lexing.from_string str in
-  entry Ptr_specs_lexer.token lexbuf
+  try
+    Ok (ptr_specs_entry Ptr_specs_lexer.token lexbuf)
+  with Ptr_specs_parser.Error ->
+    Error (Syntax_error { expected = parsed_item; string = str })
 
-let pointer_ref_of_string: string -> pointer_ref =
+let pointer_ref_of_string: string -> (pointer_ref, error) result =
   parse_string Ptr_specs_parser.pointer_ref_main
+    ~parsed_item:Pointer_reference
 
-let pointer_constraint_of_string: string -> pointer_constraint =
+let pointer_constraint_of_string: string -> (pointer_constraint, error) result =
   parse_string Ptr_specs_parser.pointer_constraint_main
+    ~parsed_item:Pointer_constraint
 
 (* --- *)
 

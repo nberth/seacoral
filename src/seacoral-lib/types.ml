@@ -82,6 +82,7 @@ type config_error =
   | Missing_entrypoint
   | Missing_tools
   | Unknown_tools of string NEL.t
+  | Invalid_pointer_specs of Sc_C.Types.error NEL.t
 
 exception CONFIG_ERROR of config_error
 

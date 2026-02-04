@@ -156,6 +156,17 @@ let pp_pointer_constraint ppf = function
       Fmt.pf ppf "{struct %s}:%s:%s" struct_name pointer_field_name
         size_field_name
 
+(** {2 Errors} *)
+
+let pp_parsed_item ppf = function
+  | Pointer_reference -> Fmt.pf ppf "pointer@ reference"
+  | Pointer_constraint -> Fmt.pf ppf "pointer@ constraint"
+
+let pp_error ppf = function
+  | Syntax_error { expected; string } ->
+      Fmt.pf ppf "syntax@ error@ in@ %S: expected@ %a" string
+        pp_parsed_item expected
+
 (* --- *)
 
 let emit_testcall ~oracle_assessment ~emit_effective_inputs ~entrypoint
