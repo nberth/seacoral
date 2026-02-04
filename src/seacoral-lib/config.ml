@@ -24,7 +24,7 @@ let run_section =
       test_timeout = 1.;
       max_validation_concurrency = 16;
       verbose_validation = false;
-      display_outcomes = `No
+      display_outcomes = `No;
     }
   in
   Sc_config.Section.define "run" ~default ~entries:Sc_config.Eztoml.[
@@ -122,21 +122,21 @@ let run_section =
         (fun c -> c.verbose_validation);
       string
         ~key:"display-outcomes"
-        ~doc:"When set to \"yes\", displays for each test which labels it covers
+        ~doc:"When set to \"yes\", displays for each test which labels it covers \
               (%a by default)."
-        ~env:"SC_ENABLE_DETAILED_OUTCOMES"
+        ~env:"DISPLAY_OUTCOMES"
         ~runtime:true
-        ~default:"no"
+        ~default:"yes"
         (fun c -> function
-          | "" | "no" | "n" -> {c with display_outcomes = `No}
-          | "y" | "yes" -> {c with display_outcomes = `Yes}
-          | "v" | "verbose" -> {c with display_outcomes = `Verbose}
-          | s -> Fmt.failwith "Invalid value %S for run option \"display-outcomes\"" s
-        )
+           | "" | "no" | "n" -> {c with display_outcomes = `No}
+           | "y" | "yes" -> {c with display_outcomes = `Yes}
+           | "v" | "verbose" -> {c with display_outcomes = `Verbose}
+           | s -> Fmt.failwith "Invalid value %S for run option \
+                               \"display-outcomes\"" s)
         (fun c -> match c.display_outcomes with
-         | `No -> "n"
-         | `Yes -> "y"
-         | `Verbose -> "v");
+           | `No -> "no"
+           | `Yes -> "yes"
+           | `Verbose -> "verbose");
     ]
 
 (** {2 Project Section} *)

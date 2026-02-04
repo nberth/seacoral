@@ -48,6 +48,29 @@ module CSV = struct
       end @@ Fmt.(list ~sep:(any sep) uint)
 end
 
+(** Display outcome table *)
+let display_test_outcomes ~options
+    (type raw_test) ~(project: raw_test Sc_project.Types.project) =
+  match options.run.display_outcomes with
+  | `No ->
+      Lwt.return ()
+  | `Yes | `Verbose as v ->
+      let module Raw_test = (val project.params.test_repr) in
+      let pp_test_id ppf (t: raw_test Sc_corpus.Types.test_view) =
+        match v with
+        | `Verbose ->
+            Raw_test.Val.print ppf (Lazy.force t.raw)
+        | `Yes ->
+            Fmt.pf ppf "%i" t.metadata.serialnum
+      in
+      let* tests = Lwt_stream.to_list @@ Sc_corpus.existing_tests project.corpus in
+      List.sort Sc_corpus.compare_tests_by_serialnum tests |>
+      Lwt_list.iter_s begin fun t ->
+        Log.LWT.app "Test %a: %a"
+          pp_test_id t
+          Sc_corpus.Printer.pp_test_outcome t.metadata.outcome
+      end
+
 let retrieve_and_log_statistics ~options ~project =
   let toc = Unix.gettimeofday () in
   let info_file = project.config.project_workspace.workdir / "covinfo.csv" in
@@ -74,6 +97,9 @@ let retrieve_and_log_statistics ~options ~project =
     if Sc_project.Manager.seeks_oracle_failures project
     then Log.app "@[Oracle@ statistics:@;%a@]\
                  " Sc_project.Printer.pp_oracle_failures_info info;
+    (* Display outcomes only when detailed stats are enabled. *)
+    let* () = display_test_outcomes ~options ~project in
+    Lwt.return info
   end else begin
     (* Only show info on overall success; mostly for CI tests that are hard to
        make deterministic. *)
@@ -91,9 +117,9 @@ let retrieve_and_log_statistics ~options ~project =
     if Sc_corpus.has_oracle_failures (snd info)
     then Log.app "@[- Some@ oracle@ failures@ where@ found@]"
     else if Sc_project.Manager.seeks_oracle_failures project
-    then Log.app "@[- NO@ oracle@ failure@ was@ found@]"
-  end;
-  Lwt.return info
+    then Log.app "@[- NO@ oracle@ failure@ was@ found@]";
+    Lwt.return info
+  end
 
 let show_lreplay_results res =                     (* simple display, for now *)
   Log.app "%a" Sc_ltest.Printer.pp_lreplay_results (res, One_per_line)
@@ -210,30 +236,9 @@ let generate ~project_config ~encoding_params (options: generation_options) =
   in
 
   Log.app "Hard work done";
+
   let* cov_info, _ = retrieve_and_log_statistics ~options ~project in
 
-  (* Display outcome table *)
-  let* () =
-    match options.run.display_outcomes with
-    | `No -> Lwt.return ()
-    | (`Yes | `Verbose) as v -> 
-       let tests = Sc_corpus.existing_tests project.corpus in
-       let pp =
-         match v with
-         | `Verbose ->
-            fun fmt (t : Raw_test.Val.t Sc_corpus.Types.test_view) ->
-            Format.fprintf fmt "Test %a: %a"
-              Raw_test.Val.print (Lazy.force t.raw)
-              Sc_corpus.Printer.pp_test_outcome t.metadata.outcome
-         | `Yes ->
-            fun fmt (t : Raw_test.Val.t Sc_corpus.Types.test_view) ->
-            Format.fprintf fmt "Test %i: %a"
-              t.metadata.serialnum
-              Sc_corpus.Printer.pp_test_outcome t.metadata.outcome
-       in
-       Lwt_stream.iter (Log.app "%a" pp) tests
-  in
-  
   let* () =
     Sc_postproc.Lreplay.run project testsuite >>= function
     | None ->
@@ -246,8 +251,7 @@ let generate ~project_config ~encoding_params (options: generation_options) =
         crosscheck_with_lreplay_results ~project ~lreplay_results
           ~store_cov_info:cov_info
   in
-  
-  
+
   (* E-ACSL *)
   let* () =
     Sc_postproc.Eacsl.run project testsuite >>= function

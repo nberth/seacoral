@@ -90,7 +90,9 @@ val has_crashes: Types.info -> bool
 val has_oracle_failures: Types.info -> bool
 val is_covering : Types.test_outcome -> bool
 val is_triggering_rte : Types.test_outcome -> bool
-val is_oracle_failure : Types.test_outcome -> bool 
+val is_oracle_failure : Types.test_outcome -> bool
+
+val compare_tests_by_serialnum: (_ Types.test_view as 'a) -> 'a -> int
 
 (* --- *)
 

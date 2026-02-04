@@ -1,4 +1,4 @@
-  $ seacoral --tools klee
+  $ seacoral --tools klee --display-outcomes yes
   [A]{Sc} Starting to log into `_sc/get_sign.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Doing the hard work...
@@ -10,6 +10,9 @@
   [A]{Sc} Covered labels: {1, 2, 3, 4}
   [A]{Sc} Uncoverable labels: {}
   [A]{Sc} Crash statistics: rte: none
+  [A]{Sc} Test 1: covering labels {1}
+  [A]{Sc} Test 2: covering labels {2, 4}
+  [A]{Sc} Test 3: covering labels {2, 3}
   [A]{Sc}        1: Covered
                  2: Covered
                  3: Covered

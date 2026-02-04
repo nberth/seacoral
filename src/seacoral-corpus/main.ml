@@ -372,6 +372,11 @@ let test_struct corpus =
 
 (* --- *)
 
+let compare_tests_by_serialnum t1 t2 =
+  Int.compare t1.metadata.serialnum t2.metadata.serialnum
+
+(* --- *)
+
 (* This Main module is included directly in Sc_corpus, so finalize here the
    library's Types module with the corpus type, that we want to keep
    abstract. *)
