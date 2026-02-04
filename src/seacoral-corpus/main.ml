@@ -320,26 +320,40 @@ let register_one_bypassed_test corpus =
     Lwt_io.write_int oc !(corpus.bypassed_count)
   end
 
-let is_covering = function
+let is_covering_outcome = function
   | Covering_label _ -> true
   | _ -> false
 
-let is_triggering_rte = function
+let is_triggering_rte_outcome = function
   | Triggering_RTE _ -> true
   | _ -> false
 
-let is_oracle_failure = function
+let is_oracle_failure_outcome = function
   | Oracle_failure -> true
   | _ -> false
 
+let map_metadata_outcome f ({ outcome; _ }: test_metadata) =
+  f outcome
+let is_covering_metadata t =
+  map_metadata_outcome is_covering_outcome t
+let is_triggering_rte_metadata t =
+  map_metadata_outcome is_triggering_rte_outcome t
+let is_oracle_failure_metadata t =
+  map_metadata_outcome is_oracle_failure_outcome t
+
+let map_test_outcome f ({ metadata; _ }: _ test_view) =
+  map_metadata_outcome f metadata
+let is_covering_test t =
+  map_test_outcome is_covering_outcome t
+let is_triggering_rte_test t =
+  map_test_outcome is_triggering_rte_outcome t
+let is_oracle_failure_test t =
+  map_test_outcome is_oracle_failure_outcome t
+
+
 let count_rtes outcomes =
   Tests_table.fold
-    (fun _ b acc ->
-      if is_triggering_rte b
-      then acc + 1
-      else acc)
-    outcomes
-    0
+    (fun _ b -> if is_triggering_rte_outcome b then succ else Fun.id) outcomes 0
 
 let info ({ tests_cache; outcomes'; bypassed_count;_ } as corpus): info =
   let total = Tests_table.length tests_cache in

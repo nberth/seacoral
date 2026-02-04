@@ -88,9 +88,16 @@ val test_struct: _ corpus -> Sc_values.Struct.typ
 val info: _ corpus -> Types.info
 val has_crashes: Types.info -> bool
 val has_oracle_failures: Types.info -> bool
-val is_covering : Types.test_outcome -> bool
-val is_triggering_rte : Types.test_outcome -> bool
-val is_oracle_failure : Types.test_outcome -> bool
+
+val is_covering_outcome: Types.test_outcome -> bool
+val is_covering_metadata: Types.test_metadata -> bool
+val is_covering_test: _ Types.test_view -> bool
+val is_triggering_rte_outcome: Types.test_outcome -> bool
+val is_triggering_rte_metadata: Types.test_metadata -> bool
+val is_triggering_rte_test: _ Types.test_view -> bool
+val is_oracle_failure_outcome: Types.test_outcome -> bool
+val is_oracle_failure_metadata: Types.test_metadata -> bool
+val is_oracle_failure_test: _ Types.test_view -> bool
 
 val compare_tests_by_serialnum: (_ Types.test_view as 'a) -> 'a -> int
 
