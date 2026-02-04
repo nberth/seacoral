@@ -25,7 +25,7 @@
 
 #define SC_STORE_MAP_FILE_ENVVAR "SC_STORE_MAP_FILE"
 #define SC_STORE_TOOL_ID_ENVVAR "SC_STORE_TOOL_ID"
-#define SC_EXACT_LABELS_FILE_ENVVAR "SC_EXACT_LABELS_FILE"
+#define SC_STORE_EXACT_LABELS_FILE_ENVVAR "SC_STORE_EXACT_LABELS_FILE"
 #define SC_STORE_TOOL_ID_DEFAULT 0x7f
 
 #define SC_UNCOV_MASK 0x80
@@ -40,20 +40,22 @@ static int fd;
    shared memory array. */
 static unsigned char* covered = NULL;
 
-/* Array that contains the status of labels covered by the current run only. */
-static unsigned char* exact_covered_buff = NULL;
-
 /* Loose upper bound for label identifier, determined based on the size of the
    mmapped file. */
 static unsigned int max_id;
 
+/* Array where a character at index i is 1 if the corresponding label is covered
+   by the current run; remains NULL if not to be created (i.e
+   SC_STORE_EXACT_LABELS_FILE is not set). */
+static unsigned char* exact_covered_buff = NULL;
+
+/* Name of the file where to record the contents of `exact_covered_buff` at
+   commit time (i.e, in `__sc_buff_commit`). */
+static char const * exact_labels_file = NULL;
+
 /* As in man pages */
 #define handle_error(msg)					\
   do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
-char* exact_label_file() {
-  return (getenv(SC_EXACT_LABELS_FILE_ENVVAR));
-}
 
 void __attribute__((constructor)) __store_initialize () {
   const char* mapfile;
@@ -99,6 +101,15 @@ void __attribute__((constructor)) __store_initialize () {
     } else {
       tool_id = tool_id_str[0];
     }
+  }
+
+  /* Initialize the file where to store the precise set of covered labels, if
+     needed. */
+  if ((exact_labels_file =
+       getenv (SC_STORE_EXACT_LABELS_FILE_ENVVAR)) != NULL) {
+    if ((exact_covered_buff =
+	 calloc ((size_t) (max_id + 1), sizeof (unsigned char))) == NULL)
+      handle_error ("calloc");
   }
 }
 
@@ -242,12 +253,6 @@ inline static
 void buff_initialize_maybe (void) {
   struct flock l;
 
-  /* Initializing the exact covered labels buffer */
-  if (exact_label_file () &&
-      (!(exact_covered_buff ||
-	 (exact_covered_buff = calloc ((size_t) (max_id + 1), sizeof(unsigned char))))))
-    handle_error ("calloc");
-  
   if (covered_buff)
     return;
 
@@ -300,12 +305,17 @@ unsigned char __sc_buff_covered (unsigned int id) {
   }
 }
 
-void __sc_write_exact_labels(FILE* file){
-  int id;
-  if (!file) return;
-  for (id = 1; id <= max_id; id++) {
-    if (exact_covered_buff[id])
-      fprintf(file, "%i\n", id);
+static
+void __sc_write_exact_labels (void) {
+  if (exact_covered_buff != NULL) {
+    int id;
+    FILE* file = fopen (exact_labels_file, "w");
+    for (id = 1; id <= max_id; id++) {
+      if (exact_covered_buff[id] != '\000') {
+	fprintf (file, "%i\n", id);
+      }
+    }
+    fclose (file);
   }
 }
 
@@ -313,7 +323,6 @@ unsigned int __sc_buff_commit (void) {
   unsigned int id;
   unsigned int committed = 0;
   struct flock l;
-  char* file;
 
   if (! covered_buff)		/* nothing to commit */
     return 0u;
@@ -327,17 +336,10 @@ unsigned int __sc_buff_commit (void) {
       committed++;
     }
   }
-  
-  // Writing in exact labels in file if provided
-  
-  if (file = exact_label_file ()) {
-    FILE* f = fopen(file, "w");
-    if (exact_covered_buff)
-      __sc_write_exact_labels(f);
-    fclose(f);
-  }
-  
   flock_release (&l);
+
+  /* Write exact labels file, if needed (once the lock is released). */
+  __sc_write_exact_labels ();
 
   return committed;
 }

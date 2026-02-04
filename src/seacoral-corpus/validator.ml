@@ -319,25 +319,21 @@ let read_labels_from_file f =
     lines
     Basics.Ints.empty
 
-let replay_with_store_update
-      ready_validator ~test_ident
-      ~exec_validator ~log =
+let replay_with_store_update ready_validator ~test_ident ~exec_validator ~log =
   let validator = ready_validator.validator in
   let* store = Sc_store.for_compiled_subprocess validator.store in
+  (* S: Probably could be put somewhere better, but for now putting it
+     here. *)
+  let label_file = validator.workspace.workdir / test_ident in
   let san_env =
     [|
       "ASAN_OPTIONS=symbolize=0";
       "UBSAN_OPTIONS=symbolize=0";
     |]
-  in
-  (* S: Probably could be put somewhere better, but for now putting it
-     here. *)
-  let label_file =
-    Sc_sys.File.assume_in ~dir:validator.workspace.workdir test_ident
-  in
-  let store_env =
+  and store_env =
     [|
-      Fmt.str "SC_EXACT_LABELS_FILE=%s" (Sc_sys.File.absname label_file) 
+      Fmt.str "SC_STORE_EXACT_LABELS_FILE=%a"
+        Sc_sys.File.print_absname label_file;
     |]
   in
   let* res =
@@ -349,8 +345,8 @@ let replay_with_store_update
   in
   match res with
   | Ok () ->
-      let* lbls = read_labels_from_file label_file in
-      Lwt.return_ok (Some (Covering_label lbls))
+      let* labels = read_labels_from_file label_file in
+      Lwt.return_ok (Some (Covering_label labels))
   | Error Unix.WEXITED code when code = oracle_failure_code ->
       Lwt.return_ok (Some Oracle_failure)
   | Error Unix.WEXITED code when code = no_new_coverage_code ||
