@@ -88,6 +88,8 @@ let retrieve_and_log_statistics ~options ~project =
     (Sc_project.Manager.entrypoint_name project)
     (CSV.pp_stats ~sep:"\t") info;
   if options.enable_detailed_stats then begin
+    (* Display outcomes only when detailed stats are enabled. *)
+    let* () = display_test_outcomes ~options ~project in
     Log.app "@[Coverage@ statistics@ for@ `%a':@;%a@]"
       Sc_project.Printer.pp_entrypoint_name project
       Sc_project.Printer.pp_coverage_info info;
@@ -97,8 +99,6 @@ let retrieve_and_log_statistics ~options ~project =
     if Sc_project.Manager.seeks_oracle_failures project
     then Log.app "@[Oracle@ statistics:@;%a@]\
                  " Sc_project.Printer.pp_oracle_failures_info info;
-    (* Display outcomes only when detailed stats are enabled. *)
-    let* () = display_test_outcomes ~options ~project in
     Lwt.return info
   end else begin
     (* Only show info on overall success; mostly for CI tests that are hard to
