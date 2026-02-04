@@ -175,7 +175,7 @@ let declare_support_functions ppf (sd: support_data) =
         | `Carray_with_bound_length l ->
             emit_carray_init sd ppf (t, ap, l, "depth")
         | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
-            let size_ap = AP.subst_rigthmost_suffix ap len_suffix in
+            let size_ap = AP.subst_rightmost_suffix ap len_suffix in
             let BoxedType size_typ = Sc_values.struct_field_typ length_field in
             emit_constrained_carray_init sd ppf (t, ap, size_typ,
                                                  size_ap, "depth")
@@ -208,7 +208,7 @@ let symbolize_inputs ppf ({ params = A params; _ } as sd) =
         | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
             let size_ap =
               AP.HACK.forget_first_suffix_punct @@
-              AP.subst_rigthmost_suffix_element ap_suffix len_suffix
+              AP.subst_rightmost_suffix_element ap_suffix len_suffix
             in
             let BoxedType size_typ = Sc_values.struct_field_typ length_field in
             emit_constrained_carray_init sd ppf (t, ap, size_typ, size_ap, "0")

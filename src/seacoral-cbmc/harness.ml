@@ -379,7 +379,7 @@ and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) : AP.t =
     make_symbolic_base ~env ppf (t, size_ap);
     size_ap
   end else begin
-    AP.subst_rigthmost_suffix constrained_ptr_id f.ap_suffix
+    AP.subst_rightmost_suffix constrained_ptr_id f.ap_suffix
   end
 
 and emit_struct_fields:

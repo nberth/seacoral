@@ -32,7 +32,7 @@ let%expect_test "access-path:suffix-substitution" =
   let orig_f1 = AP.append_field orig "f1" in
   let orig_f1_f2 = AP.append_field orig_f1 "f2" in
   let f3 = AP.field "f3" in
-  let orig_f1_f3 = AP.subst_rigthmost_suffix orig_f1_f2 f3 in
+  let orig_f1_f3 = AP.subst_rightmost_suffix orig_f1_f2 f3 in
   Fmt.pr "%a@\n" AP.print orig_f1_f2;
   Fmt.pr "%a@\n" AP.print orig_f1_f3;
   [%expect {|

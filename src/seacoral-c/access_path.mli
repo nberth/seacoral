@@ -48,8 +48,8 @@ val compare : t -> t -> int
 
 (** {2 Substitutions} *)
 
-val subst_rigthmost_suffix_element: suffix -> suffix -> suffix
-val subst_rigthmost_suffix: t -> suffix -> t
+val subst_rightmost_suffix_element: suffix -> suffix -> suffix
+val subst_rightmost_suffix: t -> suffix -> t
 
 (** Various (hackish / brittle) stuff *)
 module HACK: sig

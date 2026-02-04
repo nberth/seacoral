@@ -125,21 +125,21 @@ let compare i j =
 (*   | Access_path_suffix (_ :: suffix) *)
 (*   | Access_path { suffix; _ } -> Some suffix *)
 
-let subst_rigthmost_suffix_element: suffix -> suffix -> suffix = fun s ns ->
+let subst_rightmost_suffix_element: suffix -> suffix -> suffix = fun s ns ->
   let rec aux: suffix -> suffix = function
     | One _ -> ns
     | hd :: tl -> hd :: aux tl
   in
   aux s
 
-let subst_rigthmost_suffix: t -> suffix -> t = fun ap suff ->
+let subst_rightmost_suffix: t -> suffix -> t = fun ap suff ->
   match ap with
   | Access_path_origin origin ->
       from origin (Some suff)
   | Access_path_suffix suffix ->
-      Access_path_suffix (subst_rigthmost_suffix_element suffix suff)
+      Access_path_suffix (subst_rightmost_suffix_element suffix suff)
   | Access_path { origin; suffix } ->
-      let suffix = subst_rigthmost_suffix_element suffix suff in
+      let suffix = subst_rightmost_suffix_element suffix suff in
       Access_path { origin; suffix }
 
 (** Various (hackish / brittle) stuff *)
