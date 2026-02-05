@@ -76,10 +76,7 @@ module Log_lwt_ld = (val Ez_logs.subproc "ld")
 
 let stream_grab_xor_log grabber logger = match grabber with
   | None -> `Log logger
-  | Some grabber ->
-     (* S: Using `GrabNLog with dummy logger because using `Grab
-        leads to an infinite loop. *)
-     `GrabNLog (grabber, (fun ?header:_ _ _ -> Lwt.return ()))
+  | Some grabber -> `Grab grabber
 
 let stream_grab grabber logger = match grabber with
   | None -> `Log logger
@@ -148,7 +145,7 @@ let clang_check_and_print_llvm
     Basics.PPrt.Strings.pp_space_separated_ cppflags
     Fmt.(option @@ fmt "%s ") (Lazy.force ENV.cppflags)
     file_name
-    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug) 
+    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug)
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
 

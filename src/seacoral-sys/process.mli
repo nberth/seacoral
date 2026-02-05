@@ -40,34 +40,35 @@ module TYPES: sig
 
       Note it is an error to assume that promises given via [Stream] or [Lines]
       are always executed before the sub-process terminates and its status is
-      retrieved.  Using [Mbox] is required to ensure the stream of lines is
-      retrieved {e before} {!FAILED} is caught or any one of user-given
+      retrieved.  Using [Push_lines] is required to ensure the stream of lines
+      is retrieved {e before} {!FAILED} is caught or any one of user-given
       [on_success] or [on_error] functions is called.
 
-      To use [MBox], first instantiate an {e empty} mailbox variable, and then
-      pass it to the process spawning function (if the variable is not empty
-      this function may hang and never terminate).  The variable is then
-      assigned with the stream {e before} the spawning function terminates.  A
-      correct pattern to achieve this (to, for instance, grab the standard error
-      in case the sub-process errors out), is as follows:
+      To use [Push_lines], first create an {e empty} stream, and then pass its
+      push function to the process spawning function.  A correct pattern to achieve this
+      (to, for instance, grab the standard error in case the sub-process errors
+      out), is as follows:
 
       {v
-        let stderr_lines_mbox = Lwt_mvar.create_empty () in
+        let stderr_lines, new_stderr_line = Lwt_stream.create () in
         Lwt.catch begin fun () ->
           Sc_sys.Process.exec ...
-            ~stderr:(`Grab (MBox stderr_lines_mbox))
+            ~stderr:(`Grab (Push_lines new_stderr_line))
         end begin function
           | Sc_sys.Process.FAILED _ ->
-            let* stderr_lines = Lwt_mvar.take stderr_lines_mbox in
-            ...
+            ... (* use stderr_lines as a usual stream *)
           | e ->
             Lwt.reraise e
         end
-      v} *)
+      v}
+
+      For ease of use according to this pattern, the function given to
+      [Push_lines] may safely raise {!Lwt_stream.Closed}, which is catched
+      internally.  *)
   and stream_grabber =
     | Stream of (string Lwt_stream.t -> unit Lwt.t)
     | Lines of (string -> unit Lwt.t)
-    | MBox of string Lwt_stream.t Lwt_mvar.t
+    | Push_lines of (string option -> unit)
 
   (** Logger for individial lines. *)
   and line_logger = (string -> unit Lwt.t) Ez_logs.Types.log_lwt

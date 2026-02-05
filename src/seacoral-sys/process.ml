@@ -19,7 +19,8 @@ module TYPES = struct
   type ('a, 'p) lwt_process =
     {
       process : 'p;
-      promise : 'a Lwt.t
+      promise : 'a Lwt.t;
+      cleanup: unit -> unit Lwt.t;
     }
   and 'a process_full = ('a, Lwt_process.process_full) lwt_process
   and 'a process_verbose = ('a, Lwt_process.process) lwt_process
@@ -45,7 +46,7 @@ module TYPES = struct
   and stream_grabber =
     | Stream of (string Lwt_stream.t -> unit Lwt.t)
     | Lines of (string -> unit Lwt.t)
-    | MBox of string Lwt_stream.t Lwt_mvar.t
+    | Push_lines of (string option -> unit)
   and line_logger = (string -> unit Lwt.t) Ez_logs.Types.log_lwt
 
   type command_log_conditions =
@@ -169,16 +170,27 @@ let stdin_close p = match stdin p with
   | None -> Lwt.return ()
   | Some oc -> Lwt_io.close oc
 
-let join: 'a t -> 'a Lwt.t = fun p ->
-  let* res =
+let await = function
+  | ProcFull p -> p.promise
+  | ProcVerbose p -> p.promise
+  | ProcIn p -> p.promise
+  | ProcOut p -> p.promise
+  | ProcNone p -> p.promise
+
+let cleanup p =
+  let* () =
     match p with
-    | ProcFull p -> p.promise
-    | ProcVerbose p -> p.promise
-    | ProcIn p -> p.promise
-    | ProcOut p -> p.promise
-    | ProcNone p -> p.promise
+    | ProcFull p -> p.cleanup ()
+    | ProcVerbose p -> p.cleanup ()
+    | ProcIn p -> p.cleanup ()
+    | ProcOut p -> p.cleanup ()
+    | ProcNone p -> p.cleanup ()
   in
-  let* () = stdin_close p <&> stdout_close p <&> stderr_close p in
+  stdin_close p <&> stdout_close p <&> stderr_close p
+
+let join: 'a t -> 'a Lwt.t = fun p ->
+  let* res = await p in
+  let* () = cleanup p in
   Lwt.return res
 
 let get_promise p =
@@ -207,8 +219,10 @@ let grab_stream (grabber: stream_grabber) stream =
         Lwt_stream.iter_s grab_line stream
     | Stream grab_stream ->
         grab_stream stream
-    | MBox stream_mbox ->
-        Lwt_mvar.put stream_mbox stream
+    | Push_lines push ->
+        Lwt_stream.iter begin fun l ->
+          try push @@ Some l with Lwt_stream.Closed -> ()
+        end stream
   end;
   Lwt.return ()
 
@@ -219,6 +233,12 @@ let log_lines (log: line_logger) ?header stream =
 
 module Log_lwt_subproc = (val Ez_logs.anonymous_subproc "_")
 let to_subproc_log = `Log Log_lwt_subproc.LWT.debug
+
+let close_redirection: redirection -> unit = function
+  | `Grab Push_lines push | `GrabNLog (Push_lines push, _) ->
+      push None
+  | _ ->
+      ()
 
 let exec ?env ?cwd
     ?(log_command = `Always)
@@ -240,6 +260,11 @@ let exec ?env ?cwd
   let env = match env with
     | None -> None
     | Some e -> Some (Env.append (Unix.environment ()) e)
+  in
+  let cleanup () =
+    close_redirection stdout;
+    close_redirection stderr;
+    Lwt.return ()
   in
   let promise process =
     let* exit_state = process#status in
@@ -263,34 +288,31 @@ let exec ?env ?cwd
     | `Keep, `Keep, `Keep ->
         let process
           = Lwt_process.open_process_full cmd ?env ?cwd ?timeout in
-        ProcFull { process; promise = promise process }
+        ProcFull { process; promise = promise process; cleanup }
     | `Keep, stderr, `Keep ->
         let process
           = Lwt_process.open_process cmd ?env ?cwd ?timeout ~stderr in
-        ProcVerbose { process; promise = promise process }
+        ProcVerbose { process; promise = promise process; cleanup }
     | `Keep, stderr, stdout ->
         let process
           = Lwt_process.open_process_out cmd
             ?env ?cwd ?timeout ~stderr ~stdout in
-        ProcOut { process; promise = promise process }
+        ProcOut { process; promise = promise process; cleanup }
     | stdin, stderr, `Keep ->
         let process
           = Lwt_process.open_process_in cmd
             ?env ?cwd ?timeout ~stdin ~stderr in
-        ProcIn { process; promise = promise process }
+        ProcIn { process; promise = promise process; cleanup }
     | stdin, stderr, stdout ->
         let process
           = Lwt_process.open_process_none cmd
             ?env ?cwd ?timeout ~stdin ~stderr ~stdout in
-        ProcNone { process; promise = promise process }
+        ProcNone { process; promise = promise process; cleanup }
   in
   let async_out_stream s ~log_header ~line_stream =
     match s with
     | `Grab grabber ->
-       (* S: This branch may lead to an infinite loop.
-          I'm guessing this is due to some bad stream initialization but I can't
-          find where's the problem. *)
-       grab_stream grabber (line_stream p)
+        grab_stream grabber (line_stream p)
     | `Log logger ->
         log_lines logger ~header:log_header (line_stream p)
     | `GrabNLog (grabber, logger) ->
