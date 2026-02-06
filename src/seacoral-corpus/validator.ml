@@ -316,8 +316,9 @@ let read_labels_from_file f =
     (fun l acc -> Lwt.return @@ match int_of_string l with
       | i -> Basics.Ints.add i acc
       | exception (Failure _) ->
-         Log.warn "Reading %S in outcomes file %a; expected a label identifier. Ignoring.\
-                  " l Sc_sys.File.print f;
+         Log.warn "Reading@ %S@ in@ outcomes@ file@ %a;@ expected@ a@ label@ \
+                   identifier.@ Ignoring.\
+                   " l Sc_sys.File.print f;
          acc
     )
     lines
