@@ -15,6 +15,10 @@ Show its contents:
   # Directory where the working files are stored (defaults to "_sc").
   workdir = "_sc"
   
+  # When set to "yes", displays for each test which labels it covers ("yes" by
+  # default).
+  display-outcomes = "yes"
+  
   # Maximum number of concurrent validations (defaults to 16). A null value
   # enables unlimitted parallelism.
   max-validation-concurrency = 16

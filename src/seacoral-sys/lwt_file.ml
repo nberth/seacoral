@@ -267,6 +267,11 @@ let copy_in ~dir file =
     Lwt.return file_res
   end
 
+let with_temp_file ?flags ?perm ?prefix ?suffix f =
+  Lwt_io.with_temp_file ?flags ?perm ?prefix ?suffix begin fun (filename, _oc) ->
+    f @@ File.from_name filename
+  end
+
 (* String-based manipulations *)
 
 let read f =

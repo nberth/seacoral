@@ -79,7 +79,7 @@ module Make (Conf: Types.CONFIG) : S = struct
         end;
       |]
     in
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.exec cmd
       ~cwd:(Sc_sys.File.absname Conf.workspace.workdir)
       ~stdout:(`Log Log_lreplay.LWT.debug)

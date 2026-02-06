@@ -35,7 +35,7 @@ extern unsigned char __sc_buff_covered (unsigned int id);
 # define pc_label(expr, id, ...)		\
   __sc_log_label_id (id)
 
-#endif
+#endif /* __SC_VALIDATOR_IGNORE_LABELS */
 
 static inline void sc_assume (int b) {
   if (!b) {
@@ -43,4 +43,4 @@ static inline void sc_assume (int b) {
   }
 }
 
-#endif	/* __SC_VALIDATOR_DRIVER_H__ */
+#endif /* __SC_VALIDATOR_DRIVER_H__ */

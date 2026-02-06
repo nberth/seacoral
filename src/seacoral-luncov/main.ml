@@ -174,7 +174,7 @@ let run wd =
       [wd.main_file]
   in
   (* We wait for the process to end *)
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec cmd
     ~stdout:(`Log Log_luncov.LWT.debug)
     ~stderr:(`Log Log_luncov.LWT.debug)

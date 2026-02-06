@@ -23,12 +23,12 @@ open Sc_sys.Lwt_file.Syntax
 (* module TestsCache = Ephemeron.K1.Make (String) *)
 module Tests_table = Hashtbl.Make (Digest)
 
-module Crash_ident = struct
-  type t = sanitizer_error_summary
+module Outcome_ident = struct
+  type t = test_outcome
   let equal = (=)
   let hash = Hashtbl.hash
 end
-module Crash_table = Hashtbl.Make (Crash_ident)
+module Outcomes_table = Hashtbl.Make (Outcome_ident)
 
 type 'r corpus =
   {
@@ -37,9 +37,9 @@ type 'r corpus =
     tests_stream: (Digest.t * 'r given_test) Lwt_stream.t;
     tests_cache: 'r registered_test Tests_table.t;
     tests_cache_mutex: Lwt_mutex.t;
-    crashes: Digest.t Crash_table.t;
-    crashes': Crash_ident.t Tests_table.t;
-    crashes_file: [`text] file;
+    outcomes: Digest.t Outcomes_table.t;
+    outcomes': Outcome_ident.t Tests_table.t;
+    outcomes_file: [`text] file;
     bypassed_count: int ref;
     bypassed_count_mutex: Lwt_mutex.t;
     bypassed_file: [`bin] file;
@@ -60,26 +60,26 @@ and 'r given_test =
 
 (* --- *)
 
-let add_crash_entry { crashes_file; crashes; crashes'; _ } id err =
+let add_entry { outcomes_file; outcomes; outcomes'; _ } id entry =
   let* () =
-    let>>* oc = crashes_file in
+    let>>* oc = outcomes_file in
     Lwt_io.fprintf oc "%s\t%a\n%!" (Digest.to_hex id)
-      IO.print_sanitizer_error_summary err
+      IO.print_summary entry
   in
-  Crash_table.add crashes err id;
-  Tests_table.add crashes' id err;
+  Outcomes_table.add outcomes entry id;
+  Tests_table.add outcomes' id entry;
   Lwt.return ()
 
-let load_known_crash_table { crashes_file; crashes; crashes'; _ } =
-  let<* ic = crashes_file in
+let load_outcomes_table { outcomes_file; outcomes; outcomes'; _ } =
+  let<* ic = outcomes_file in
   Lwt_io.read_lines ic |>
   Lwt_stream.iter begin fun line ->
     try
-      Scanf.sscanf line "%[0-9a-fA-F]\t%r" IO.scan_sanitizer_error_summary
-        begin fun id_hex err ->
+      Scanf.sscanf line "%[0-9a-fA-F]\t%r" IO.scan_summary
+        begin fun id_hex out ->
           let id = Digest.from_hex id_hex in
-          Crash_table.add crashes err id;
-          Tests_table.add crashes' id err
+          Outcomes_table.add outcomes out id;
+          Tests_table.add outcomes' id out
         end
     with End_of_file | Scanf.Scan_failure _ -> ()
   end
@@ -90,7 +90,7 @@ let internal_error e =
   raise @@ INTERNAL_ERROR e
 
 let pp_outcome ppf = function
-  | Covering_label -> Fmt.string ppf "cover"
+  | Covering_label _ -> Fmt.string ppf "cover"
   | Triggering_RTE _ -> Fmt.string ppf "rte"
   | Oracle_failure -> Fmt.string ppf "fail"
 
@@ -124,21 +124,11 @@ let format_file run_num serialnum toolname id outcome =
   Fmt.str "%04u-@%u-%s-%s-%a"
     serialnum run_num (Digest.to_hex id) toolname pp_outcome outcome
 
-let test_outcome_from_test_suffix { crashes'; _ } id = function
-  | "rte" ->
-      Ok (Triggering_RTE (Tests_table.find crashes' id))
-  | "cover" ->
-      Ok (Covering_label)
-  | "fail" ->
-      Ok (Oracle_failure)
-  | _ ->
-      Error ()
-
 let test_outcome corpus f =
   try
-    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%s" @@ fun id_hex ->
-    test_outcome_from_test_suffix corpus @@ Digest.from_hex id_hex
-  with Scanf.Scan_failure _ | Failure _ | End_of_file ->
+    Scanf.sscanf (Sc_sys.File.basename f) "%_u-%@%_u-%s@-%_s@-%_s" @@ fun id_hex ->
+      Ok (Tests_table.find corpus.outcomes' (Digest.from_hex id_hex))
+  with Scanf.Scan_failure _ | Failure _ | End_of_file | Not_found ->
     Error ()
 
 let test_metadata corpus f =
@@ -146,14 +136,12 @@ let test_metadata corpus f =
   try
     Lwt.return @@
     Scanf.sscanf (Sc_sys.File.basename f) "%u-%@%u-%s@-%s@-%s"
-      begin fun serialnum crearun id_hex toolname effect_suffix ->
+      begin fun serialnum crearun id_hex toolname _effect_suffix ->
         let id = Digest.from_hex id_hex in
         let outcome =
-          match test_outcome_from_test_suffix corpus id effect_suffix with
-          | Ok outcome ->
-              outcome
-          | Error () ->
-              internal_error @@ Unexpected_filename f        (* TODO: silent? *)
+          try Tests_table.find corpus.outcomes' id with
+          | Not_found ->
+             internal_error @@ Unexpected_filename f         (* TODO: silent? *)
         in
         { serialnum; id; toolname; creatime = stat.st_mtime; crearun; outcome; }
       end
@@ -213,19 +201,19 @@ let cache_existing_tests ({ tests_cache; tests_cache_mutex; _ } as corpus) =
 (** "private" task: receives tests coming from [share_test] *)
 let receive_new_tests ({ tests_dir; tests_stream;
                          tests_cache; tests_cache_mutex;
-                         crashes; params; _ } as corpus) =
+                         outcomes; params; _ } as corpus) =
   Lwt_stream.iter_s begin fun (id, { v; toolname; outcome }) ->
     let id_hex = Digest.to_hex id in
     Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
       if Tests_table.mem tests_cache id then begin
         Log.LWT.debug "Input@ %s@ already@ known" id_hex
       end else begin match outcome with
-        | Triggering_RTE err when Crash_table.mem crashes err ->
+        | Triggering_RTE _ when Outcomes_table.mem outcomes outcome ->
             Log.LWT.debug "Input@ %s@ triggers@ an@ already@ known@ crash:@ \
                            discarding" id_hex
         | _ ->
             let verdict = match outcome with
-              | Covering_label -> "ok"
+              | Covering_label _ -> "ok"
               | Triggering_RTE _ -> "rte"
               | Oracle_failure -> "fail"
             in
@@ -236,13 +224,8 @@ let receive_new_tests ({ tests_dir; tests_stream;
               format_file params.run_num serialnum toolname id outcome
             in
             let file = tests_dir / basename in
-            let* () = match outcome with
-              | Triggering_RTE err ->
-                  add_crash_entry corpus id err
-              | Covering_label | Oracle_failure ->
-                  Lwt.return ()
-            in
-            let* () = write_test corpus file v in
+            let* () = add_entry corpus id outcome
+            and* () = write_test corpus file v in
             Tests_table.add tests_cache id { file; raw = Lazy.from_val v };
             Lwt.return ()
       end
@@ -251,10 +234,10 @@ let receive_new_tests ({ tests_dir; tests_stream;
 
 let make ~workspace test_repr params =
   let tests_dir = workspace.workdir / "raw" in
-  let crashes_file = workspace.workdir / "crashdb" in
+  let outcomes_file = workspace.workdir / "outcomes" in
   let bypassed_file = workspace.workdir / "bypassed" in
   let* () = Sc_sys.Lwt_file.touch_dir tests_dir
-  and* () = Sc_sys.Lwt_file.touch crashes_file
+  and* () = Sc_sys.Lwt_file.touch outcomes_file
   and* () = Sc_sys.Lwt_file.touch bypassed_file in
   let* bypassed_count =
     Lwt.catch
@@ -269,9 +252,9 @@ let make ~workspace test_repr params =
       tests_stream = Lwt_stream.from (fun () -> Lwt_mvar.take tests_mbox);
       tests_cache = Tests_table.create 5;
       tests_cache_mutex = Lwt_mutex.create ();
-      crashes = Crash_table.create 5;
-      crashes' = Tests_table.create 5;
-      crashes_file;
+      outcomes = Outcomes_table.create 5;
+      outcomes' = Tests_table.create 5;
+      outcomes_file;
       bypassed_count = ref bypassed_count;
       bypassed_count_mutex = Lwt_mutex.create ();
       bypassed_file;
@@ -279,8 +262,8 @@ let make ~workspace test_repr params =
       test_repr;
     }
   in
-  let* () = load_known_crash_table res in
-  let* () = cache_existing_tests res in
+  let* () = load_outcomes_table res in
+  let* () = cache_existing_tests res in (* note: not in parallel as `cache_existing_tests` relies on outcome table *)
   Lwt.async (fun () -> receive_new_tests res);
   Lwt.return res
 
@@ -291,7 +274,9 @@ let share_test (type r) ?on_share ~outcome ~toolname
   let v_str = Raw_test.Val.to_string v in
   let id = Digest.string v_str in
   let* () = match on_share with Some f -> f id | None -> Lwt.return () in
-  let* () = Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome })) in
+  let* () =
+    Lwt_mvar.put tests_mbox (Some (id, { v; toolname; outcome; }))
+  in
   Lwt.return id
 
 let share_test' ?on_share ~outcome ~toolname corpus v =
@@ -335,14 +320,49 @@ let register_one_bypassed_test corpus =
     Lwt_io.write_int oc !(corpus.bypassed_count)
   end
 
-let info ({ tests_cache; crashes'; bypassed_count;_ } as corpus): info =
+let is_covering_outcome = function
+  | Covering_label _ -> true
+  | _ -> false
+
+let is_triggering_rte_outcome = function
+  | Triggering_RTE _ -> true
+  | _ -> false
+
+let is_oracle_failure_outcome = function
+  | Oracle_failure -> true
+  | _ -> false
+
+let map_metadata_outcome f ({ outcome; _ }: test_metadata) =
+  f outcome
+let is_covering_metadata t =
+  map_metadata_outcome is_covering_outcome t
+let is_triggering_rte_metadata t =
+  map_metadata_outcome is_triggering_rte_outcome t
+let is_oracle_failure_metadata t =
+  map_metadata_outcome is_oracle_failure_outcome t
+
+let map_test_outcome f ({ metadata; _ }: _ test_view) =
+  map_metadata_outcome f metadata
+let is_covering_test t =
+  map_test_outcome is_covering_outcome t
+let is_triggering_rte_test t =
+  map_test_outcome is_triggering_rte_outcome t
+let is_oracle_failure_test t =
+  map_test_outcome is_oracle_failure_outcome t
+
+
+let count_rtes outcomes =
+  Tests_table.fold
+    (fun _ b -> if is_triggering_rte_outcome b then succ else Fun.id) outcomes 0
+
+let info ({ tests_cache; outcomes'; bypassed_count;_ } as corpus): info =
   let total = Tests_table.length tests_cache in
-  let rte = Tests_table.length crashes' in
+  let rte = count_rtes outcomes' in
   let fails =
     Tests_table.fold begin fun _ { file; _ } ->
       match test_outcome corpus file with
       | Error ()
-      | Ok (Covering_label | Triggering_RTE _) -> Fun.id
+      | Ok (Covering_label _ | Triggering_RTE _) -> Fun.id
       | Ok Oracle_failure -> succ
     end tests_cache 0
   in
@@ -363,6 +383,11 @@ let has_oracle_failures { num_fails_gen; num_fails_imported; _ } =
 
 let test_struct corpus =
   corpus.params.test_struct
+
+(* --- *)
+
+let compare_tests_by_serialnum t1 t2 =
+  Int.compare t1.metadata.serialnum t2.metadata.serialnum
 
 (* --- *)
 

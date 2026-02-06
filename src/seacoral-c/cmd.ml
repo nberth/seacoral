@@ -76,10 +76,7 @@ module Log_lwt_ld = (val Ez_logs.subproc "ld")
 
 let stream_grab_xor_log grabber logger = match grabber with
   | None -> `Log logger
-  | Some grabber ->
-     (* S: Using `GrabNLog with dummy logger because using `Grab
-        leads to an infinite loop. *)
-     `GrabNLog (grabber, (fun ?header:_ _ _ -> Lwt.return ()))
+  | Some grabber -> `Grab grabber
 
 let stream_grab grabber logger = match grabber with
   | None -> `Log logger
@@ -148,7 +145,7 @@ let clang_check_and_print_llvm
     Basics.PPrt.Strings.pp_space_separated_ cppflags
     Fmt.(option @@ fmt "%s ") (Lazy.force ENV.cppflags)
     file_name
-    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug) 
+    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug)
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
 
@@ -276,7 +273,7 @@ let clang_ld
 
 let ld ~output_file ?(ldflags = []) ?log_command o_files =
   let o_files = List.map Sc_sys.File.name o_files in
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     ~stdout:(`Log Log_lwt_ld.LWT.debug)
     ~stderr:(`Log Log_lwt_ld.LWT.debug)
@@ -291,7 +288,7 @@ let ld ~output_file ?(ldflags = []) ?log_command o_files =
      @ ldflags)
 
 let redefine_sym ~old ~new_ ?log_command (file : [> `O] Sc_sys.File.t) =
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     ~on_success:Lwt.return
     ?log_command

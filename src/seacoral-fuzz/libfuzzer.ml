@@ -452,7 +452,7 @@ let with_dynamic_tests_sharing wd ~f dir =
     ~share:(validate_n_share_test For_full_validation wd)
     ~import_suff:".imported"
     ~import_filter:begin fun m ->
-      Lwt.return (m.outcome = Covering_label && m.toolname <> toolname)
+      Lwt.return (Sc_corpus.is_covering_metadata m && m.toolname <> toolname)
     end
 
 let san_env =

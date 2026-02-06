@@ -67,7 +67,8 @@ and test_metadata =
   }
 
 and test_outcome =
-  | Covering_label       (** The test does not raise an RTE and covers labels *)
+  | Covering_label of Basics.Ints.t (** The test does not raise an RTE and
+                                        Covers labels *)
   | Triggering_RTE of sanitizer_error_summary   (** The test triggers an RTE *)
   | Oracle_failure                              (** The test fails the oracle *)
 
