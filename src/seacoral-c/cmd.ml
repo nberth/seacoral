@@ -273,7 +273,7 @@ let clang_ld
 
 let ld ~output_file ?(ldflags = []) ?log_command o_files =
   let o_files = List.map Sc_sys.File.name o_files in
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     ~stdout:(`Log Log_lwt_ld.LWT.debug)
     ~stderr:(`Log Log_lwt_ld.LWT.debug)
@@ -288,7 +288,7 @@ let ld ~output_file ?(ldflags = []) ?log_command o_files =
      @ ldflags)
 
 let redefine_sym ~old ~new_ ?log_command (file : [> `O] Sc_sys.File.t) =
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     ~on_success:Lwt.return
     ?log_command

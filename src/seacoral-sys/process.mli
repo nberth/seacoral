@@ -182,7 +182,7 @@ end
 
 (** Returns the promise associated with the process *)
 val join: 'a t -> 'a Lwt.t
-val get_promise: 'a t Lwt.t -> 'a Lwt.t                       (* temporary alias *)
+val join_lwt: 'a t Lwt.t -> 'a Lwt.t
 
 val pid: _ t -> int
 

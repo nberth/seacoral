@@ -16,27 +16,22 @@ open Lwt.Syntax
 
 module TYPES = struct
 
-  type ('a, 'p) lwt_process =
-    {
-      process : 'p;
-      promise : 'a Lwt.t;
-      cleanup: unit -> unit Lwt.t;
-    }
-  and 'a process_full = ('a, Lwt_process.process_full) lwt_process
-  and 'a process_verbose = ('a, Lwt_process.process) lwt_process
-  and 'a process_in = ('a, Lwt_process.process_in) lwt_process
-  and 'a process_out = ('a, Lwt_process.process_out) lwt_process
-  and 'a process_none = ('a, Lwt_process.process_none) lwt_process
-
   type command = string array
 
   (** The type of processes that result in a value of type ['a] *)
   type 'a process =
-    | ProcFull of 'a process_full
-    | ProcVerbose of 'a process_verbose
-    | ProcIn of 'a process_in
-    | ProcOut of 'a process_out
-    | ProcNone of 'a process_none
+    {
+      handle: process_handle;
+      await_result: unit -> 'a Lwt.t;
+      cleanup: unit -> unit Lwt.t;
+    }
+
+  and process_handle =
+    | ProcFull of Lwt_process.process_full
+    | ProcVerbose of Lwt_process.process
+    | ProcIn of Lwt_process.process_in
+    | ProcOut of Lwt_process.process_out
+    | ProcNone of Lwt_process.process_none
 
   type readable_redirection =
     [ `Grab of stream_grabber
@@ -121,12 +116,12 @@ let () =
 let failed_command ?(cwd = Sys.getcwd ()) e cmd =
   raise @@ FAILED (cmd, e, cwd)
 
-let pid: _ t -> int = function
-  | ProcFull p -> p.process#pid
-  | ProcVerbose p -> p.process#pid
-  | ProcIn p -> p.process#pid
-  | ProcOut p -> p.process#pid
-  | ProcNone p -> p.process#pid
+let pid: _ t -> int = fun p -> match p.handle with
+  | ProcFull p -> p#pid
+  | ProcVerbose p -> p#pid
+  | ProcIn p -> p#pid
+  | ProcOut p -> p#pid
+  | ProcNone p -> p#pid
 
 let _lines get p = match get p with
   | None -> Lwt_stream.of_list []
@@ -135,31 +130,31 @@ let _string get p = match get p with
   | None -> Lwt.return ""
   | Some ic -> Lwt_io.read ic
 
-let stdout: 'a t -> Lwt_io.input_channel option = function
+let stdout: 'a t -> Lwt_io.input_channel option = fun p -> match p.handle with
   | ProcOut _ | ProcNone _ -> None
-  | ProcFull { process; _ }  -> Some process#stdout
-  | ProcVerbose { process; _ } -> Some process#stdout
-  | ProcIn { process; _ } -> Some process#stdout
+  | ProcFull process  -> Some process#stdout
+  | ProcVerbose process -> Some process#stdout
+  | ProcIn process -> Some process#stdout
 let stdout_lines p = _lines stdout p
 let stdout_string p = _string stdout p
 let stdout_close p = match stdout p with
   | None -> Lwt.return ()
   | Some ic -> Lwt_io.close ic
 
-let stderr: 'a t -> Lwt_io.input_channel option = function
+let stderr: 'a t -> Lwt_io.input_channel option = fun p -> match p.handle with
   | ProcVerbose _ | ProcOut _ | ProcIn _ | ProcNone _ -> None
-  | ProcFull { process; _ } -> Some process#stderr
+  | ProcFull process -> Some process#stderr
 let stderr_lines p = _lines stderr p
 let stderr_string p = _string stderr p
 let stderr_close p = match stderr p with
   | None -> Lwt.return ()
   | Some ic -> Lwt_io.close ic
 
-let stdin: 'a t -> Lwt_io.output_channel option = function
+let stdin: 'a t -> Lwt_io.output_channel option =  fun p -> match p.handle with
   | ProcIn _ | ProcNone _ -> None
-  | ProcFull { process; _ } -> Some process#stdin
-  | ProcVerbose { process; _ } -> Some process#stdin
-  | ProcOut { process; _ } -> Some process#stdin
+  | ProcFull process -> Some process#stdin
+  | ProcVerbose process -> Some process#stdin
+  | ProcOut process -> Some process#stdin
 let stdin_lines p s = match stdin p with
   | None -> Lwt.return ()
   | Some oc -> Lwt_io.write_lines oc s
@@ -170,30 +165,12 @@ let stdin_close p = match stdin p with
   | None -> Lwt.return ()
   | Some oc -> Lwt_io.close oc
 
-let await = function
-  | ProcFull p -> p.promise
-  | ProcVerbose p -> p.promise
-  | ProcIn p -> p.promise
-  | ProcOut p -> p.promise
-  | ProcNone p -> p.promise
-
-let cleanup p =
-  let* () =
-    match p with
-    | ProcFull p -> p.cleanup ()
-    | ProcVerbose p -> p.cleanup ()
-    | ProcIn p -> p.cleanup ()
-    | ProcOut p -> p.cleanup ()
-    | ProcNone p -> p.cleanup ()
-  in
-  stdin_close p <&> stdout_close p <&> stderr_close p
-
 let join: 'a t -> 'a Lwt.t = fun p ->
-  let* res = await p in
-  let* () = cleanup p in
-  Lwt.return res
+  Lwt.finalize p.await_result begin fun () ->
+    (stdin_close p <&> stdout_close p <&> stderr_close p) >>= p.cleanup
+  end
 
-let get_promise p =
+let join_lwt p =
   Lwt.bind p join
 
 (* Handling redirections *)
@@ -261,13 +238,45 @@ let exec ?env ?cwd
     | None -> None
     | Some e -> Some (Env.append (Unix.environment ()) e)
   in
-  let cleanup () =
+  let cmd' = "", cmd in
+  let handle = match stdin, nograb stderr, nograb stdout with
+    | `Keep, `Keep, `Keep ->
+        let process
+          = Lwt_process.open_process_full cmd' ?env ?cwd ?timeout in
+        ProcFull process
+    | `Keep, stderr, `Keep ->
+        let process
+          = Lwt_process.open_process cmd' ?env ?cwd ?timeout ~stderr in
+        ProcVerbose process
+    | `Keep, stderr, stdout ->
+        let process
+          = Lwt_process.open_process_out cmd'
+            ?env ?cwd ?timeout ~stderr ~stdout in
+        ProcOut process
+    | stdin, stderr, `Keep ->
+        let process
+          = Lwt_process.open_process_in cmd'
+            ?env ?cwd ?timeout ~stdin ~stderr in
+        ProcIn process
+    | stdin, stderr, stdout ->
+        let process
+          = Lwt_process.open_process_none cmd'
+            ?env ?cwd ?timeout ~stdin ~stderr ~stdout in
+        ProcNone process
+  and cleanup () =
     close_redirection stdout;
     close_redirection stderr;
     Lwt.return ()
   in
-  let promise process =
-    let* exit_state = process#status in
+  let await_result () =
+    let* exit_state =
+      match handle with
+      | ProcFull p -> p#status
+      | ProcVerbose p -> p#status
+      | ProcIn p -> p#status
+      | ProcOut p -> p#status
+      | ProcNone p -> p#status
+    in
     if log_command = `Always ||
        log_command = `On_exit ||
        log_command = `On_exec && exit_state <> Unix.WEXITED 0 ||
@@ -280,43 +289,20 @@ let exec ?env ?cwd
         on_success ()
     | _ ->
         match on_error with
-        | None -> failed_command ?cwd cmd exit_state
-        | Some f -> f exit_state
+        | None ->
+            failed_command ?cwd cmd exit_state
+        | Some f ->
+            f exit_state
   in
-  let cmd = "", cmd in
-  let p = match stdin, nograb stderr, nograb stdout with
-    | `Keep, `Keep, `Keep ->
-        let process
-          = Lwt_process.open_process_full cmd ?env ?cwd ?timeout in
-        ProcFull { process; promise = promise process; cleanup }
-    | `Keep, stderr, `Keep ->
-        let process
-          = Lwt_process.open_process cmd ?env ?cwd ?timeout ~stderr in
-        ProcVerbose { process; promise = promise process; cleanup }
-    | `Keep, stderr, stdout ->
-        let process
-          = Lwt_process.open_process_out cmd
-            ?env ?cwd ?timeout ~stderr ~stdout in
-        ProcOut { process; promise = promise process; cleanup }
-    | stdin, stderr, `Keep ->
-        let process
-          = Lwt_process.open_process_in cmd
-            ?env ?cwd ?timeout ~stdin ~stderr in
-        ProcIn { process; promise = promise process; cleanup }
-    | stdin, stderr, stdout ->
-        let process
-          = Lwt_process.open_process_none cmd
-            ?env ?cwd ?timeout ~stdin ~stderr ~stdout in
-        ProcNone { process; promise = promise process; cleanup }
-  in
+  let process = { handle; cleanup; await_result } in
   let async_out_stream s ~log_header ~line_stream =
     match s with
     | `Grab grabber ->
-        grab_stream grabber (line_stream p)
+        grab_stream grabber (line_stream process)
     | `Log logger ->
-        log_lines logger ~header:log_header (line_stream p)
+        log_lines logger ~header:log_header (line_stream process)
     | `GrabNLog (grabber, logger) ->
-        let s1 = line_stream p in
+        let s1 = line_stream process in
         let s2 = Lwt_stream.clone s1 in
         Lwt.join [grab_stream grabber s1; log_lines logger s2]
     | #Lwt_process.redirection ->
@@ -326,7 +312,7 @@ let exec ?env ?cwd
     Lwt.join [async_out_stream stdout ~log_header:"." ~line_stream:stdout_lines;
               async_out_stream stderr ~log_header:"*" ~line_stream:stderr_lines]
   in
-  Lwt.return p
+  Lwt.return process
 
 (** [shell ... cmd] spawns a shell process that executes [cmd]. *)
 let shell ?env ?cwd ?log_command ?stdin ?stderr ?stdout ?timeout
@@ -340,20 +326,20 @@ let shell_unit ?env ?cwd ?log_command ?stdin ?stderr ?stdout ?timeout
     ?(on_error : (Unix.process_status -> 'a Lwt.t) option)
     ?(on_success : unit -> 'a Lwt.t = Lwt.return)
     (cmd: string) : unit Lwt.t =
-  get_promise @@
+  join_lwt @@
   shell ?env ?cwd ?log_command ?stdin ?stderr ?stdout ?timeout
     ?on_error ~on_success cmd
 
 let shell_status ?(log_command = `On_error) ?(stdout = `Dev_null)
     ?(stderr = `Dev_null) cmd =
-  get_promise @@
+  join_lwt @@
   shell cmd ~log_command ~stdout ~stderr
     ~on_success: (fun () -> Lwt.return_true)
     ~on_error: (fun _ -> Lwt.return_false)
 
 let exec_status ?(log_command = `On_error) ?(stdout = `Dev_null)
     ?(stderr = `Dev_null) cmd =
-  get_promise @@
+  join_lwt @@
   exec cmd ~log_command ~stdout ~stderr
     ~on_success: (fun () -> Lwt.return_true)
     ~on_error: (fun _ -> Lwt.return_false)
@@ -377,7 +363,7 @@ module PRETTY = struct
       fmt
 end
 
-let pp_proc_type ppf = function
+let pp_proc_type ppf = fun p -> match p.handle with
   | ProcFull _ -> Fmt.fmt "fully@ accessible@ sub-process" ppf
   | ProcVerbose _ -> Fmt.fmt "stdin&stdout-only@ sub-process" ppf
   | ProcIn _ -> Fmt.fmt "stdout-only@ sub-process" ppf
@@ -404,18 +390,18 @@ let stdin p =
 
 let kill ?(delay = 0.) signum p =
   let* () = Lwt_unix.sleep delay in
-  match p with
-  | ProcFull p -> p.process#kill signum; Lwt.return ()
-  | ProcVerbose p -> p.process#kill signum; Lwt.return ()
-  | ProcOut p -> p.process#kill signum; Lwt.return ()
-  | ProcIn p -> p.process#kill signum; Lwt.return ()
-  | ProcNone p -> p.process#kill signum; Lwt.return ()
+  match p.handle with
+  | ProcFull p -> p#kill signum; Lwt.return ()
+  | ProcVerbose p -> p#kill signum; Lwt.return ()
+  | ProcOut p -> p#kill signum; Lwt.return ()
+  | ProcIn p -> p#kill signum; Lwt.return ()
+  | ProcNone p -> p#kill signum; Lwt.return ()
 
 let terminate ?(delay = 0.) p =
   let* () = Lwt_unix.sleep delay in
-  match p with
-  | ProcFull p -> p.process#terminate; Lwt.return ()
-  | ProcVerbose p -> p.process#terminate; Lwt.return ()
-  | ProcOut p -> p.process#terminate; Lwt.return ()
-  | ProcIn p -> p.process#terminate; Lwt.return ()
-  | ProcNone p -> p.process#terminate; Lwt.return ()
+  match p.handle with
+  | ProcFull p -> p#terminate; Lwt.return ()
+  | ProcVerbose p -> p#terminate; Lwt.return ()
+  | ProcOut p -> p#terminate; Lwt.return ()
+  | ProcIn p -> p#terminate; Lwt.return ()
+  | ProcNone p -> p#terminate; Lwt.return ()
