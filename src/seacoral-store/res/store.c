@@ -25,6 +25,7 @@
 
 #define SC_STORE_MAP_FILE_ENVVAR "SC_STORE_MAP_FILE"
 #define SC_STORE_TOOL_ID_ENVVAR "SC_STORE_TOOL_ID"
+#define SC_STORE_EXACT_LABELS_FILE_ENVVAR "SC_STORE_EXACT_LABELS_FILE"
 #define SC_STORE_TOOL_ID_DEFAULT 0x7f
 
 #define SC_UNCOV_MASK 0x80
@@ -42,6 +43,15 @@ static unsigned char* covered = NULL;
 /* Loose upper bound for label identifier, determined based on the size of the
    mmapped file. */
 static unsigned int max_id;
+
+/* Array where a character at index i is 1 if the corresponding label is covered
+   by the current run; remains NULL if not to be created (i.e
+   SC_STORE_EXACT_LABELS_FILE is not set). */
+static unsigned char* exact_covered_buff = NULL;
+
+/* Name of the file where to record the contents of `exact_covered_buff` at
+   commit time (i.e, in `__sc_buff_commit`). */
+static char const * exact_labels_file = NULL;
 
 /* As in man pages */
 #define handle_error(msg)					\
@@ -91,6 +101,15 @@ void __attribute__((constructor)) __store_initialize () {
     } else {
       tool_id = tool_id_str[0];
     }
+  }
+
+  /* Initialize the file where to store the precise set of covered labels, if
+     needed. */
+  if ((exact_labels_file =
+       getenv (SC_STORE_EXACT_LABELS_FILE_ENVVAR)) != NULL) {
+    if ((exact_covered_buff =
+	 calloc ((size_t) (max_id + 1), sizeof (unsigned char))) == NULL)
+      handle_error ("calloc");
   }
 }
 
@@ -226,6 +245,8 @@ void __sc_set_covered (unsigned int id) {
   __check_uncoverable (id, status);
 }
 
+/* Array that contains the status of labels covered by the current run,
+   as well as the status of labels already committed upon startup. */
 static unsigned char* covered_buff = NULL;
 
 inline static
@@ -236,7 +257,7 @@ void buff_initialize_maybe (void) {
     return;
 
   if (! (covered_buff = malloc ((size_t) (max_id + 1))))
-    handle_error ("calloc");
+    handle_error ("malloc");
 
   flock_init_full (&l);
   flock_start_reading (&l);
@@ -255,6 +276,8 @@ void __sc_buff_set_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
+  if (exact_covered_buff)
+    exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
 }
@@ -270,6 +293,8 @@ unsigned char __sc_buff_covered (unsigned int id) {
   if (!status || __sc_uncoverable_code (status)) {
     covered_buff[id] = tool_id;
   }
+  if (exact_covered_buff)
+    exact_covered_buff[id] = '\001';
 
   __check_uncoverable (id, status);
 
@@ -277,6 +302,20 @@ unsigned char __sc_buff_covered (unsigned int id) {
     return __sc_is_covered (id); /* return up-to-date status */
   } else {
     return status;
+  }
+}
+
+static
+void __sc_write_exact_labels (void) {
+  if (exact_covered_buff != NULL) {
+    int id;
+    FILE* file = fopen (exact_labels_file, "w");
+    for (id = 1; id <= max_id; id++) {
+      if (exact_covered_buff[id] != '\000') {
+	fprintf (file, "%i\n", id);
+      }
+    }
+    fclose (file);
   }
 }
 
@@ -298,6 +337,9 @@ unsigned int __sc_buff_commit (void) {
     }
   }
   flock_release (&l);
+
+  /* Write exact labels file, if needed (once the lock is released). */
+  __sc_write_exact_labels ();
 
   return committed;
 }

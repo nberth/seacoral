@@ -25,6 +25,7 @@ type run_config =
     max_validation_concurrency: int; (** maximum number of validations that may
                                          be performed in parallel *)
     verbose_validation: bool;
+    display_outcomes: [`No | `Yes | `Verbose]
   }
 
 (** Orchestration strategy *)

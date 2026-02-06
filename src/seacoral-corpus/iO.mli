@@ -9,8 +9,6 @@
 (**************************************************************************)
 
 (** Can be used with "%a" in {!Lwt_io.fprintf} format strings *)
-val print_sanitizer_error_summary
-  : unit -> Types.sanitizer_error_summary -> string
-
-val scan_sanitizer_error_summary
-  : Scanf.Scanning.in_channel -> Types.sanitizer_error_summary
+val print_summary : unit -> Types.test_outcome -> string
+  
+val scan_summary : Scanf.Scanning.in_channel -> Types.test_outcome 

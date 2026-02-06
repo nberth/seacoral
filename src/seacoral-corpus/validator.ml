@@ -309,32 +309,55 @@ let stdout ~log:(module Log: Ez_logs.T) =
 
 (* --- *)
 
+let read_labels_from_file f =
+  let<* chan = f in
+  let lines = Lwt_io.read_lines chan in
+  Lwt_stream.fold_s
+    (fun l acc -> Lwt.return @@ match int_of_string l with
+      | i -> Basics.Ints.add i acc
+      | exception (Failure _) ->
+         Log.warn "Reading@ %S@ in@ outcomes@ file@ %a;@ expected@ a@ label@ \
+                   identifier.@ Ignoring.\
+                   " l Sc_sys.File.print f;
+         acc
+    )
+    lines
+    Basics.Ints.empty
+
 let replay_with_store_update ready_validator ~exec_validator ~log =
   let validator = ready_validator.validator in
   let* store = Sc_store.for_compiled_subprocess validator.store in
-  let san_env =
-    [|
-      "ASAN_OPTIONS=symbolize=0";
-      "UBSAN_OPTIONS=symbolize=0";
-    |]
-  in
-  let* res =
-    Sc_sys.Process.join =<< exec_validator
-      ~exe:ready_validator.replay_with_store_update_exe
-      ~env:(Array.concat [store.env; san_env])
-      ~stdout:(stdout ~log)
-      ~stderr:(stderr ~log)
-  in
-  match res with
-  | Ok () ->
-      Lwt.return_ok (Some Covering_label)
-  | Error Unix.WEXITED code when code = oracle_failure_code ->
-      Lwt.return_ok (Some Oracle_failure)
-  | Error Unix.WEXITED code when code = no_new_coverage_code ||
-                                 code = assumption_failure_code ->
-      Lwt.return_ok None
-  | Error _ ->
-      Lwt.return_error ()
+  Sc_sys.Lwt_file.with_temp_file begin fun label_file ->
+    let san_env =
+      [|
+        "ASAN_OPTIONS=symbolize=0";
+        "UBSAN_OPTIONS=symbolize=0";
+      |]
+    and store_env =
+      [|
+        Fmt.str "SC_STORE_EXACT_LABELS_FILE=%a"
+          Sc_sys.File.print_absname label_file;
+      |]
+    in
+    let* res =
+      Sc_sys.Process.join =<< exec_validator
+        ~exe:ready_validator.replay_with_store_update_exe
+        ~env:(Array.concat [store.env; san_env; store_env])
+        ~stdout:(stdout ~log)
+        ~stderr:(stderr ~log)
+    in
+    match res with
+    | Ok () ->
+        let* labels = read_labels_from_file label_file in
+        Lwt.return_ok (Some (Covering_label labels))
+    | Error Unix.WEXITED code when code = oracle_failure_code ->
+        Lwt.return_ok (Some Oracle_failure)
+    | Error Unix.WEXITED code when code = no_new_coverage_code ||
+                                   code = assumption_failure_code ->
+        Lwt.return_ok None
+    | Error _ ->
+        Lwt.return_error ()
+  end
 
 (* --- *)
 

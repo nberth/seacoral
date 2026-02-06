@@ -1,11 +1,14 @@
   $ export CBMC_MODE=cover
-  $ seacoral --tools cbmc
+  $ seacoral --tools cbmc --display-outcomes yes
   [A]{Sc} Starting to log into `_sc/get_sign.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Doing the hard work...
   [A]{Sc} Launching cbmc on `get_sign'
   [A]{Sc} Extracting new testcases from corpus...
   [A]{Sc} Hard work done
+  [A]{Sc} Test 1: covering labels {2, 4}
+  [A]{Sc} Test 2: covering labels {2, 3}
+  [A]{Sc} Test 3: covering labels {1}
   [A]{Sc} Coverage statistics for `get_sign':
           cov: 4 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 3 tests
   [A]{Sc} Covered labels: {1, 2, 3, 4}
