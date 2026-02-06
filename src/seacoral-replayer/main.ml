@@ -179,7 +179,7 @@ let play ~wd { dir = _; testcase } =
     Sc_C.Cmd.clang_ld ofile ~ldflags:libs ~o_files:[wd.replayer_main_o]
   in
   (* Executing file *)
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec [|Sc_sys.File.name executable|]
     ~env
     ~on_success:(fun () -> (* Covered something *) Lwt.return true)

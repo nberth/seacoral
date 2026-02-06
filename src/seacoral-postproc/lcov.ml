@@ -228,7 +228,7 @@ let compile_n_exec ~options ~project ~workdir ~resdir ~model testfiles =
   in
   let* () =
     Lwt_stream.iter_p begin fun exe ->
-      Sc_sys.Process.get_promise @@
+      Sc_sys.Process.join_lwt @@
       Sc_sys.Process.exec [|Sc_sys.File.absname exe|]
         ~cwd:(Sc_sys.File.absname workdir)
         ~on_success:Lwt.return
@@ -245,7 +245,7 @@ let testfiles = function
       Lwt_stream.map (fun (c: individual_test_in_testsuite) -> c.file)
 
 let run_lcov ~options ~workspace ~info_file =
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     [|
       options.lcov_path;
@@ -267,7 +267,7 @@ let run_llvm_profdata ~options ~workspace ~profdata_file =
     Lwt_stream.map Sc_sys.File.absname |>
     Lwt_stream.to_list
   in
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     ~stdout:(`Log Log_lwt_llvm_profdata.LWT.debug)
     ~stderr:(`Log Log_lwt_llvm_profdata.LWT.debug)
@@ -290,7 +290,7 @@ let llvm_cov_cmd ~options ~profdata_file ~execs cmd_n_args =
 
 let llvm_show_lcov ~options ~profdata_file ~execs =
   if not options.report_in_logs then Lwt.return () else
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.exec (llvm_cov_cmd ~options ~profdata_file ~execs
                            ["show"; "--show-branches=percent"])
       ~stdout:(`Log Log_lwt_llvm_cov.LWT.info)
@@ -304,7 +304,7 @@ let outfile_descr file =
 let llvm_show_text_report ~options ~profdata_file ~execs =
   if options.text_report = "" then Lwt.return () else
     let* text_fd = outfile_descr (Sc_sys.File.assume options.text_report) in
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.exec (llvm_cov_cmd ~options ~profdata_file ~execs
                            ["show"; "--show-branches=percent"])
       ~stdout:(`FD_move (Lwt_unix.unix_file_descr text_fd))
@@ -314,7 +314,7 @@ let llvm_show_text_report ~options ~profdata_file ~execs =
 
 let llvm_export_lcov_info ~options ~profdata_file ~execs ~info_file =
   let* info_fd = outfile_descr info_file in
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec (llvm_cov_cmd ~options ~profdata_file ~execs
                          ["export"; "--format"; "lcov"])
     ~stdout:(`FD_move (Lwt_unix.unix_file_descr info_fd))
@@ -323,7 +323,7 @@ let llvm_export_lcov_info ~options ~profdata_file ~execs ~info_file =
     ~on_success:Lwt.return
 
 let run_genhtml ~options ~srcdir:_ ~info_file ~report_dir =
-  Sc_sys.Process.get_promise @@
+  Sc_sys.Process.join_lwt @@
   Sc_sys.Process.exec
     [|
       options.genhtml_path;

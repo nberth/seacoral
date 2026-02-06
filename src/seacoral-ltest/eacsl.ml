@@ -78,7 +78,7 @@ module Make (C : Types.CONFIG) = struct
          (Sc_sys.File.absname C.workspace.workdir))
 
   let start_eacsl_process file cmd =
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.exec cmd
       ~cwd:(Sc_sys.File.absname C.workspace.workdir)
       ~stdout:(`Log Log_eacsl.LWT.debug)
@@ -91,7 +91,7 @@ module Make (C : Types.CONFIG) = struct
       end
 
   let start_eacsl_replayer exec_file =
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.shell (Sc_sys.File.absname exec_file)
       ~cwd:(Sc_sys.File.absname C.workspace.workdir)
       ~stdout:(`Log Log_eacsl.LWT.debug)

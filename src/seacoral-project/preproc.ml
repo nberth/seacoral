@@ -94,7 +94,7 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
   in
   let* unfound_functions =
     Lwt_stream.fold
-      (fun l funs -> loop l [] funs)      
+      (fun l funs -> loop l [] funs)
       stream
       functions
   in
@@ -111,8 +111,8 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
      setup_error errors
 
 let do_syntax_check ~incdir ~config c_file =
-  let stdout_lines_mbox = Lwt_mvar.create_empty () in
-  let stderr_lines_mbox = Lwt_mvar.create_empty () in
+  let stdout_lines, new_stdout_line = Lwt_stream.create ()
+  and stderr_lines, new_stderr_line = Lwt_stream.create () in
   Lwt.catch begin fun () ->
     (* resources/noop-labels.h provides a dummy implementation of pc_label so as
        to syntax-check custom label conditions. *)
@@ -124,15 +124,13 @@ let do_syntax_check ~incdir ~config c_file =
     let* () =
       Sc_C.Cmd.clang_check_and_print_llvm c_file
         ~cppflags
-        ~stdout_grabber:(MBox stdout_lines_mbox)
-        ~stderr_grabber:(MBox stderr_lines_mbox)
+        ~stdout_grabber:(Push_lines new_stdout_line)
+        ~stderr_grabber:(Push_lines new_stderr_line)
     in
-    let* stream = Lwt_mvar.take stdout_lines_mbox in
-    check_entrypoint_definition_in_llvm_dump_ast ~config stream
+    check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
   end begin function
     | Sc_C.Cmd.ERROR cmd_error
       when !Ez_logs.stdout_level_ref <> Some Debug ->
-        let* stderr_lines = Lwt_mvar.take stderr_lines_mbox in
         let* stderr_lines = Lwt_stream.to_list stderr_lines in
         labeling_error @@ Syntax_errors { cmd_error; stderr_lines }
     | Sc_C.Cmd.ERROR cmd_error ->
