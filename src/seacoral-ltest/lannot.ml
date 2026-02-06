@@ -101,7 +101,7 @@ module Make (Conf : Types.CONFIG) : S = struct
           ~output_file:labelized_file
           code_c
       in
-      Sc_sys.Process.get_promise @@
+      Sc_sys.Process.join_lwt @@
       Sc_sys.Process.exec lannotcmd
         ~stdout:(`Log Log_lannot.LWT.debug)
         ~stderr:(`Log Log_lannot.LWT.debug)
@@ -114,7 +114,7 @@ module Make (Conf : Types.CONFIG) : S = struct
         Framac.luncov_init (module Conf) [labelized_file]
       in
       let* () =
-        Sc_sys.Process.get_promise @@
+        Sc_sys.Process.join_lwt @@
         Sc_sys.Process.exec luncov_init_cmd
           ~stdout:(`Log Log_luncov.LWT.debug)
           ~stderr:(`Log Log_luncov.LWT.debug)
