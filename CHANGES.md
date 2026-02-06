@@ -4,12 +4,14 @@
 
 ### Added
 - Partial support for constrained pointer fields [#58](https://github.com/OCamlPro/seacoral/pull/58)
+- Association between labels and tests in the corpus [#53](https://github.com/OCamlPro/seacoral/pull/53)
 - A pretty error message when entrypoints or cover targers are missing from the C code [#52](https://github.com/OCamlPro/seacoral/pull/52)
 - Reporting of RTEs and unsatisfied oracles by CBMC in `assert` and `clabel` modes [#48](https://github.com/ocamlpro/seacoral/pull/48)
 - Comment with test outcomes in generated testsuites [#44](https://github.com/ocamlpro/seacoral/pull/44)
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 
 ### Fixed
+- Improper handling of output streams after process termination [#61](https://github.com/OCamlPro/seacoral/pull/61) (fix for [Issue #57](https://github.com/OCamlPro/seacoral/issues/57))
 - Assumed signature of initialization functions: they should not accept any argument [#43](https://github.com/OCamlPro/seacoral/pull/43) (fix for [Issue #39](https://github.com/OCamlPro/seacoral/issues/39))
 - Default maximum number of inputs in CBMC automatically increased [#36](https://github.com/OCamlPro/seacoral/pull/36)
 

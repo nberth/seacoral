@@ -34,7 +34,7 @@ let init_seeds
   let* () = Sc_sys.Lwt_file.unlink_files_of_dir seedsdir in
   let* local_corpus =
     Sharing.import_tests corpus seedsdir
-      ~filter:(fun m -> m.outcome = Covering_label)
+      ~filter:Main.is_covering_metadata
   in
   let num_imported = Digests.cardinal local_corpus in
   if num_imported > 1 then begin

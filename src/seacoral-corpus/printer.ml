@@ -54,8 +54,8 @@ let pp_sanitizer_error_summary ppf = function
       Fmt.pf ppf "arithmetic error at 0x%Lx" addr
 
 let pp_test_outcome ppf = function
-  | Covering_label ->
-      Fmt.pf ppf "covering@ labels"
+  | Covering_label i ->
+      Fmt.pf ppf "covering@ labels@ %a" Basics.Ints.print i
   | Triggering_RTE err ->
       Fmt.pf ppf "triggering@ %a" pp_sanitizer_error_summary err
   | Oracle_failure ->

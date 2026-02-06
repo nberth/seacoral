@@ -284,7 +284,7 @@ let import_seeds wd indir =
   let* () = Sc_sys.Lwt_file.unlink_files_of_dir indir in
   let* seeds =
     Sc_corpus.Sharing.import_tests wd.project.corpus indir
-      ~filter:(fun m -> m.outcome = Covering_label)
+      ~filter:Sc_corpus.is_covering_metadata
       ~import_suff:".ktest"
       ~write_test:(`Func (write_ktest wd))
   in

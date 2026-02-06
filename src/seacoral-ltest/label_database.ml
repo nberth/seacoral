@@ -116,7 +116,7 @@ module Make (Conf: CONFIG) : S = struct
     let* luncov_init_cmd =
       Framac.luncov_init (module Conf) [labelized_file]
     in
-    Sc_sys.Process.get_promise @@
+    Sc_sys.Process.join_lwt @@
     Sc_sys.Process.exec luncov_init_cmd
       ~stdout:(`Log Log_lwt_luncov.LWT.debug)
       ~stderr:(`Log Log_lwt_luncov.LWT.debug)

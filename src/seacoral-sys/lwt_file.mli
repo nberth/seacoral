@@ -54,6 +54,15 @@ val dirs_of_dir: File.dir -> 'a File.t Lwt_stream.t
    [dir]. *)
 val unlink_files_of_dir: File.dir -> unit Lwt.t
 
+(** Equivalent to {!Lwt_io.with_temp_file}, with a file instead of a pair of
+    filename and an output channel. *)
+val with_temp_file
+  : ?flags:Unix.open_flag list
+  -> ?perm:Unix.file_perm
+  -> ?prefix:string
+  -> ?suffix:string
+  -> (_ File.t -> 'a Lwt.t) -> 'a Lwt.t
+
 (** {2 Directory-wide locks *)
 
 type dirlock_operation = Read | ReadWrite

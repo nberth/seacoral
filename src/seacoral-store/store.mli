@@ -48,3 +48,6 @@ val for_compiled_subprocess
 (** [covinfo store] returns some statistics about coverage as measured via the
     store. *)
 val covinfo: t -> Types.covinfo Lwt.t
+
+(** Returns the total number of labels in the current project. *)
+val size : t -> int
