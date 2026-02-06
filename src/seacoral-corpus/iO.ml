@@ -16,11 +16,11 @@ open Types
 
 let print_sanitizer_error_summary = function
   | Heap_buffer_overflow addr ->
-      Basics.PPrt.asprintf "crash:heap-buffer-overflow\t0x%Lx" addr
+      Basics.PPrt.asprintf "rte:heap-buffer-overflow\t0x%Lx" addr
   | Invalid_memory_address addr ->
-      Basics.PPrt.asprintf "crash:invalid-memory-address\t0x%Lx" addr
+      Basics.PPrt.asprintf "rte:invalid-memory-address\t0x%Lx" addr
   | Arithmetic_error addr ->
-      Basics.PPrt.asprintf "crash:arithmetic-error\t0x%Lx" addr
+      Basics.PPrt.asprintf "rte:arithmetic-error\t0x%Lx" addr
 
 let print_cover_summary ints =
   Basics.PPrt.asprintf
@@ -48,13 +48,13 @@ let scan_list ic =
 
 let scan_summary (ic: Scanf.Scanning.in_channel) =
   Scanf.bscanf ic "%s@\t" begin function
-    | "crash:heap-buffer-overflow" ->
+    | "rte:heap-buffer-overflow" ->
         Scanf.bscanf ic "0x%Lx"
           (fun addr -> Triggering_RTE (Heap_buffer_overflow addr))
-    | "crash:invalid-memory-address" ->
+    | "rte:invalid-memory-address" ->
         Scanf.bscanf ic "0x%Lx"
           (fun addr -> Triggering_RTE (Invalid_memory_address addr))
-    | "crash:arithmetic-error" ->
+    | "rte:arithmetic-error" ->
         Scanf.bscanf ic "0x%Lx"
           (fun addr -> Triggering_RTE (Arithmetic_error addr))
     | "cover" -> Covering_label (scan_list ic)

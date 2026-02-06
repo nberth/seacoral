@@ -313,9 +313,13 @@ let read_labels_from_file f =
   let<* chan = f in
   let lines = Lwt_io.read_lines chan in
   Lwt_stream.fold_s
-    (fun l acc -> Lwt.return @@ match l with
-     | "ign" -> acc
-     | i -> Basics.Ints.add (int_of_string i) acc)
+    (fun l acc -> Lwt.return @@ match int_of_string l with
+      | i -> Basics.Ints.add i acc
+      | exception (Failure _) ->
+         Log.warn "Reading %S in outcomes file %a; expected a label identifier. Ignoring.\
+                  " l Sc_sys.File.print f;
+         acc
+    )
     lines
     Basics.Ints.empty
 
