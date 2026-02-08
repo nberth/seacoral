@@ -53,7 +53,7 @@ let pp_preproc_error ppf = function
 let pp_setup_error ppf =
   function
   | Ltest e -> Sc_ltest.Printer.pp_error ppf e
-  | Preproc l -> Basics.PPrt.pp_lst ~fopen:"" ~fclose:"" pp_preproc_error ppf l
+  | Preproc l -> NEL.pp ~fopen:"" ~fclose:"" pp_preproc_error ppf l
 
 let pp_exn_lines ppf exn =
   Fmt.lines ppf (Printexc.to_string exn)

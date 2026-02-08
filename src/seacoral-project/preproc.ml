@@ -82,33 +82,27 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
   let ep = config.project_problem.entrypoint in
   let functions =
     match config.project_problem.annotated_functions with
-    | `Only l -> List.map (fun f -> f, rx_of_fun f) (ep :: l)
-    | `All | `Auto -> [ep, rx_of_fun ep]
+    | `Only l ->
+        List.map (fun f -> f, rx_of_fun f) (ep :: l)
+    | `All | `Auto ->
+        [ep, rx_of_fun ep]
   in
   (* Checks if [line] follows the regexp corresponding to the given function. *)
-  let rec loop line rev_tested_funs = function
-    | [] -> List.rev rev_tested_funs
+  let rec loop rev_tested_funs line = function
+    | [] ->
+        List.rev rev_tested_funs
     | (_, rx) :: tl when Str.string_match rx line 0 ->
        List.rev_append rev_tested_funs tl
-    | hd :: tl -> loop line (hd :: rev_tested_funs) tl
+    | hd :: tl ->
+        loop (hd :: rev_tested_funs) line tl
   in
-  let* unfound_functions =
-    Lwt_stream.fold
-      (fun l funs -> loop l [] funs)
-      stream
-      functions
-  in
-  match unfound_functions with
-  | [] -> Lwt.return ()
-  | l ->
-     let errors =
-       List.map begin fun (f, _) ->
-         if f = ep
-         then Missing_entrypoint f
-         else Missing_cover_target f
-       end l
-     in
-     setup_error errors
+  let* missing_functions = Lwt_stream.fold (loop []) stream functions in
+  if missing_functions = [] then Lwt.return () else
+    setup_error @@ NEL.of_rev_list @@ List.rev_map begin fun (f, _) ->
+      if f = ep
+      then Missing_entrypoint f
+      else Missing_cover_target f
+    end missing_functions
 
 let do_syntax_check ~incdir ~config c_file =
   let stdout_lines, new_stdout_line = Lwt_stream.create ()
@@ -126,8 +120,10 @@ let do_syntax_check ~incdir ~config c_file =
         ~cppflags
         ~stdout_grabber:(Push_lines new_stdout_line)
         ~stderr_grabber:(Push_lines new_stderr_line)
+    and* res =
+      check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
     in
-    check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
+    Lwt.return res
   end begin function
     | Sc_C.Cmd.ERROR cmd_error
       when !Ez_logs.stdout_level_ref <> Some Debug ->
