@@ -87,7 +87,7 @@ let%expect_test "ok-delayed-output-retrieval-delayed-exit-1" =
     |}]
 ;;
 
-let%expect_test "ko-join-strictly-after-stdout-consumption" =
+let%expect_test "ok-join-strictly-after-stdout-consumption" =
   run begin
     let stdout_lines, new_stdout_line = Lwt_stream.create () in
     let* proc =
@@ -101,5 +101,5 @@ let%expect_test "ko-join-strictly-after-stdout-consumption" =
     let* () = Sc_sys.Process.join proc in
     Lwt_fmt.printf "%d@." !x
   end;
-  [%expect{| Test timed out |}]
+  [%expect{| 0 |}]
 ;;
