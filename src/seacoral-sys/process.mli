@@ -40,18 +40,41 @@ module TYPES: sig
 
       Note it is an error to assume that promises given via [Stream] or [Lines]
       are always executed before the sub-process terminates and its status is
-      retrieved.  Using [Push_lines] is required to ensure the stream of lines
-      is retrieved {e before} {!FAILED} is caught or any one of user-given
-      [on_success] or [on_error] functions is called.
+      retrieved.
 
-      To use [Push_lines], first create an {e empty} stream, and then pass its
-      push function to the process spawning function.  A correct pattern to achieve this
-      (to, for instance, grab the standard error in case the sub-process errors
-      out), is as follows:
+      A useful pattern for grabbing output streams relies on the use of a
+      mailbox variable as follows:
+
+      {v
+        let stderr_lines_mbox = Lwt_mvar.create_empty () in
+        let* proc =
+          Sc_sys.Process.exec ...
+              ~stderr:(`Grab (Stream (Lwt_mvar.put stderr_lines_mbox)))
+        and* stderr_lines =
+          Lwt_mvar.take stderr_lines_mbox
+        in
+        ...
+      v}
+
+      This pattern requires using a non-blocking spanwing function (i.e. {!exec}
+      or {!shell}, but NOT {!shell_unit}, {!shell_status}, or {!exec_status}) to
+      launch the sub-process.  If the underlying process does not terminate then
+      the stream may be infinite.
+
+      Alternatively, use [Push_lines] to explicitly push the lines into a given
+      stream.  To use [Push_lines], first create an {e empty} stream, and then
+      pass its push function to the process spawning function.  Since the stream
+      that is fed via [Push_lines] may only be closed during a {!join} operation
+      (unless an explicit push of [None] is performed), a {!join} that happens
+      {i in parallel with} stream consumption is required to ensure: (i) no loss
+      of any output line, and (ii) stream consumption does not hang on an empty
+      channel.  A correct pattern to achieve this (to, for instance, grab the
+      standard error in case the sub-process errors out), is as follows:
 
       {v
         let stderr_lines, new_stderr_line = Lwt_stream.create () in
         Lwt.catch begin fun () ->
+          Sc_sys.Process.join_lwt @@
           Sc_sys.Process.exec ...
             ~stderr:(`Grab (Push_lines new_stderr_line))
         end begin function

@@ -212,7 +212,7 @@ let to_subproc_log = `Log Log_lwt_subproc.LWT.debug
 
 let close_redirection: redirection -> unit = function
   | `Grab Push_lines push | `GrabNLog (Push_lines push, _) ->
-      push None
+      (try push None with Lwt_stream.Closed -> ())
   | _ ->
       ()
 

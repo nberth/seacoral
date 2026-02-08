@@ -103,3 +103,21 @@ let%expect_test "ok-join-strictly-after-stdout-consumption" =
   end;
   [%expect{| 0 |}]
 ;;
+
+let%expect_test "ok-no-join-after-stdout-grab" =
+  run begin
+    let stdout_lines_mbox = Lwt_mvar.create_empty () in
+    let* _proc =
+      bg "echo a; echo b"
+        ~stdout:(`Grab (Stream (Lwt_mvar.put stdout_lines_mbox)))
+        ~on_success:Lwt.return
+        ~on_error:(fun _ -> Lwt_fmt.printf "errored@.")
+    and* stdout_lines =
+      Lwt_mvar.take stdout_lines_mbox
+    in
+    let x = ref 0 in
+    let* () = Lwt_stream.iter (fun _ -> incr x) stdout_lines in
+    Lwt_fmt.printf "%d@." !x
+  end;
+  [%expect{| 2 |}]
+;;
