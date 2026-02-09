@@ -72,6 +72,12 @@ and test_outcome =
   | Triggering_RTE of sanitizer_error_summary   (** The test triggers an RTE *)
   | Oracle_failure                              (** The test fails the oracle *)
 
+and test_result = {
+    test_outcome: test_outcome;        (** Outcome of the test *)
+    covers_new: bool                  (** [true] if the test covers a yet
+                                          uncovered label *)
+  }
+
 and sanitizer_error_summary =
   | Heap_buffer_overflow of int64
   | Invalid_memory_address of int64                                   (* SEGV *)

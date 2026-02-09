@@ -61,6 +61,9 @@ let pp_test_outcome ppf = function
   | Oracle_failure ->
       Fmt.pf ppf "oracle@ failure"
 
+let pp_test_result ppf o =
+  Fmt.pf ppf "%a (covers new? %b)" pp_test_outcome o.test_outcome o.covers_new
+
 (* --- *)
 
 let pp_internal_error ppf = function

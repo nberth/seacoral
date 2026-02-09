@@ -32,7 +32,7 @@ type 'raw_test t =
 type 'raw_test ready =
   {
     validator: 'raw_test t;
-    launch: test_outcome option Sc_sys.Lwt_task.controlled_launcher;
+    launch: test_result option Sc_sys.Lwt_task.controlled_launcher;
     replay_with_store_update_exe: [`exe] file;
     replay_for_rte_identification_exe: [`exe] file;
   }
@@ -348,15 +348,26 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
     in
     match res with
     | Ok () ->
-        let* labels = read_labels_from_file label_file in
-        Lwt.return_ok (Some (Covering_label labels))
+       let* labels = read_labels_from_file label_file in
+       Lwt.return_ok @@ Some {
+           test_outcome = Covering_label labels;
+           covers_new = true;
+         }
     | Error Unix.WEXITED code when code = oracle_failure_code ->
-        Lwt.return_ok (Some Oracle_failure)
-    | Error Unix.WEXITED code when code = no_new_coverage_code ||
-                                   code = assumption_failure_code ->
-        Lwt.return_ok None
+       Lwt.return_ok @@ Some {
+           test_outcome = Oracle_failure;
+           covers_new = false;
+         }
+    | Error Unix.WEXITED code when code = no_new_coverage_code ->
+       let* labels = read_labels_from_file label_file in
+       Lwt.return_ok @@ Some {
+           test_outcome = Covering_label labels;
+           covers_new = false;
+         }
+    | Error Unix.WEXITED code when code = assumption_failure_code ->
+       Lwt.return_ok None
     | Error _ ->
-        Lwt.return_error ()
+       Lwt.return_error ()
   end
 
 (* --- *)
@@ -450,7 +461,7 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
       else Lwt.return_error ()                            (* skip first stage *)
     in
     match first_stage_res with
-    | Ok (res: test_outcome option) ->
+    | Ok (res: test_result option) ->
         Lwt.return res
     | Error () ->
         Log.debug "First stage of validation failed";
@@ -462,7 +473,11 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
             Log.debug "Second stage of validation successful";
             Lwt.return None
         | Error (e: test_outcome) ->
-            Lwt.return (Some e)
+           Lwt.return @@ Some {
+               test_outcome = e;
+               covers_new = false (* Because RTE never cover anything *)
+             }
+
   end
 
 let on_error status =
@@ -509,7 +524,7 @@ let validate_raw_test (type raw_test) (ready_validator: raw_test ready)
 let show_outcome ?(log_outcome = false) outcome =
   if log_outcome then
     Log.LWT.debug "Test@ outcome:@ %a"
-      Fmt.(option ~none:(any "ignored") Printer.pp_test_outcome)
+      Fmt.(option ~none:(any "ignored") Printer.pp_test_result)
       outcome >>= fun () ->
     Lwt.return outcome
   else
@@ -523,8 +538,10 @@ let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
-  | Some outcome ->
-      Main.share_test' ~toolname ~outcome corpus raw_test
+  | Some {test_outcome = Covering_label _; covers_new = false} ->
+     Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
+  | Some {test_outcome; _} ->
+     Main.share_test' ~toolname ~outcome:test_outcome corpus raw_test
 
 (** Warning for {!validate_raw_test_string} does NOT apply. *)
 let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test ready)
@@ -534,8 +551,10 @@ let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test re
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
-  | Some outcome ->
-      let* test_str = Sc_sys.Lwt_file.read file in
-      Main.share_test' ~toolname ~outcome corpus @@
-      Raw_test.Val.of_string ready_validator.validator.params.test_struct
-        test_str
+  | Some {test_outcome = Covering_label _; covers_new = false} ->
+     Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
+  | Some {test_outcome; _} ->
+     let* test_str = Sc_sys.Lwt_file.read file in
+     Main.share_test' ~toolname ~outcome:test_outcome corpus @@
+       Raw_test.Val.of_string ready_validator.validator.params.test_struct
+         test_str

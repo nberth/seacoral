@@ -348,15 +348,16 @@ let replay ~project_config ~encoding_params (options: generation_options) =
       let () =
         match outcome with
         | None ->
-           Log.err "Validator returned no outcome for test %i; expected outcome %a"
+           Log.err "Validator@ returned@ no@ outcome@ for@ test %i;@ \
+                    expected@ outcome %a"
              test.metadata.serialnum
              Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
         | Some o ->
            Log.app
-             "Outcome@ for@ test@ %i:@ %a.@"
+             "Outcome@ for@ test@ %i:@ %a."
              test.metadata.serialnum
-             Sc_corpus.Printer.pp_test_outcome o;
-           if o <> test.metadata.outcome then
+             Sc_corpus.Printer.pp_test_outcome o.test_outcome;
+           if o.test_outcome <> test.metadata.outcome then
              Log.err "Expected@ outcome:@ %a." Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
       in
       Lwt.return ()

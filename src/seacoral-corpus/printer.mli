@@ -16,3 +16,4 @@ val pp_oracle_failures_info: Types.info Fmt.t
 
 val pp_sanitizer_error_summary: Types.sanitizer_error_summary Fmt.t
 val pp_test_outcome: Types.test_outcome Fmt.t
+val pp_test_result: Types.test_result Fmt.t
