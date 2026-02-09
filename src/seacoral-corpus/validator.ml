@@ -348,26 +348,26 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
     in
     match res with
     | Ok () ->
-       let* labels = read_labels_from_file label_file in
-       Lwt.return_ok @@ Some {
+        let* labels = read_labels_from_file label_file in
+        Lwt.return_ok @@ Some {
            test_outcome = Covering_label labels;
            covers_new = true;
-         }
+          }
     | Error Unix.WEXITED code when code = oracle_failure_code ->
-       Lwt.return_ok @@ Some {
+        Lwt.return_ok @@ Some {
            test_outcome = Oracle_failure;
            covers_new = false;
-         }
+          }
     | Error Unix.WEXITED code when code = no_new_coverage_code ->
-       let* labels = read_labels_from_file label_file in
-       Lwt.return_ok @@ Some {
+        let* labels = read_labels_from_file label_file in
+        Lwt.return_ok @@ Some {
            test_outcome = Covering_label labels;
            covers_new = false;
-         }
+          }
     | Error Unix.WEXITED code when code = assumption_failure_code ->
-       Lwt.return_ok None
+        Lwt.return_ok None
     | Error _ ->
-       Lwt.return_error ()
+        Lwt.return_error ()
   end
 
 (* --- *)
@@ -473,7 +473,7 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
             Log.debug "Second stage of validation successful";
             Lwt.return None
         | Error (e: test_outcome) ->
-           Lwt.return @@ Some {
+            Lwt.return @@ Some {
                test_outcome = e;
                covers_new = false (* Because RTE never cover anything *)
              }
@@ -539,9 +539,9 @@ let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
   | Some {test_outcome = Covering_label _; covers_new = false} ->
-     Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
+      Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
   | Some {test_outcome; _} ->
-     Main.share_test' ~toolname ~outcome:test_outcome corpus raw_test
+      Main.share_test' ~toolname ~outcome:test_outcome corpus raw_test
 
 (** Warning for {!validate_raw_test_string} does NOT apply. *)
 let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test ready)
@@ -552,9 +552,9 @@ let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test re
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
   | Some {test_outcome = Covering_label _; covers_new = false} ->
-     Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
+      Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
   | Some {test_outcome; _} ->
-     let* test_str = Sc_sys.Lwt_file.read file in
-     Main.share_test' ~toolname ~outcome:test_outcome corpus @@
-       Raw_test.Val.of_string ready_validator.validator.params.test_struct
-         test_str
+      let* test_str = Sc_sys.Lwt_file.read file in
+      Main.share_test' ~toolname ~outcome:test_outcome corpus @@
+        Raw_test.Val.of_string ready_validator.validator.params.test_struct
+          test_str

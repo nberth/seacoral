@@ -73,9 +73,9 @@ and test_outcome =
   | Oracle_failure                              (** The test fails the oracle *)
 
 and test_result = {
-    test_outcome: test_outcome;        (** Outcome of the test *)
-    covers_new: bool                  (** [true] if the test covers a yet
-                                          uncovered label *)
+    test_outcome: test_outcome;   (** Outcome of the test *)
+    covers_new: bool              (** [true] if the test covers a yet uncovered
+                                      label *)
   }
 
 and sanitizer_error_summary =

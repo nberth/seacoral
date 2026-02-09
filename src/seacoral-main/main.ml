@@ -233,7 +233,7 @@ let generate
     if replay_only then Lwt.return Sc_strategy.Types.Nothing else      
       config_step begin fun () ->
         Lwt.return @@ make_strategy config
-        end
+      end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
     log_config_info config;
