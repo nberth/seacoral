@@ -165,7 +165,7 @@ type preproc_error =
 
 type setup_error =
   | Ltest of Sc_ltest.Types.error
-  | Preproc of preproc_error list
+  | Preproc of preproc_error NEL.t
 
 exception SETUP_ERROR of setup_error
 

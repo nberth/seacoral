@@ -7,7 +7,7 @@ light-tests:
 	./scripts/after.sh test
 
 CI_TESTS_JOBS ?= 8
-TEST_DIRS = test/seacoral-values test/seacoral-cbmc test/cram
+TEST_DIRS = $(addprefix test/,seacoral-sys seacoral-values seacoral-cbmc cram)
 .PHONY: ci-tests
 ci-tests:
 #	Several tests are sensitive to compute resources. To still

@@ -14,8 +14,6 @@ open Types
 
 open Sc_sys.File.TYPES
 
-type 'a process_result = 'a                                  (* always provided *)
-
 type 'a cbmc_run =
   store:Sc_store.t ->
   runner_options:runner_options ->
