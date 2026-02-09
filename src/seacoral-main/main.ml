@@ -229,6 +229,11 @@ let generate
     config_step begin fun () ->
       Sc_lib.Setup.test_encoding_params config
     end
+  and* strategy =
+    if replay_only then Lwt.return Sc_strategy.Types.Nothing else      
+      config_step begin fun () ->
+        Lwt.return @@ make_strategy config
+        end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
     log_config_info config;
@@ -240,11 +245,6 @@ let generate
           strategy = Nothing;
           print_statistics = args.print_statistics }                (* temp *)
     else
-      let* strategy = 
-        config_step begin fun () ->
-          Lwt.return @@ make_strategy config
-          end
-      in
       Lwt.catch begin fun () ->
         Sc_lib.Main.generate ~project_config ~encoding_params
           { run = config.run;

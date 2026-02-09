@@ -18,7 +18,7 @@
 
 Now, replaying tests
   $ seacoral replay
-  [A]{Sc} Starting to log into `_sc/test.c-MCC-@4/logs/2.log'
+  [A]{Sc} Starting to log into `_sc/test.c-MCC-@2/logs/2.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Replaying tests.
   [A]{Sc} Outcome for test 3: covering labels {3}.
