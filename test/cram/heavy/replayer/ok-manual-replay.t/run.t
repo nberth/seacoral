@@ -5,7 +5,8 @@
   [A]{Sc} Launching cbmc on `f'
   [A]{Sc} Extracting new testcases from corpus...
   [A]{Sc} Hard work done
-  [A]{Sc} Coverage statistics for `f': cov: 4 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 4 tests
+  [A]{Sc} Coverage statistics for `f':
+          cov: 4 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 4 tests
   [A]{Sc} Covered labels: {1, 2, 3, 4}
   [A]{Sc} Uncoverable labels: {}
   [A]{Sc} Crash statistics: rte: none
@@ -17,10 +18,10 @@
 
 Now, replaying tests
   $ seacoral replay
-  [A]{Sc} Starting to log into `_sc/test.c-MCC-@4/logs/4.log'
+  [A]{Sc} Starting to log into `_sc/test.c-MCC-@4/logs/2.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Replaying tests.
-  [A]{Sc} Outcome for test 1: covering labels {1}.
-  [A]{Sc} Outcome for test 2: covering labels {2}.
   [A]{Sc} Outcome for test 3: covering labels {3}.
-  [A]{Sc} Outcome for test 4: covering labels {4}.
+  [A]{Sc} Outcome for test 4: covering labels {2}.
+  [A]{Sc} Outcome for test 1: covering labels {4}.
+  [A]{Sc} Outcome for test 2: covering labels {1}.
