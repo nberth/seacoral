@@ -105,7 +105,7 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
     end missing_functions
 
 let do_syntax_check ~incdir ~config c_file =
-  let stdout_lines, new_stdout_line = Lwt_stream.create ()
+  let stdout_lines_mbox = Lwt_mvar.create_empty ()
   and stderr_lines, new_stderr_line = Lwt_stream.create () in
   Lwt.catch begin fun () ->
     (* resources/noop-labels.h provides a dummy implementation of pc_label so as
@@ -118,9 +118,10 @@ let do_syntax_check ~incdir ~config c_file =
     let* () =
       Sc_C.Cmd.clang_check_and_print_llvm c_file
         ~cppflags
-        ~stdout_grabber:(Push_lines new_stdout_line)
+        ~stdout_grabber:(Stream (Lwt_mvar.put stdout_lines_mbox))
         ~stderr_grabber:(Push_lines new_stderr_line)
     and* res =
+      let* stdout_lines = Lwt_mvar.take stdout_lines_mbox in
       check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
     in
     Lwt.return res
