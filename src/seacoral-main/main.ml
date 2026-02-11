@@ -214,10 +214,9 @@ let config_step f =
 let make_strategy (config : Sc_lib.Types.config) =
     Sc_lib.Strategy.make config.run.tools config.run.strategy
 
-let generate
+let run
     ?enable_logfile ?(enable_detailed_stats = true)
-    ?enable_console_timing ?(only_check_configuration = false)
-    ?(replay_only = false) (args: Types.options) () =
+    ?enable_console_timing ~mode (args: Types.options) () =
   (* TODO: add an option `--debug-init` to enable logging during the preliminary
      loading phase. *)
   let config, salt = load_config ?enable_console_timing args in
@@ -230,39 +229,45 @@ let generate
       Sc_lib.Setup.test_encoding_params config
     end
   and* strategy =
-    if replay_only then Lwt.return Sc_strategy.Types.Nothing else      
+    if mode = `Replay then Lwt.return Sc_strategy.Types.Nothing else      
       config_step begin fun () ->
         Lwt.return @@ make_strategy config
       end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
     log_config_info config;
-    if only_check_configuration then Lwt.return ()
-    else if replay_only then
-      Sc_lib.Main.replay ~project_config ~encoding_params
-        { run = config.run;
-          enable_detailed_stats;
-          strategy = Nothing;
-          print_statistics = args.print_statistics }                (* temp *)
-    else
-      Lwt.catch begin fun () ->
-        Sc_lib.Main.generate ~project_config ~encoding_params
-          { run = config.run;
-            enable_detailed_stats;
-            strategy;
-            print_statistics = args.print_statistics }                (* temp *)
-      end begin function
-        | Sc_lib.Types.GENERATION_ERROR e ->
-            Log.err "%a" Sc_lib.Printer.pp_generation_error e;
-            raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
-        | Sc_sys.File.(INVALID_FILENAME _ | MISSING _ |   (* log while we can *)
-                       UNEXPECTED _ | UNIX_ERROR _) as e ->
-            Log.err "%a" Fmt.lines (Printexc.to_string e);
-            raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
-        | e ->
-            Lwt.reraise e
-      end
-  end
+    match mode with
+    | `CheckConfig -> Lwt.return ()
+    | `Replay ->
+       Lwt.catch begin fun () ->
+         Sc_lib.Main.replay ~project_config ~encoding_params
+           { replay_config = config.run }
+         end begin function
+               | Sc_lib.Types.REPLAY_ERROR i ->
+                  Log.err "%a" Sc_lib.Printer.pp_replay_error i;
+                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+               | e ->
+                  Lwt.reraise e
+         end
+    | `Gen ->
+       Lwt.catch begin fun () ->
+         Sc_lib.Main.generate ~project_config ~encoding_params
+           { run = config.run;
+             enable_detailed_stats;
+             strategy;
+             print_statistics = args.print_statistics }                (* temp *)
+         end begin function
+               | Sc_lib.Types.GENERATION_ERROR e ->
+                  Log.err "%a" Sc_lib.Printer.pp_generation_error e;
+                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+               | Sc_sys.File.(INVALID_FILENAME _ | MISSING _ |   (* log while we can *)
+                              UNEXPECTED _ | UNIX_ERROR _) as e ->
+                  Log.err "%a" Fmt.lines (Printexc.to_string e);
+                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+               | e ->
+                  Lwt.reraise e
+         end
+    end
 
 ;;
 if (Unix.time () |> Unix.gmtime).Unix.tm_year > 126
@@ -371,14 +376,14 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
   | Ok `Ok `Config_init ->
       init_config_file ()
   | Ok `Ok `Generate args ->
-      with_lwt (generate ?enable_logfile ?enable_detailed_stats
-                  ?enable_console_timing args)
+      with_lwt (run ?enable_logfile ?enable_detailed_stats
+                  ?enable_console_timing ~mode:`Gen args)
   | Ok `Ok `Check args ->
-      with_lwt (generate ?enable_logfile ?enable_detailed_stats
-                  ?enable_console_timing ~only_check_configuration:true args)
+      with_lwt (run ?enable_logfile ?enable_detailed_stats
+                  ?enable_console_timing ~mode:`CheckConfig args)
   | Ok `Ok `Replay args ->
-      with_lwt (generate ?enable_logfile ?enable_detailed_stats
-                  ?enable_console_timing ~replay_only:true args)
+      with_lwt (run ?enable_logfile ?enable_detailed_stats
+                  ?enable_console_timing ~mode:`Replay args)
   | Ok `Version
   | Ok `Help ->
       Cmdliner.Cmd.Exit.ok

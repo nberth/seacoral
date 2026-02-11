@@ -29,6 +29,11 @@ type generation_options =
     print_statistics: bool;
   }
 
+type replay_options =
+  {
+    replay_config: run_config;
+  }
+
 (* --- *)
 
 (** {2 Raw statistics printers} *)
@@ -304,12 +309,15 @@ let generate ~project_config ~encoding_params (options: generation_options) =
 
   Lwt.return ()
 
-let replay ~project_config ~encoding_params (options: generation_options) =
-  (* If replay_mode = true && force_preprocess = true, should the project
-     replay the tests in a fresh environment? *)
+let replay ~project_config ~encoding_params (options: replay_options) =
+
+  if options.replay_config.force_preprocess then begin
+      raise Types.(REPLAY_ERROR Cannot_force_preprocess)
+    end;
+
   let initialization_options =
     Sc_core.Types.{
-      force_preprocess = options.run.force_preprocess;
+      force_preprocess = options.replay_config.force_preprocess;
       replay_mode = true;
     }
   in

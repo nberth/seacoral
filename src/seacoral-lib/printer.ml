@@ -54,3 +54,6 @@ let pp_generation_error ppf = function
       pp_tool_preprocessing_error ppf e
   | Tool_computation_error e ->
       pp_tool_computation_error ppf e
+
+let pp_replay_error ppf = function
+  | Cannot_force_preprocess -> Fmt.pf ppf "Cannot@ force@ preprocessing@ in@ replay@ mode"
