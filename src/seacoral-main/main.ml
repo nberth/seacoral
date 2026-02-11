@@ -228,10 +228,10 @@ let run
     config_step begin fun () ->
       Sc_lib.Setup.test_encoding_params config
     end
-  and* strategy =
-    if mode = `Replay then Lwt.return Sc_strategy.Types.Nothing else      
+  and* strategy =    
       config_step begin fun () ->
-        Lwt.return @@ make_strategy config
+        if mode = `Replay then Lwt.return Sc_strategy.Types.Nothing else  
+          Lwt.return @@ make_strategy config
       end
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
