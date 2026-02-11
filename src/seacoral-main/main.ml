@@ -236,37 +236,32 @@ let run
   in
   with_logging ?enable_logfile ~project_config begin fun () ->
     log_config_info config;
+    Lwt.catch begin fun () ->
     match mode with
     | `CheckConfig -> Lwt.return ()
     | `Replay ->
-       Lwt.catch begin fun () ->
-         Sc_lib.Main.replay ~project_config ~encoding_params
-           { replay_config = config.run }
-         end begin function
-               | Sc_lib.Types.REPLAY_ERROR i ->
-                  Log.err "%a" Sc_lib.Printer.pp_replay_error i;
-                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
-               | e ->
-                  Lwt.reraise e
-         end
+       Sc_lib.Main.replay ~project_config ~encoding_params
+         { replay_config = config.run }
     | `Gen ->
-       Lwt.catch begin fun () ->
          Sc_lib.Main.generate ~project_config ~encoding_params
            { run = config.run;
              enable_detailed_stats;
              strategy;
              print_statistics = args.print_statistics }                (* temp *)
-         end begin function
-               | Sc_lib.Types.GENERATION_ERROR e ->
-                  Log.err "%a" Sc_lib.Printer.pp_generation_error e;
-                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
-               | Sc_sys.File.(INVALID_FILENAME _ | MISSING _ |   (* log while we can *)
-                              UNEXPECTED _ | UNIX_ERROR _) as e ->
-                  Log.err "%a" Fmt.lines (Printexc.to_string e);
-                  raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
-               | e ->
-                  Lwt.reraise e
-         end
+      end begin function
+            | Sc_lib.Types.GENERATION_ERROR e ->
+               Log.err "%a" Sc_lib.Printer.pp_generation_error e;
+               raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+            | Sc_sys.File.(INVALID_FILENAME _ | MISSING _ |   (* log while we can *)
+                           UNEXPECTED _ | UNIX_ERROR _) as e ->
+               Log.err "%a" Fmt.lines (Printexc.to_string e);
+               raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+            | Sc_lib.Types.REPLAY_ERROR i ->
+               Log.err "%a" Sc_lib.Printer.pp_replay_error i;
+               raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
+            | e ->
+               Lwt.reraise e
+      end
     end
 
 ;;
