@@ -3,6 +3,7 @@ Abstract the commands that may appear in tarces (and be sure to use absolute pat
   $ export CLANG="$(command -v "$CLANG" 2&>/dev/null)"
   $ export BUILD_PATH_PREFIX_MAP="\$CLANG=$CLANG:$BUILD_PATH_PREFIX_MAP"
   $ unset CPPFLAGS LDFLAGS
+  $ alias strip_tmpfile='sed -e "s ${TMPDIR}[/0-9a-zA-Z_]* __TMPFILE__ g"'
 
 Syntax errors in given C files are reported during intialization:
   $ seacoral --config invalid-c-file.toml
@@ -19,7 +20,7 @@ Syntax errors in given C files are reported during intialization:
   [124]
 
 Even better, `clang`'s output is not repeated in logs.
-  $ seacoral --config invalid-c-file.toml --console-level 5
+  $ seacoral --config invalid-c-file.toml --console-level 5 | strip_tmpfile
   [D]{Sc} Salt: 0befa988993d2a49e8361cd2a4d2e0ca
   [D]{Sc} Previous runs: 1
   [A]{Sc} Starting to log into `_sc/invalid.c-CC-@2/logs/2.log'
@@ -28,7 +29,7 @@ Even better, `clang`'s output is not repeated in logs.
   [D]{Sc_project} Initializing
   [I]{Sc_project} Gathering the codebase...
   [I]{Sc_project} Syntax-checking the codebase...
-  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump"
+  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump > '__TMPFILE__'"
   [D]{(clang)} $TESTCASE_ROOT/./invalid.c:1:16: error: expected ')'
   [D]{(clang)} int foo (int x y) {
   [D]{(clang)}                ^
@@ -36,7 +37,6 @@ Even better, `clang`'s output is not repeated in logs.
   [D]{(clang)} int foo (int x y) {
   [D]{(clang)}         ^
   [D]{(clang)} 1 error generated.
-  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump" terminated with status EXITED(1)
+  [D]{Sc_sys} /bin/sh -c "$CLANG -g -include $TESTCASE_ROOT/_sc/shared/include/noop-labels.h -I'$TESTCASE_ROOT/_sc/shared/include' -c _sc/invalid.c-CC-@2/labeling/invalid.c -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump > '__TMPFILE__'" terminated with status EXITED(1)
   [E]{Sc} Syntax errors detected in codebase:
           (see log output above for details)
-  [124]

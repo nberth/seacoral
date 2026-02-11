@@ -102,7 +102,7 @@ val clang_check
   -> ?stdout_grabber: Sc_sys.Process.stream_grabber
   -> ?stderr_grabber: Sc_sys.Process.stream_grabber
   -> [< `C | `CXX] file
-  -> unit Sc_sys.Process.t Lwt.t
+  -> unit Lwt.t
 
 (** [clang_check_and_print_llvm source_file] works exactly as [clang_check], except
     it dumps the LLVM ast on [stdout_grabber]. *)
@@ -110,10 +110,10 @@ val clang_check_and_print_llvm
   : ?clang_cmd:string
   -> ?cflags:string list
   -> ?cppflags:string list
-  -> ?stdout_grabber: Sc_sys.Process.stream_grabber
   -> ?stderr_grabber: Sc_sys.Process.stream_grabber
+  -> llvm_ast_file: _ file
   -> [< `C | `CXX] file
-  -> unit Sc_sys.Process.t Lwt.t
+  -> unit Lwt.t
 
 (** [clang_c ?clang_cmd ?cflags ?cppflags ?osuff file] starts the compilation of
     a given C file [file], and returns a promise for the corresponding object
