@@ -106,6 +106,9 @@ let sanitizers_flags =
     Fmt.str "-fsanitize=%a" PPrt.Strings.pp_comma_separated sanitizers;
   ]
 
+let extlib_ldflags validator =
+  Sc_C.Cmd.ldflags_of_library_names validator.params.external_libs
+
 (* --- *)
 
 let bring_n_compile_test_loader validator =
@@ -261,7 +264,8 @@ let gen_n_compile_validator validator decoder_infos () =
                  ["-U__SC_VALIDATOR_IGNORE_LABELS"])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
-      ~ldflags:(sanitizers_flags @ decoder_infos.libs @ store_infos.libs)
+      ~ldflags:(sanitizers_flags @ decoder_infos.libs @
+                store_infos.libs @ extlib_ldflags validator)
       ~o_files:[loader_o; tested_f_with_labels_o]
       ~output_filename:(fun _ -> Sc_sys.File.absname replay_with_store_update_exe)
   end begin
@@ -271,7 +275,8 @@ let gen_n_compile_validator validator decoder_infos () =
                  ["-D__SC_VALIDATOR_IGNORE_LABELS"])
       ~cflags:(sanitizers_flags @ sanitizers_opts) >>=
     Sc_C.Cmd.clang_ld
-      ~ldflags:(sanitizers_flags @ decoder_infos.libs)
+      ~ldflags:(sanitizers_flags @ decoder_infos.libs @
+                extlib_ldflags validator)
       ~o_files:[loader_o; tested_f_without_labels_o]
       ~output_filename:(fun _ -> Sc_sys.File.absname replay_for_rte_identification_exe)
   end
