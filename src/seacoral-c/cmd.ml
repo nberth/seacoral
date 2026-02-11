@@ -74,10 +74,6 @@ module Log_lwt_clang = (val Ez_logs.subproc "clang")
 module Log_lwt_clangxx = (val Ez_logs.subproc "clang++")
 module Log_lwt_ld = (val Ez_logs.subproc "ld")
 
-let stream_grab_xor_log grabber logger = match grabber with
-  | None -> `Log logger
-  | Some grabber -> `Grab grabber
-
 let stream_grab grabber logger = match grabber with
   | None -> `Log logger
   | Some grabber -> `GrabNLog (grabber, logger)
@@ -111,9 +107,9 @@ let clang_check
     ?(cppflags = [])
     ?stdout_grabber ?stderr_grabber
     (file: [< `C | `CXX] Sc_sys.File.t)
-  : unit Sc_sys.Process.t Lwt.t =
+  : unit Lwt.t =
   let file_name = Sc_sys.File.name file in
-  Sc_sys.Process.PRETTY.shell
+  Sc_sys.Process.PRETTY.shell_unit
     (* TODO: -fcolor-diagnostics only if at least one log reporter accepts TTY
        control characters. *)
     "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics"
@@ -125,26 +121,26 @@ let clang_check
     ~stdout:(stream_grab stdout_grabber Log_lwt_clang.LWT.debug)
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
-    ~on_success:Lwt.return
 
 let clang_check_and_print_llvm
     ?clang_cmd
     ?(cflags = ["-g"])
     ?(cppflags = [])
-    ?stdout_grabber ?stderr_grabber
+    ?stderr_grabber
+    ~llvm_ast_file
     (file: [< `C | `CXX] Sc_sys.File.t)
-  : unit Sc_sys.Process.t Lwt.t =
+  : unit Lwt.t =
   let file_name = Sc_sys.File.name file in
-  Sc_sys.Process.PRETTY.shell
+  Sc_sys.Process.PRETTY.shell_unit
     (* TODO: -fcolor-diagnostics only if at least one log reporter accepts TTY
        control characters. *)
-    "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump"
+    "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump > '%a'"
     (lazy_cmd ENV.clang_exe clang_cmd)
     Basics.PPrt.Strings.pp_space_separated_ cflags
     Basics.PPrt.Strings.pp_space_separated_ cppflags
     Fmt.(option @@ fmt "%s ") (Lazy.force ENV.cppflags)
     file_name
-    ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug)
+    Sc_sys.File.print_absname llvm_ast_file
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
     ~on_success:Lwt.return

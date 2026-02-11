@@ -98,6 +98,8 @@ val read: _ File.t -> string Lwt.t
 val write: _ File.t -> string -> unit Lwt.t
 val digest: _ File.t -> Digest.t Lwt.t
 
+val with_lines_of: file:_ File.t -> (string Lwt_stream.t -> 'a Lwt.t) -> 'a Lwt.t
+
 (** {2 Syntax extensions} *)
 
 (** Let-bindings for easy access to lwt I/O channels.  See {!Lwt_io} for
