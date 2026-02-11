@@ -246,7 +246,7 @@ let run ({ project; workspace; opt; _ } as wd) =
   if no_files_to_test then
       Log.LWT.warn
         "Test@ runner@ has@ no@ file@ to@ run.@ Did@ you@ forget@ to@ import@ \
-         test@ files@ in@ the@ %S@ configuration@ section?" toolname
+         test@ files@ (using@ the@ %S@ configuration@ section)?" toolname
   else
     let max_concurrency = max 1 opt.max_concurrency in
     Lwt_stream.iter_n ~max_concurrency begin fun file ->
