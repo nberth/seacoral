@@ -111,10 +111,9 @@ let clang_check
     ?(cppflags = [])
     ?stdout_grabber ?stderr_grabber
     (file: [< `C | `CXX] Sc_sys.File.t)
-  : unit Lwt.t
-  =
+  : unit Sc_sys.Process.t Lwt.t =
   let file_name = Sc_sys.File.name file in
-  Sc_sys.Process.PRETTY.shell_unit
+  Sc_sys.Process.PRETTY.shell
     (* TODO: -fcolor-diagnostics only if at least one log reporter accepts TTY
        control characters. *)
     "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics"
@@ -126,6 +125,7 @@ let clang_check
     ~stdout:(stream_grab stdout_grabber Log_lwt_clang.LWT.debug)
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
+    ~on_success:Lwt.return
 
 let clang_check_and_print_llvm
     ?clang_cmd
@@ -133,10 +133,9 @@ let clang_check_and_print_llvm
     ?(cppflags = [])
     ?stdout_grabber ?stderr_grabber
     (file: [< `C | `CXX] Sc_sys.File.t)
-  : unit Lwt.t
-  =
+  : unit Sc_sys.Process.t Lwt.t =
   let file_name = Sc_sys.File.name file in
-  Sc_sys.Process.PRETTY.shell_unit
+  Sc_sys.Process.PRETTY.shell
     (* TODO: -fcolor-diagnostics only if at least one log reporter accepts TTY
        control characters. *)
     "%s %a%a%a-c %s -fsyntax-only -fcolor-diagnostics -Xclang -ast-dump"
@@ -148,6 +147,7 @@ let clang_check_and_print_llvm
     ~stdout:(stream_grab_xor_log stdout_grabber Log_lwt_clang.LWT.debug)
     ~stderr:(stream_grab stderr_grabber Log_lwt_clang.LWT.debug)
     ~on_error:(cc_error Syntax_check_file file_name)
+    ~on_success:Lwt.return
 
 
 (** {2 Compiling C/C++ source code} *)

@@ -115,14 +115,17 @@ let do_syntax_check ~incdir ~config c_file =
       (Sc_C.Cmd.cppflags_of_header_dirs @@
        incdir :: config.project_problem.header_dirs)
     in
-    let* () =
+    let* proc =
       Sc_C.Cmd.clang_check_and_print_llvm c_file
         ~cppflags
         ~stdout_grabber:(Stream (Lwt_mvar.put stdout_lines_mbox))
         ~stderr_grabber:(Push_lines new_stderr_line)
-    and* res =
+    in
+    let* res =
       let* stdout_lines = Lwt_mvar.take stdout_lines_mbox in
       check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
+    and* () =
+      Sc_sys.Process.join proc
     in
     Lwt.return res
   end begin function
