@@ -10,7 +10,7 @@
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 
 ### Fixed
-- Improper handling of output streams after process termination [#61](https://github.com/OCamlPro/seacoral/pull/61) (fix for [Issue #57](https://github.com/OCamlPro/seacoral/issues/57))
+- Improper handling of output streams after process termination [#61](https://github.com/OCamlPro/seacoral/pull/61) [#64](https://github.com/OCamlPro/seacoral/pull/64) (fix for [Issue #57](https://github.com/OCamlPro/seacoral/issues/57))
 - Assumed signature of initialization functions: they should not accept any argument [#43](https://github.com/OCamlPro/seacoral/pull/43) (fix for [Issue #39](https://github.com/OCamlPro/seacoral/issues/39))
 - Default maximum number of inputs in CBMC automatically increased [#36](https://github.com/OCamlPro/seacoral/pull/36)
 
