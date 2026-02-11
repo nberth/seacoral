@@ -62,7 +62,12 @@ let pp_test_outcome ppf = function
       Fmt.pf ppf "oracle@ failure"
 
 let pp_test_result ppf o =
-  Fmt.pf ppf "%a (covers new? %b)" pp_test_outcome o.test_outcome o.covers_new
+  Fmt.pf ppf "%a" pp_test_outcome o.test_outcome;
+  Fmt.pf ppf begin
+      if o.with_new_coverage
+      then "@ (with@ new@ coverage)"
+      else "@ (without@ new@ coverage)"
+    end
 
 (* --- *)
 

@@ -351,18 +351,18 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
         let* labels = read_labels_from_file label_file in
         Lwt.return_ok @@ Some {
            test_outcome = Covering_label labels;
-           covers_new = true;
+           with_new_coverage = true;
           }
     | Error Unix.WEXITED code when code = oracle_failure_code ->
         Lwt.return_ok @@ Some {
            test_outcome = Oracle_failure;
-           covers_new = false;
+           with_new_coverage = false;
           }
     | Error Unix.WEXITED code when code = no_new_coverage_code ->
         let* labels = read_labels_from_file label_file in
         Lwt.return_ok @@ Some {
            test_outcome = Covering_label labels;
-           covers_new = false;
+           with_new_coverage = false;
           }
     | Error Unix.WEXITED code when code = assumption_failure_code ->
         Lwt.return_ok None
@@ -475,7 +475,7 @@ let validate ?(purpose = For_full_validation) ~test_ident ready_validator
         | Error (e: test_outcome) ->
             Lwt.return @@ Some {
                test_outcome = e;
-               covers_new = false (* Because RTE never cover anything *)
+               with_new_coverage = false (* Because RTE never cover anything *)
              }
 
   end
@@ -538,7 +538,7 @@ let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
-  | Some {test_outcome = Covering_label _; covers_new = false} ->
+  | Some {test_outcome = Covering_label _; with_new_coverage = false} ->
       Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
   | Some {test_outcome; _} ->
       Main.share_test' ~toolname ~outcome:test_outcome corpus raw_test
@@ -551,7 +551,7 @@ let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test re
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
-  | Some {test_outcome = Covering_label _; covers_new = false} ->
+  | Some {test_outcome = Covering_label _; with_new_coverage = false} ->
       Log.LWT.debug "Discarding@ test@ covering@ nothing@ new."
   | Some {test_outcome; _} ->
       let* test_str = Sc_sys.Lwt_file.read file in

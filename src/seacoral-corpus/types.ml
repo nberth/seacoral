@@ -74,7 +74,7 @@ and test_outcome =
 
 and test_result = {
     test_outcome: test_outcome;   (** Outcome of the test *)
-    covers_new: bool              (** [true] if the test covers a yet uncovered
+    with_new_coverage: bool       (** [true] if the test covers a yet uncovered
                                       label *)
   }
 
