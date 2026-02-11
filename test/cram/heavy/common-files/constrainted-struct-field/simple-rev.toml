@@ -4,7 +4,7 @@ entrypoint = "simple"
 criterion = "CC"
 
 [pointer-handling]
-array-size-mapping = ["{struct s}:a:n"]
+array-size-mapping = ["{struct t}:a:n"]
 max-ptr-array-length = 2
 
 [klee]
