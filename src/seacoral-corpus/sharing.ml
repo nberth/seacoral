@@ -60,9 +60,8 @@ let with_bidirectional_channel
     ?(write_test = `Link) ~share corpus indir f =
   let setup_uplink { on_share; _ } =
     Sc_sys.Lwt_watch.ASYNC.monitor_dir indir ~on_close:begin fun f ->
-      if Sc_sys.File.check_suffix f import_suff
-      then Lwt.return ()
-      else on_share @@ Sc_sys.File.basename f >>= fun () -> share f
+      if Sc_sys.File.check_suffix f import_suff then Lwt.return () else
+        on_share @@ Sc_sys.File.basename f >>= fun () -> share f
     end
   and setup_downlink { filter; _ } =
     Main.on_new_test corpus begin fun ({ metadata = { id; _ } as metadata;

@@ -224,33 +224,35 @@ let cbmc_generic_process
     Log.debug "errors: `%a'" Sc_sys.File.print errors_file;
     Sc_sys.Lwt_file.descriptor errors_file [O_WRONLY; O_CREAT; O_TRUNC] 0o600
   in
-  let output_lines_mbox = Lwt_mvar.create_empty () in
-  let* proc =
-    Sc_sys.Process.exec
-      Sc_sys.Ezcmd.Std.(make "cbmc" |>
-                        key "json-interface" |>
-                        rawf "-I%a" Sc_sys.File.print resdir |>
-                        rawf "-D%s" (str_of_mode mode) |>
-                        to_cmd)
-      ~stdin:(`FD_move (Lwt_unix.unix_file_descr inputs_fd))
-      ~stdout:(`Grab (Stream (Lwt_mvar.put output_lines_mbox)))
-      ~stderr:(`FD_move (Lwt_unix.unix_file_descr errors_fd))
-      ~timeout
-      ~on_success:(fun () -> Lwt.return_ok ())
-      ~on_error:(fun e -> Lwt.return_error e)
-  and* output_lines =
-    Lwt_mvar.take output_lines_mbox
-  in
-  let* cancel_kill =
-    (* TODO: move to toplevel seacoral-cbmc to avoid carrying the store here *)
-    Sc_store.on_termination store ~h:(fun _ -> Sc_sys.Process.terminate proc)
-  in
-  Lwt.async begin fun () ->
-    let oc = Lwt_io.of_fd outputs_fd ~mode:Output in
-    let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
-    Lwt_io.close oc
-  end;
-  Lwt.return (decode_cbmc_output_stream encoding output_lines, cancel_kill)
+  Lwt_unix.with_timeout timeout begin fun () ->
+    let output_lines_mbox = Lwt_mvar.create_empty () in
+    let* proc =
+      Sc_sys.Process.exec
+        Sc_sys.Ezcmd.Std.(make "cbmc" |>
+                          key "json-interface" |>
+                          rawf "-I%a" Sc_sys.File.print resdir |>
+                          rawf "-D%s" (str_of_mode mode) |>
+                          to_cmd)
+        ~stdin:(`FD_move (Lwt_unix.unix_file_descr inputs_fd))
+        ~stdout:(`Grab (Stream (Lwt_mvar.put output_lines_mbox)))
+        ~stderr:(`FD_move (Lwt_unix.unix_file_descr errors_fd))
+        ~timeout
+        ~on_success:(fun () -> Lwt.return_ok ())
+        ~on_error:(fun e -> Lwt.return_error e)
+    and* output_lines =
+      Lwt_mvar.take output_lines_mbox
+    in
+    let* cancel_kill =
+      (* TODO: move to toplevel seacoral-cbmc to avoid carrying the store here *)
+      Sc_store.on_termination store ~h:(fun _ -> Sc_sys.Process.terminate proc)
+    in
+    Lwt.async begin fun () ->
+      let oc = Lwt_io.of_fd outputs_fd ~mode:Output in
+      let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
+      Lwt_io.close oc
+    end;
+    Lwt.return (decode_cbmc_output_stream encoding output_lines, cancel_kill)
+  end
 
 (* From the lannot label identifier, returns the corresponding error label for CBMC *)
 let label_of pp s = Format.asprintf "sc_label%a" pp s (* Defined in cbmc_label_driver.h *)

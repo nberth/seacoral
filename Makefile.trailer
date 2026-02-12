@@ -7,7 +7,11 @@ light-tests:
 	./scripts/after.sh test
 
 CI_TESTS_JOBS ?= 8
-TEST_DIRS = $(addprefix test/,seacoral-sys seacoral-values seacoral-cbmc cram)
+# TEST_DIRS = $(addprefix test/,seacoral-sys seacoral-values seacoral-cbmc cram) \
+# 		$(filter-out test/cram/heavy/cbmc,$(wildcard test/cram/heavy/*))
+# TEST_DIRS = $(addprefix test/,seacoral-sys seacoral-values seacoral-cbmc cram/light) \
+# 		$(filter test/cram/heavy/libfuzzer,$(wildcard test/cram/heavy/*))
+TEST_DIRS = test/cram/heavy/libfuzzer
 .PHONY: ci-tests
 ci-tests:
 #	Several tests are sensitive to compute resources. To still
