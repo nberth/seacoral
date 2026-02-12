@@ -153,20 +153,19 @@ let uncovered_properties
    returns the corresponding stream of json objects decoded according to
    [encoding]. *)
 let decode_cbmc_output_stream encoding stream =
-  let out, emit = Lwt_stream.create () in
-  Lwt.async begin fun () ->
-    let json = Buffer.create 42 in
-    let parenthesis_depth = ref 0
-    and in_quotes = ref false
-    and junk = ref false in
-    Lwt.map ignore @@
-    Lwt_stream.fold begin fun l escaping ->
+  let json = Buffer.create 42
+  and parenthesis_depth = ref 0
+  and escaping = ref false
+  and in_quotes = ref false
+  and junk = ref false in
+  Lwt_stream.map_list begin fun l ->
+    let rev_res = ref [] in
+    let next_escaping =
       String.fold_left begin fun escaping -> function
         | ',' when !parenthesis_depth = 1 ->                           (* skip *)
             false
         | ']' when !parenthesis_depth = 1 ->
-            junk := true;
-            emit None;                                (* terminate the stream *)
+            junk := true;                              (* terminate the stream *)
             false
         | '{' | '[' as c when not !in_quotes ->
             incr parenthesis_depth;
@@ -181,7 +180,7 @@ let decode_cbmc_output_stream encoding stream =
               Buffer.clear json;
               if !junk
               then Log.debug "Internal@ warning:@ ignored@ garbage@;%s" j
-              else emit @@ Some (Json.read_cbmc_output encoding j)
+              else rev_res := Json.read_cbmc_output encoding j :: !rev_res
             end;
             false
         | '\\' as c when !in_quotes ->
@@ -194,10 +193,11 @@ let decode_cbmc_output_stream encoding stream =
         | c ->
             Buffer.add_char json c;
             false
-      end escaping l
-    end stream false
-  end;
-  out
+      end !escaping l
+    in
+    escaping := next_escaping;
+    List.rev !rev_res
+  end stream
 
 let str_of_mode = function
   | Types.OPTIONS.Cover -> "CBMC_COVER_MODE"
