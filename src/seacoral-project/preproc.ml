@@ -105,8 +105,7 @@ let check_entrypoint_definition_in_llvm_dump_ast ~config stream =
     end missing_functions
 
 let do_syntax_check ~incdir ~config c_file =
-  let stdout_lines_mbox = Lwt_mvar.create_empty ()
-  and stderr_lines, new_stderr_line = Lwt_stream.create () in
+  let stderr_lines, new_stderr_line = Lwt_stream.create () in
   Lwt.catch begin fun () ->
     (* resources/noop-labels.h provides a dummy implementation of pc_label so as
        to syntax-check custom label conditions. *)
@@ -115,16 +114,14 @@ let do_syntax_check ~incdir ~config c_file =
       (Sc_C.Cmd.cppflags_of_header_dirs @@
        incdir :: config.project_problem.header_dirs)
     in
-    let* () =
-      Sc_C.Cmd.clang_check_and_print_llvm c_file
-        ~cppflags
-        ~stdout_grabber:(Stream (Lwt_mvar.put stdout_lines_mbox))
-        ~stderr_grabber:(Push_lines new_stderr_line)
-    and* res =
-      let* stdout_lines = Lwt_mvar.take stdout_lines_mbox in
-      check_entrypoint_definition_in_llvm_dump_ast ~config stdout_lines
-    in
-    Lwt.return res
+    Sc_sys.Lwt_file.with_temp_file begin fun llvm_ast_file ->
+      let* () =
+        Sc_C.Cmd.clang_check_and_print_llvm c_file ~cppflags ~llvm_ast_file
+          ~stderr_grabber:(Push_lines new_stderr_line)
+      in
+      Sc_sys.Lwt_file.with_lines_of ~file:llvm_ast_file
+        (check_entrypoint_definition_in_llvm_dump_ast ~config)
+    end
   end begin function
     | Sc_C.Cmd.ERROR cmd_error
       when !Ez_logs.stdout_level_ref <> Some Debug ->

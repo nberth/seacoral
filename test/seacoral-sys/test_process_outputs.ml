@@ -121,3 +121,29 @@ let%expect_test "ok-no-join-after-stdout-grab" =
   end;
   [%expect{| 2 |}]
 ;;
+
+let%expect_test "ok-grab-both-streams" =
+  run begin
+    let stdout_lines_mbox = Lwt_mvar.create_empty () in
+    let* _proc =
+      sh "echo a; echo b"
+        ~stdout:(`Grab (Stream (Lwt_mvar.put stdout_lines_mbox)))
+        ~on_success:Lwt.return
+        ~on_error:(fun _ -> Lwt_fmt.printf "errored@.")
+    and* stdout_lines =
+      Lwt_mvar.take stdout_lines_mbox
+    in
+    Lwt.catch begin fun () ->
+      let x = ref 0 in
+      let* () = Lwt_unix.sleep 0.2 in
+      let* () = Lwt_stream.iter (fun _ -> incr x) stdout_lines in
+      Lwt_fmt.printf "%d@." !x
+    end begin function
+      | Lwt_io.Channel_closed c ->
+          Lwt_fmt.printf "Closed channel: %s@." c
+      | e ->
+          Lwt.reraise e
+    end
+  end;
+  [%expect{| Closed channel: input |}]
+;;

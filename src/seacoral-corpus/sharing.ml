@@ -56,30 +56,27 @@ let import_error ppf (test_id, exn) =
     Fmt.exn_backtrace (exn, Printexc.get_raw_backtrace ())
 
 let with_bidirectional_channel
-    ?(import_suff = ".imported") ~read_test ?(write_test = `Link)
-    ?(on_import = fun _ -> Lwt.return_unit)
-    ~toolname corpus indir f =
+    ?(import_suff = ".imported") ?(import_filter = fun _ -> Lwt.return true)
+    ?(write_test = `Link) ~share corpus indir f =
   let setup_uplink { on_share; _ } =
     Sc_sys.Lwt_watch.ASYNC.monitor_dir indir ~on_close:begin fun f ->
       if Sc_sys.File.check_suffix f import_suff
       then Lwt.return ()
-      else read_test f >>= function
-        | None ->
-            Lwt.return ()
-        | Some (test, outcome) ->
-            Main.share_test' ~toolname ~on_share ~outcome corpus test
+      else on_share @@ Sc_sys.File.basename f >>= fun () -> share f
     end
   and setup_downlink { filter; _ } =
     Main.on_new_test corpus begin fun ({ metadata = { id; _ } as metadata;
                                          _ } as v) ->
-      let* ok = filter id in
-      if not ok then Lwt.return () else begin
-        let id_hex = Digest.to_hex id in
-        let f = indir / id_hex in
-        let f' = Sc_sys.File.(assume @@ name f ^ import_suff) in
-        let* exists = Sc_sys.Lwt_file.(exists f ||* lazy (exists f')) in
-        if exists then Lwt.return () else begin
-          let* () = on_import metadata in
+      let id_hex = Digest.to_hex id in
+      let f = indir / id_hex in
+      let f' = Sc_sys.File.assume_with_suffix f import_suff in
+      let* missing =
+        (filter @@ Sc_sys.File.basename f') &&*
+        lazy (Sc_sys.Lwt_file.misses f')
+      in
+      if not missing then Lwt.return () else
+        let* ok = import_filter metadata in
+        if not ok then Lwt.return () else
           Lwt.catch begin fun () ->
             match write_test with
             | `Func write -> write f' (Lazy.force v.raw)
@@ -87,11 +84,9 @@ let with_bidirectional_channel
           end begin fun e ->
             Log.LWT.err "%a" (Fmt.styled `Red import_error) (id, e);
           end
-        end
-      end
     end
   in
-  let sharing_mem = setup_sharing_manager (module Basics.Digests) in
+  let sharing_mem = setup_sharing_manager (module Basics.Strings) in
   let* stop_downlink = setup_downlink sharing_mem in
   let* stop_uplink = setup_uplink sharing_mem in
   Lwt.finalize f begin fun () ->

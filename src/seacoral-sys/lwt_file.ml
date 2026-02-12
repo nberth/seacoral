@@ -279,6 +279,11 @@ let read f =
   let<* ic = f in
   Lwt_io.read ic
 
+let with_lines_of ~file f =
+  let open Syntax in
+  let<* ic = file in
+  f @@ Lwt_io.read_lines ic
+
 let write f s =
   let open Syntax in
   let>* oc = f in

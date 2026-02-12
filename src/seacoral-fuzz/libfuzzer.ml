@@ -447,9 +447,13 @@ let validate_n_share_test (type r) purpose (wd: r working_data) file =
     ~corpus:wd.project.corpus ~toolname ~purpose @@
   Raw_test.Val.of_string wd.project.params.test_struct test_str
 
-let start_sharing_tests_from dir wd =
-  Sc_sys.Lwt_watch.ASYNC.monitor_dir dir
-    ~on_close:(validate_n_share_test For_full_validation wd)
+let with_dynamic_tests_sharing wd ~f dir =
+  Sc_corpus.Sharing.with_bidirectional_channel wd.project.corpus dir f
+    ~share:(validate_n_share_test For_full_validation wd)
+    ~import_suff:".imported"
+    ~import_filter:begin fun m ->
+      Lwt.return (Sc_corpus.is_covering_metadata m && m.toolname <> toolname)
+    end
 
 let san_env =
   [|
@@ -469,7 +473,6 @@ let run wd =
   and* () =
     Sc_sys.Lwt_file.unlink_files_of_dir crashdir            (* empty crashdir *)
   in
-  let* stop_indir_monitoring = start_sharing_tests_from indir wd in
   let tic = Unix.gettimeofday () in
   let rec try_fuzzing ?(attempt = 0) () =
     let* empty = Sc_sys.Lwt_file.dir_is_empty indir in
@@ -482,13 +485,15 @@ let run wd =
     else                                     (* execute the main fuzzing loop *)
       exec_fuzzer ~env:san_env wd fuzzer_exe indir seedsdir crashdir
   in
-  Lwt.finalize begin fun () ->             (* nominal *)
-    (* Put "interesting" seeds in `indir` *)
-    init_seeds ~env:san_env wd ~logdir fuzzer_exe indir seedsdir >>=
-    try_fuzzing
+  Lwt.finalize begin fun () ->                                        (* nominal *)
+    with_dynamic_tests_sharing wd indir ~f:begin fun () ->
+      (* Put "interesting" seeds in `indir` *)
+      init_seeds ~env:san_env wd ~logdir fuzzer_exe indir seedsdir >>=
+      (* Do the actual fuzzing *)
+      try_fuzzing
+    end
   end begin fun () ->
-    let* () = stop_indir_monitoring ()
-    and* () =
+    let* () =
       Sc_sys.Lwt_file.files_of_dir crashdir |>
       Lwt_stream.iter_n ~max_concurrency:16      (* Note: arbitrary limit (i) *)
         (validate_n_share_test For_RTE_identification wd)
