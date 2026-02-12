@@ -22,8 +22,7 @@ module TYPES = struct
   type 'a process =
     {
       handle: process_handle;
-      await_result: unit -> 'a Lwt.t;
-      cleanup: unit -> unit Lwt.t;
+      result_promise: 'a Lwt.t;
     }
 
   and process_handle =
@@ -166,8 +165,8 @@ let stdin_close p = match stdin p with
   | Some oc -> Lwt_io.close oc
 
 let join: 'a t -> 'a Lwt.t = fun p ->
-  Lwt.finalize p.await_result begin fun () ->
-    (stdin_close p <&> stdout_close p <&> stderr_close p) >>= p.cleanup
+  Lwt.finalize (fun () -> p.result_promise) begin fun () ->
+    stdin_close p <&> stdout_close p <&> stderr_close p
   end
 
 let join_lwt p =
@@ -213,7 +212,7 @@ let to_subproc_log = `Log Log_lwt_subproc.LWT.debug
 
 let close_redirection: redirection -> unit = function
   | `Grab Push_lines push | `GrabNLog (Push_lines push, _) ->
-      push None
+      (try push None with Lwt_stream.Closed -> ())
   | _ ->
       ()
 
@@ -268,7 +267,7 @@ let exec ?env ?cwd
     close_redirection stderr;
     Lwt.return ()
   in
-  let await_result () =
+  let await_process_termination () =
     let* exit_state =
       match handle with
       | ProcFull p -> p#status
@@ -294,7 +293,8 @@ let exec ?env ?cwd
         | Some f ->
             f exit_state
   in
-  let process = { handle; cleanup; await_result } in
+  let result_promise = Lwt.finalize await_process_termination cleanup in
+  let process = { handle; result_promise } in
   let async_out_stream s ~log_header ~line_stream =
     match s with
     | `Grab grabber ->

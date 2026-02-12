@@ -15,8 +15,6 @@ open DATA
 
 open Lwt.Syntax
 
-type 'a process_result = 'a
-
 type 'a cbmc_run =
   store:Sc_store.t ->
   runner_options:runner_options ->
@@ -155,20 +153,19 @@ let uncovered_properties
    returns the corresponding stream of json objects decoded according to
    [encoding]. *)
 let decode_cbmc_output_stream encoding stream =
-  let out, emit = Lwt_stream.create () in
-  Lwt.async begin fun () ->
-    let json = Buffer.create 42 in
-    let parenthesis_depth = ref 0
-    and in_quotes = ref false
-    and junk = ref false in
-    Lwt.map ignore @@
-    Lwt_stream.fold begin fun l escaping ->
+  let json = Buffer.create 42
+  and parenthesis_depth = ref 0
+  and escaping = ref false
+  and in_quotes = ref false
+  and junk = ref false in
+  Lwt_stream.map_list begin fun l ->
+    let rev_res = ref [] in
+    let next_escaping =
       String.fold_left begin fun escaping -> function
         | ',' when !parenthesis_depth = 1 ->                           (* skip *)
             false
         | ']' when !parenthesis_depth = 1 ->
-            junk := true;
-            emit None;                                (* terminate the stream *)
+            junk := true;                              (* terminate the stream *)
             false
         | '{' | '[' as c when not !in_quotes ->
             incr parenthesis_depth;
@@ -183,7 +180,7 @@ let decode_cbmc_output_stream encoding stream =
               Buffer.clear json;
               if !junk
               then Log.debug "Internal@ warning:@ ignored@ garbage@;%s" j
-              else emit @@ Some (Json.read_cbmc_output encoding j)
+              else rev_res := Json.read_cbmc_output encoding j :: !rev_res
             end;
             false
         | '\\' as c when !in_quotes ->
@@ -196,10 +193,11 @@ let decode_cbmc_output_stream encoding stream =
         | c ->
             Buffer.add_char json c;
             false
-      end escaping l
-    end stream false
-  end;
-  out
+      end !escaping l
+    in
+    escaping := next_escaping;
+    List.rev !rev_res
+  end stream
 
 let str_of_mode = function
   | Types.OPTIONS.Cover -> "CBMC_COVER_MODE"
@@ -226,7 +224,7 @@ let cbmc_generic_process
     Log.debug "errors: `%a'" Sc_sys.File.print errors_file;
     Sc_sys.Lwt_file.descriptor errors_file [O_WRONLY; O_CREAT; O_TRUNC] 0o600
   in
-  let output_lines, new_output_line = Lwt_stream.create () in
+  let output_lines_mbox = Lwt_mvar.create_empty () in
   let* proc =
     Sc_sys.Process.exec
       Sc_sys.Ezcmd.Std.(make "cbmc" |>
@@ -235,13 +233,16 @@ let cbmc_generic_process
                         rawf "-D%s" (str_of_mode mode) |>
                         to_cmd)
       ~stdin:(`FD_move (Lwt_unix.unix_file_descr inputs_fd))
-      ~stdout:(`Grab (Push_lines new_output_line))
+      ~stdout:(`Grab (Stream (Lwt_mvar.put output_lines_mbox)))
       ~stderr:(`FD_move (Lwt_unix.unix_file_descr errors_fd))
       ~timeout
       ~on_success:(fun () -> Lwt.return_ok ())
       ~on_error:(fun e -> Lwt.return_error e)
+  and* output_lines =
+    Lwt_mvar.take output_lines_mbox
   in
   let* cancel_kill =
+    (* TODO: move to toplevel seacoral-cbmc to avoid carrying the store here *)
     Sc_store.on_termination store ~h:(fun _ -> Sc_sys.Process.terminate proc)
   in
   Lwt.async begin fun () ->

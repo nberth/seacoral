@@ -110,8 +110,8 @@ val clang_check_and_print_llvm
   : ?clang_cmd:string
   -> ?cflags:string list
   -> ?cppflags:string list
-  -> ?stdout_grabber: Sc_sys.Process.stream_grabber
   -> ?stderr_grabber: Sc_sys.Process.stream_grabber
+  -> llvm_ast_file: _ file
   -> [< `C | `CXX] file
   -> unit Lwt.t
 
