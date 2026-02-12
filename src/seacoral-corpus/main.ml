@@ -135,8 +135,8 @@ let test_metadata corpus f =
   let* stat = Lwt_unix.stat (Sc_sys.File.name f) in
   try
     Lwt.return @@
-    Scanf.sscanf (Sc_sys.File.basename f) "%u-%@%u-%s@-%s@-%s"
-      begin fun serialnum crearun id_hex toolname _effect_suffix ->
+    Scanf.sscanf (Sc_sys.File.basename f) "%u-%@%u-%s@-%s@-%_s"
+      begin fun serialnum crearun id_hex toolname ->
         let id = Digest.from_hex id_hex in
         let outcome =
           try Tests_table.find corpus.outcomes' id with
@@ -285,13 +285,14 @@ let share_test' ?on_share ~outcome ~toolname corpus v =
 
 let on_new_test ({ tests_dir; tests_cache;
                    tests_cache_mutex; _ } as corpus) func =
-  Sc_sys.Lwt_watch.monitor_dir tests_dir
+  Sc_sys.Lwt_watch.ASYNC.monitor_dir tests_dir
     ~on_close:begin fun f ->
-      let* { id; _ } as metadata = test_metadata corpus f in
-      (* TODO: take care about exceptions in read_test', at the time of
-         `Lazy.force`. *)
-      let* { file; raw } =
-        Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
+      Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
+        (* Note: take care to protect the access to the outcomes table. *)
+        let* { id; _ } as metadata = test_metadata corpus f in
+        (* TODO: take care about exceptions in read_test', at the time of
+           `Lazy.force`. *)
+        let* { file; raw } =
           Lwt.return @@ try
             Tests_table.find tests_cache id
           with Not_found ->
@@ -302,10 +303,10 @@ let on_new_test ({ tests_dir; tests_cache;
             Log.debug "Caching input %s" (Digest.to_hex id);
             Tests_table.add tests_cache id v;
             v
-        end
-      in
-      let link str = Sc_sys.Lwt_file.link file str in
-      func { raw; link; metadata }
+        in
+        let link str = Sc_sys.Lwt_file.link file str in
+        func { raw; link; metadata }
+      end
     end
 
 let stop_receiving_tests { tests_mbox; tests_stream; _ } =
