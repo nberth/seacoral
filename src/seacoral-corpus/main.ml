@@ -169,9 +169,7 @@ let existing_test_ids ?(exclude = Digests.empty) { tests_cache;
   end
 
 let existing_tests ?(exclude = Digests.empty) ?(sort_by_serial_num = false)
-      ({ tests_cache;
-         tests_cache_mutex;
-         _ } as corpus) =
+      ({ tests_cache; tests_cache_mutex; _ } as corpus) =
   Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
     Tests_table.to_seq tests_cache |>
     Lwt_stream.of_seq |>
