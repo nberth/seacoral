@@ -238,7 +238,8 @@ let run
     log_config_info config;
     Lwt.catch begin fun () ->
     match mode with
-    | `CheckConfig -> Lwt.return ()
+    | `CheckConfig ->
+        Lwt.return ()
     | `Replay ->
        Sc_lib.Main.replay ~project_config ~encoding_params
          { replay_config = config.run }
