@@ -22,7 +22,7 @@ type workspace =
 type initialization_options =
   {
     force_preprocess: bool;
-    replay_mode: bool;
+    inhibit_store_auto_termination: bool;
   }
 
 type 'a generic_preprocessing_error =

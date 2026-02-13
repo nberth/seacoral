@@ -248,8 +248,9 @@ let write_headers_in ~workspace (params: _ project_params) =
   in
   Lwt.return (types_h, entry_h)
 
-let elaborate ~replay_mode ~test_repr ({ workspace; codebase; config; label_data;
-                            given_entrypoint_name; _ } as preprocessed) =
+let elaborate ~inhibit_store_auto_termination ~test_repr
+      ({ workspace; codebase; config; label_data;
+         given_entrypoint_name; _ } as preprocessed) =
   let outdir = workspace.workdir / "tests" in
   let covdir = outdir / "cov"
   and rtedir = outdir / "rte" in
@@ -275,7 +276,8 @@ let elaborate ~replay_mode ~test_repr ({ workspace; codebase; config; label_data
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "store" in
     Sc_store.make ~workspace
       { num_labels = List.length labels.any;
-        inhibit_auto_termination = replay_mode || params.oracle_func <> None }
+        inhibit_auto_termination =
+          inhibit_store_auto_termination || params.oracle_func <> None }
   and* decoder =
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "decoder" in
     Sc_corpus.Decoder.make ~workspace { test_struct = params.test_struct;
@@ -325,6 +327,7 @@ let initialize
   =
   let* () = check_external_tools_availability () in
   let* incdir = install_include_dir_in ~workspace in
+  let inhibit_store_auto_termination = initialization_options.inhibit_store_auto_termination in
   Log.debug "Initializing";
   log_unexpected_errors begin fun () ->
     Sc_sys.Lwt_lazy.persist_in ~dir:workspace.workdir
@@ -342,7 +345,7 @@ let initialize
       end
     >>= fun preprocessed ->
     Lwt.catch
-      (fun () -> elaborate ~replay_mode:initialization_options.replay_mode ~test_repr preprocessed)
+      (fun () -> elaborate ~inhibit_store_auto_termination ~test_repr preprocessed)
       (failed_elaboration)
   end
 
