@@ -346,40 +346,34 @@ let replay ~project_config ~encoding_params (options: replay_options) =
   
   (* Revalidation of tests *)
   Log.app "Replaying@ tests.";
-  let corpus = Sc_corpus.existing_tests project.corpus in
-  let* test_w_outcomes =
-    Lwt_stream.fold_s
-    (fun (test : Raw_test.Val.t Sc_corpus.Types.test_view) acc ->
-      let* outcome =
-        Sc_corpus.Validator.validate_raw_test validator (Lazy.force test.raw)
-      in
-      Lwt.return ((test, outcome) :: acc))
-    corpus
-    []
+  let corpus = Sc_corpus.existing_tests ~sort_by_serial_num:true project.corpus in
+  let test_w_outcomes =
+    Lwt_stream.map_s
+      (fun (test : Raw_test.Val.t Sc_corpus.Types.test_view) ->
+        let* outcome =
+          Sc_corpus.Validator.validate_raw_test validator (Lazy.force test.raw)
+        in
+        Lwt.return (test, outcome))
+      corpus
   in
-  (* Sorting tests to prevent validator non determinism from impacting the
-     log order. Useful for the cram tests. *)
-  let sorted_tests =
-    List.fast_sort
-      (fun (t, _) (t', _) -> Sc_corpus.compare_tests_by_serialnum t t')
-      test_w_outcomes
-  in
-  List.iter
+  Lwt_stream.iter_s
     (fun ((test: Raw_test.Val.t Sc_corpus.Types.test_view), outcome) ->
       match outcome with
       | None ->
-         Log.err "Validator@ returned@ no@ outcome@ for@ test %i;@ \
-                  expected@ outcome %a"
+         Log.LWT.err "Validator@ returned@ no@ outcome@ for@ test %i;@ \
+                      expected@ outcome %a"
            test.metadata.serialnum
            Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
       | Some o ->
-         Log.app
-           "Outcome@ for@ test@ %i:@ %a."
-           test.metadata.serialnum
-           Sc_corpus.Printer.pp_test_outcome o.Sc_corpus.Types.test_outcome;
+         let* () =
+           Log.LWT.app
+             "Outcome@ for@ test@ %i:@ %a."
+             test.metadata.serialnum
+             Sc_corpus.Printer.pp_test_outcome o.Sc_corpus.Types.test_outcome
+         in
          if o.test_outcome <> test.metadata.outcome then
-           Log.err "Expected@ outcome:@ %a.\
-                   " Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+           Log.LWT.err "Expected@ outcome:@ %a.\
+                       " Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+         else Lwt.return ()
     )
-    sorted_tests;
-  Lwt.return ()
+    test_w_outcomes

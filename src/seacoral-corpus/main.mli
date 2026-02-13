@@ -33,11 +33,14 @@ val existing_test_ids
   -> _ corpus
   -> Basics.Digests.t Lwt.t
 
-(** [existing_tests ~exclude corpus] is a stream of all tests previously
-    registered into [corpus].  Tests whose digest belongs to [exclude], if
-    given, are ignored.  *)
+(** [existing_tests ~exclude ~sort_by_serial_num corpus] is a stream of all
+    tests previously registered into [corpus].
+    Tests whose digest belongs to [exclude], if given, are ignored. If
+    [sort_by_serial_num] is [true], sorts the tests in the stream by their
+    serial number. *)
 val existing_tests
-  : ?exclude: Basics.Digests.t
+    : ?exclude: Basics.Digests.t
+  -> ?sort_by_serial_num: bool
   -> 'raw_test corpus
   -> ('raw_test Types.test_view) Lwt_stream.t
 

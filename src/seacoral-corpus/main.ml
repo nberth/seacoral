@@ -20,6 +20,11 @@ open Sc_sys.Lwt_file.Syntax
 
 (* --- *)
 
+let compare_tests_by_serialnum t1 t2 =
+  Int.compare t1.metadata.serialnum t2.metadata.serialnum
+
+(* --- *)
+
 (* module TestsCache = Ephemeron.K1.Make (String) *)
 module Tests_table = Hashtbl.Make (Digest)
 
@@ -163,9 +168,10 @@ let existing_test_ids ?(exclude = Digests.empty) { tests_cache;
      end)
   end
 
-let existing_tests ?(exclude = Digests.empty) ({ tests_cache;
-                                                 tests_cache_mutex;
-                                                 _ } as corpus) =
+let existing_tests ?(exclude = Digests.empty) ?(sort_by_serial_num = false)
+      ({ tests_cache;
+         tests_cache_mutex;
+         _ } as corpus) =
   Lwt_mutex.with_lock tests_cache_mutex begin fun () ->
     Tests_table.to_seq tests_cache |>
     Lwt_stream.of_seq |>
@@ -178,9 +184,18 @@ let existing_tests ?(exclude = Digests.empty) ({ tests_cache;
           Lwt.return (Some { raw; link; metadata })
     end |>
     Lwt.return
-  end |>
+  end |>  
   Lwt_stream.return_lwt |>
-  Lwt_stream.concat
+  Lwt_stream.concat |> begin fun stream ->
+    if sort_by_serial_num then
+      stream |>
+      Lwt_stream.to_list >|=
+      List.fast_sort compare_tests_by_serialnum >|=
+      Lwt_stream.of_list |>  
+      Lwt_stream.return_lwt |>
+      Lwt_stream.concat 
+    else stream
+  end
 
 (** private *)
 let cache_existing_tests ({ tests_cache; tests_cache_mutex; _ } as corpus) =
@@ -384,11 +399,6 @@ let has_oracle_failures { num_fails_gen; num_fails_imported; _ } =
 
 let test_struct corpus =
   corpus.params.test_struct
-
-(* --- *)
-
-let compare_tests_by_serialnum t1 t2 =
-  Int.compare t1.metadata.serialnum t2.metadata.serialnum
 
 (* --- *)
 
