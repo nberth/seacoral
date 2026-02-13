@@ -21,7 +21,7 @@ Now, replaying tests
   [A]{Sc} Starting to log into `_sc/test.c-MCC-@2/logs/2.log'
   [A]{Sc} Initializing working environment...
   [A]{Sc} Replaying tests.
-  [A]{Sc} Outcome for test 3: covering labels {3}.
-  [A]{Sc} Outcome for test 4: covering labels {2}.
   [A]{Sc} Outcome for test 1: covering labels {4}.
   [A]{Sc} Outcome for test 2: covering labels {1}.
+  [A]{Sc} Outcome for test 3: covering labels {3}.
+  [A]{Sc} Outcome for test 4: covering labels {2}.
