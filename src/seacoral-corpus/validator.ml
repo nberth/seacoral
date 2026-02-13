@@ -32,10 +32,12 @@ type 'raw_test t =
 type 'raw_test ready =
   {
     validator: 'raw_test t;
-    launch: test_outcome option Sc_sys.Lwt_task.controlled_launcher;
+    launch: test_result option Sc_sys.Lwt_task.controlled_launcher;
     replay_with_store_update_exe: [`exe] file;
     replay_for_rte_identification_exe: [`exe] file;
   }
+
+and test_result = revalidation_result
 
 type validation_purpose =
   | For_RTE_identification
@@ -324,7 +326,9 @@ let read_labels_from_file f =
     lines
     Basics.Ints.empty
 
-let replay_with_store_update ready_validator ~exec_validator ~log =
+let replay_with_store_update ready_validator ~exec_validator ~log
+    ~keep_outcomes_for_tests_that_cover_no_uncovered_labels:keep_benign_outcomes
+  =
   let validator = ready_validator.validator in
   let* store = Sc_store.for_compiled_subprocess validator.store in
   Sc_sys.Lwt_file.with_temp_file begin fun label_file ->
@@ -349,9 +353,16 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
     match res with
     | Ok () ->
         let* labels = read_labels_from_file label_file in
-        Lwt.return_ok (Some (Covering_label labels))
+        Lwt.return_ok @@ Some { test_outcome = Covering_label labels;
+                                with_new_coverage = true }
     | Error Unix.WEXITED code when code = oracle_failure_code ->
-        Lwt.return_ok (Some Oracle_failure)
+        Lwt.return_ok @@ Some { test_outcome = Oracle_failure;
+                                with_new_coverage = false }
+    | Error Unix.WEXITED code when code = no_new_coverage_code &&
+                                   keep_benign_outcomes ->
+        let* labels = read_labels_from_file label_file in
+        Lwt.return_ok @@ Some { test_outcome = Covering_label labels;
+                                with_new_coverage = false }
     | Error Unix.WEXITED code when code = no_new_coverage_code ||
                                    code = assumption_failure_code ->
         Lwt.return_ok None
@@ -440,27 +451,33 @@ let replay_for_rte_identification ready_validator ~exec_validator ~log =
                     discarding@ %a" Printer.pp_sanitizer_error_summary err';
           Lwt.return_error (Triggering_RTE err)
 
-let validate ?(purpose = For_full_validation) ~test_ident ready_validator
-    ~exec_validator =
+let validate ?(purpose = For_full_validation) ~test_ident
+    ?(keep_outcomes_for_tests_that_cover_no_uncovered_labels = false)
+    ready_validator ~exec_validator =
   let log = validator_log test_ident in
   ready_validator.launch begin fun () ->
     let* first_stage_res =
-      if purpose = For_full_validation
-      then replay_with_store_update ready_validator ~exec_validator ~log
-      else Lwt.return_error ()                            (* skip first stage *)
+      if purpose = For_full_validation then
+        replay_with_store_update ready_validator ~exec_validator ~log
+          ~keep_outcomes_for_tests_that_cover_no_uncovered_labels
+      else
+        Lwt.return_error ()                               (* skip first stage *)
     in
     match first_stage_res with
-    | Ok (res: test_outcome option) ->
+    | Ok (res: test_result option) ->
         Lwt.return res
     | Error () ->
+        Log.debug "Coverage validation stage failed";
         let* second_stage_res =
           replay_for_rte_identification ready_validator ~exec_validator ~log
         in
         match second_stage_res with
         | Ok () ->              (* error code in label definition only: ignore *)
+            Log.debug "RTE identification stage terminated successfully";
             Lwt.return None
         | Error (e: test_outcome) ->
-            Lwt.return (Some e)
+            Lwt.return @@ Some { test_outcome = e; with_new_coverage = false }
+
   end
 
 let on_error status =
@@ -469,7 +486,7 @@ let on_error status =
 let on_success () =
   Lwt.return_ok ()
 
-let validate_raw_test_file ready_validator ?purpose file =
+let validate_raw_test_file' ready_validator ?purpose file =
   let* test_ident = Sc_sys.Lwt_file.digest file in
   validate ready_validator ?purpose ~test_ident
     ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
@@ -482,9 +499,12 @@ let validate_raw_test_file ready_validator ?purpose file =
 (** Take care to avoid large amounts of concurrent calls to this function, as
     this may induce an overuse of system pipes.  In these cases, prefer using
     {!validate_raw_test_file}. *)
-let validate_raw_test_string ready_validator ?purpose str =
+let validate_raw_test_string' ready_validator
+    ?keep_outcomes_for_tests_that_cover_no_uncovered_labels
+    ?purpose str =
   let test_ident = Digest.to_hex @@ Digest.string str in
   validate ready_validator ?purpose ~test_ident
+    ?keep_outcomes_for_tests_that_cover_no_uncovered_labels
     ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
       let* proc =
         Sc_sys.Process.exec
@@ -498,11 +518,30 @@ let validate_raw_test_string ready_validator ?purpose str =
     end
 
 (** Warning for {!validate_raw_test_string} applies. *)
-let validate_raw_test (type raw_test) (ready_validator: raw_test ready)
+let validate_raw_test' (type raw_test) (ready_validator: raw_test ready)
+    ?keep_outcomes_for_tests_that_cover_no_uncovered_labels
     ?purpose (raw_test: raw_test) =
   let module Raw_test = (val ready_validator.validator.params.test_repr) in
-  validate_raw_test_string ready_validator ?purpose @@
+  validate_raw_test_string' ready_validator ?purpose
+    ?keep_outcomes_for_tests_that_cover_no_uncovered_labels @@
   Raw_test.Val.to_string raw_test
+
+let revalidate_raw_test =
+  validate_raw_test'
+    ~keep_outcomes_for_tests_that_cover_no_uncovered_labels:true
+
+let outcome_only = function
+  | Some r -> Some r.test_outcome
+  | None -> None
+
+let validate_raw_test ready_validator ?purpose raw_test =
+  validate_raw_test' ready_validator ?purpose raw_test >|= outcome_only
+
+let validate_raw_test_file ready_validator ?purpose file =
+  validate_raw_test_file' ready_validator ?purpose file >|= outcome_only
+
+let validate_raw_test_string ready_validator ?purpose file =
+  validate_raw_test_string' ready_validator ?purpose file >|= outcome_only
 
 let show_outcome ?(log_outcome = false) outcome =
   if log_outcome then

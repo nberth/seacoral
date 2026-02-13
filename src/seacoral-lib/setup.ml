@@ -187,6 +187,7 @@ let project ?clean_start ~salt (config: config) =
     project_test_timeout = config.run.test_timeout;
     project_max_validation_concurrency = config.run.max_validation_concurrency;
     project_verbose_validation = config.run.verbose_validation;
+    project_inhibit_store_autostop = false;
     project_pointer_handling =
       {
         treat_pointer_as_array =

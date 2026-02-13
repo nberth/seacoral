@@ -77,6 +77,15 @@ and sanitizer_error_summary =
   | Invalid_memory_address of int64                                   (* SEGV *)
   | Arithmetic_error of int64
 
+(** Revalidation/replay *)
+
+type revalidation_result =
+  {
+    test_outcome: test_outcome;     (** Outcome of the test *)
+    with_new_coverage: bool;        (** Holds if the test covers a yet uncovered
+                                        label *)
+  }
+
 (** Corpus info *)
 type info =
   {

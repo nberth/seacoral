@@ -29,6 +29,11 @@ type generation_options =
     print_statistics: bool;
   }
 
+type replay_options =
+  {
+    replay_config: run_config;
+  }
+
 (* --- *)
 
 (** {2 Raw statistics printers} *)
@@ -168,11 +173,25 @@ let make_test_repr_module encoding_params =
 let generation_error err =
   raise @@ GENERATION_ERROR err
 
+let initialize_project ~initialization_options ~test_repr ~config =
+  Lwt.catch begin fun () ->
+    Sc_project.Manager.initialize ~initialization_options ~test_repr ~config
+  end begin function
+    | SETUP_ERROR e ->
+        generation_error @@ Project_setup_error e
+    | LABELING_ERROR e ->
+        generation_error @@ Project_labeling_error e
+    | ELABORATION_ERROR e ->
+        generation_error @@ Project_elaboration_error e
+    | e ->
+        Lwt.reraise e
+  end
+
 let generate ~project_config ~encoding_params (options: generation_options) =
 
   let initialization_options =
     Sc_core.Types.{
-      force_preprocess = options.run.force_preprocess
+      force_preprocess = options.run.force_preprocess;
     }
   in
 
@@ -180,20 +199,9 @@ let generate ~project_config ~encoding_params (options: generation_options) =
 
   let module Raw_test = (val make_test_repr_module encoding_params) in
   let* project =
-    Lwt.catch begin fun () ->
-      Sc_project.Manager.initialize ~initialization_options
-        ~test_repr:(module Raw_test)
-        ~config:project_config
-    end begin function
-      | SETUP_ERROR e ->
-          generation_error @@ Project_setup_error e
-      | LABELING_ERROR e ->
-          generation_error @@ Project_labeling_error e
-      | ELABORATION_ERROR e ->
-          generation_error @@ Project_elaboration_error e
-      | e ->
-          Lwt.reraise e
-    end
+    initialize_project ~initialization_options
+      ~test_repr:(module Raw_test)
+      ~config:project_config
   in
 
   (* Now, doing the hard work. *)
@@ -302,3 +310,50 @@ let generate ~project_config ~encoding_params (options: generation_options) =
             " Sc_project.Manager.print_tool_statistics project;
 
   Lwt.return ()
+
+let replay ~project_config ~encoding_params (options: replay_options) =
+
+  let initialization_options =
+    Sc_core.Types.{
+      force_preprocess = options.replay_config.force_preprocess;
+    }
+  in
+
+  Log.app "Initializing@ working@ environment...";
+
+  let module Raw_test = (val make_test_repr_module encoding_params) in
+  let* project =
+    initialize_project ~initialization_options
+      ~test_repr:(module Raw_test)
+      ~config: { project_config with
+                 project_inhibit_store_autostop = true }
+  in
+
+  let* validator = Sc_corpus.Validator.setup project.validator in
+
+  (* Revalidation of tests *)
+  Log.app "Replaying@ tests.";
+  let corpus = Sc_corpus.existing_tests ~sort_by_serial_num:true project.corpus in
+  Lwt_stream.iter_n
+    (* TODO: limit concurrency with a (new or not) option & env variable *)
+    ~max_concurrency:(* project_config.project_max_validation_concurrency *)1
+    begin fun (test: Raw_test.Val.t Sc_corpus.Types.test_view) ->
+      let* revalidation_result =
+        Sc_corpus.Validator.revalidate_raw_test validator (Lazy.force test.raw)
+      in
+      match revalidation_result with
+      | None ->
+          Log.LWT.err "Validator@ returned@ no@ outcome@ for@ test %i;@ \
+                       expected@ outcome %a"
+            test.metadata.serialnum
+            Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+      | Some { test_outcome = revalidation_outcome; _ } ->
+          Log.LWT.app "Outcome@ for@ test@ %i:@ %a."
+            test.metadata.serialnum
+            Sc_corpus.Printer.pp_test_outcome revalidation_outcome >>= fun () ->
+          if revalidation_outcome <> test.metadata.outcome then
+            Log.LWT.err "Expected@ outcome:@ %a."
+              Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
+          else
+            Lwt.return ()
+    end corpus
