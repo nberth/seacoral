@@ -61,13 +61,11 @@ let pp_test_outcome ppf = function
   | Oracle_failure ->
       Fmt.pf ppf "oracle@ failure"
 
-let pp_test_result ppf o =
-  Fmt.pf ppf "%a" pp_test_outcome o.test_outcome;
-  Fmt.pf ppf begin
-      if o.with_new_coverage
-      then "@ (with@ new@ coverage)"
-      else "@ (without@ new@ coverage)"
-    end
+let pp_revalidation_result ppf o =
+  Fmt.pf ppf "%a@ (%t)" pp_test_outcome o.test_outcome
+    (if o.with_new_coverage
+     then Fmt.fmt "with@ new@ coverage"
+     else Fmt.fmt "without@ new@ coverage")
 
 (* --- *)
 

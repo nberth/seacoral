@@ -44,9 +44,6 @@ type 'r validator_params =
     validator_verbosity: int;  (** when strictly positive, enable some logging
                                    from validation executables (only one level
                                    for now) *)
-    ignore_tests_not_covering_labels: bool (** when true, ignores tests that do
-                                               not cover at least one new
-                                               label. *)
   }
 
 (** A type that enables tools to either retrieve an actual test inputs value
@@ -75,16 +72,19 @@ and test_outcome =
   | Triggering_RTE of sanitizer_error_summary   (** The test triggers an RTE *)
   | Oracle_failure                              (** The test fails the oracle *)
 
-and test_result = {
-    test_outcome: test_outcome;   (** Outcome of the test *)
-    with_new_coverage: bool       (** [true] if the test covers a yet uncovered
-                                      label *)
-  }
-
 and sanitizer_error_summary =
   | Heap_buffer_overflow of int64
   | Invalid_memory_address of int64                                   (* SEGV *)
   | Arithmetic_error of int64
+
+(** Revalidation/replay *)
+
+type revalidation_result =
+  {
+    test_outcome: test_outcome;     (** Outcome of the test *)
+    with_new_coverage: bool;        (** Holds if the test covers a yet uncovered
+                                        label *)
+  }
 
 (** Corpus info *)
 type info =

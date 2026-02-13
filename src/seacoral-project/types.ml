@@ -28,6 +28,7 @@ type project_config =
     project_test_timeout: float;               (** timeout for each test *)
     project_max_validation_concurrency: int;
     project_verbose_validation: bool;
+    project_inhibit_store_autostop: bool;
     project_srcdir_root: dir;                  (** root of input source files *)
   }
 

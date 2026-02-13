@@ -22,7 +22,6 @@ type workspace =
 type initialization_options =
   {
     force_preprocess: bool;
-    ignore_tests_not_covering_labels: bool;
   }
 
 type 'a generic_preprocessing_error =

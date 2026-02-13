@@ -120,7 +120,6 @@ type generation_error =
 
 exception GENERATION_ERROR of generation_error
 
-type replay_error =
-  | Cannot_force_preprocess
+type replay_error = |
 
 exception REPLAY_ERROR of replay_error

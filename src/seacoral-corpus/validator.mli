@@ -66,3 +66,12 @@ val validate_n_share_raw_test_file
   -> ?log_outcome: bool
   -> _ Sc_sys.File.t
   -> unit Lwt.t
+
+(* --- *)
+
+(** Warning for {!validate_raw_test_string} applies. *)
+val revalidate_raw_test
+  : 'raw_test ready
+  -> ?purpose: validation_purpose
+  -> 'raw_test
+  -> Types.revalidation_result option Lwt.t
