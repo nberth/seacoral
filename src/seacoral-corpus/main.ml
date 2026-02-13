@@ -188,8 +188,7 @@ let existing_tests ?(exclude = Digests.empty) ?(sort_by_serial_num = false)
   Lwt_stream.return_lwt |>
   Lwt_stream.concat |> begin fun stream ->
     if sort_by_serial_num then
-      stream |>
-      Lwt_stream.to_list >|=
+      Lwt_stream.to_list stream >|=
       List.fast_sort compare_tests_by_serialnum >|=
       Lwt_stream.of_list |>  
       Lwt_stream.return_lwt |>
