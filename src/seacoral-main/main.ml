@@ -248,7 +248,7 @@ let run
              enable_detailed_stats;
              strategy;
              print_statistics = args.print_statistics }                (* temp *)
-      end begin function
+    end begin function
             | Sc_lib.Types.GENERATION_ERROR e ->
                Log.err "%a" Sc_lib.Printer.pp_generation_error e;
                raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
@@ -261,8 +261,8 @@ let run
                raise @@ EXIT Cmdliner.Cmd.Exit.cli_error
             | e ->
                Lwt.reraise e
-      end
     end
+  end
 
 ;;
 if (Unix.time () |> Unix.gmtime).Unix.tm_year > 126
