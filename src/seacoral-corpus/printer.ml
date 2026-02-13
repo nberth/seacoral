@@ -61,6 +61,12 @@ let pp_test_outcome ppf = function
   | Oracle_failure ->
       Fmt.pf ppf "oracle@ failure"
 
+let pp_revalidation_result ppf o =
+  Fmt.pf ppf "%a@ (%t)" pp_test_outcome o.test_outcome
+    (if o.with_new_coverage
+     then Fmt.fmt "with@ new@ coverage"
+     else Fmt.fmt "without@ new@ coverage")
+
 (* --- *)
 
 let pp_internal_error ppf = function

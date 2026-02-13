@@ -16,9 +16,22 @@ type generation_options =
     print_statistics: bool;
   }
 
+type replay_options =
+  {
+    replay_config: Types.run_config;
+  }
+
+
 (** Main entrypoint for the library: actually performs testcase generation. *)
 val generate
   : project_config: Sc_project.Types.project_config
   -> encoding_params: Sc_values.TYPES.encoding_params
   -> generation_options
+  -> unit Lwt.t
+
+(** Entrypoint for the replayer. *)
+val replay
+  : project_config: Sc_project.Types.project_config
+  -> encoding_params: Sc_values.TYPES.encoding_params
+  -> replay_options
   -> unit Lwt.t

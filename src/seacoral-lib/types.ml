@@ -120,3 +120,7 @@ type generation_error =
       tool_computation_error
 
 exception GENERATION_ERROR of generation_error
+
+type replay_error = |
+
+exception REPLAY_ERROR of replay_error

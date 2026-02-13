@@ -275,7 +275,8 @@ let elaborate ~test_repr ({ workspace; codebase; config; label_data;
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "store" in
     Sc_store.make ~workspace
       { num_labels = List.length labels.any;
-        inhibit_auto_termination = params.oracle_func <> None }
+        inhibit_auto_termination =
+          config.project_inhibit_store_autostop || params.oracle_func <> None }
   and* decoder =
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "decoder" in
     Sc_corpus.Decoder.make ~workspace { test_struct = params.test_struct;
@@ -318,9 +319,7 @@ let elaborate ~test_repr ({ workspace; codebase; config; label_data;
 
     An input project is either a raw project to prepare for other tools, or a
     project already prepared that a tool may want to customize. *)
-let initialize
-    ~initialization_options
-    ~test_repr
+let initialize ~(initialization_options: initialization_options) ~test_repr
     ~config:({ project_workspace = workspace; _ } as config)
   =
   let* () = check_external_tools_availability () in

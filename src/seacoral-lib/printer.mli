@@ -20,3 +20,6 @@ val pp_tool_computation_error: Types.tool_computation_error Fmt.t
 
 (** Pretty-printer for asynchronous errors that happen during generation *)
 val pp_generation_error: Types.generation_error Fmt.t
+
+(** Pretty-printer for asynchronous errors that happen during replay *)
+val pp_replay_error: Types.replay_error Fmt.t

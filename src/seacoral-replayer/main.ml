@@ -207,6 +207,7 @@ let copy_test_in_testcase_dir ~covdir
      @\n# include %S\
      @\n# include <lreplay_driver_impl.c>\
      @\n#endif\
+     @\n\
     " (Sc_sys.File.absname labelized_file);
   try
     while true do
@@ -240,16 +241,22 @@ let setup workspace ~optional:_ project =
 let run ({ project; workspace; opt; _ } as wd) =
   let Sc_ltest.Types.{ labelized_file; _ } = project.label_data in
   let covdir = project.covdir in
-  Sc_sys.Lwt_file.files_of_dir (imported_tests_dir workspace) |>
-  let max_concurrency = max 1 opt.max_concurrency in
-  Lwt_stream.iter_n ~max_concurrency begin fun file ->
-    let* init_test = init_workspace_for_testcase wd ~labelized_file file in
-    let* has_covered_something = play ~wd init_test in
-    if has_covered_something
-    then Lwt.join [ copy_test_in_testcase_dir ~covdir ~labelized_file file;
-                    Sc_corpus.register_one_bypassed_test wd.project.corpus ]
-    else Lwt.return ()
-  end
+  let files = Sc_sys.Lwt_file.files_of_dir (imported_tests_dir workspace) in
+  let* no_files_to_test = Lwt_stream.is_empty files in
+  if no_files_to_test then
+      Log.LWT.warn
+        "Test@ runner@ has@ no@ file@ to@ run.@ Did@ you@ forget@ to@ import@ \
+         test@ files@ (using@ the@ %S@ configuration@ section)?" toolname
+  else
+    let max_concurrency = max 1 opt.max_concurrency in
+    Lwt_stream.iter_n ~max_concurrency begin fun file ->
+      let* init_test = init_workspace_for_testcase wd ~labelized_file file in
+      let* has_covered_something = play ~wd init_test in
+      if has_covered_something
+      then Lwt.join [ copy_test_in_testcase_dir ~covdir ~labelized_file file;
+                      Sc_corpus.register_one_bypassed_test wd.project.corpus ]
+      else Lwt.return ()
+    end files
 
 (* No dependency for the replayer. *)
 let availability_check () =

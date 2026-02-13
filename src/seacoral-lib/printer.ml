@@ -57,3 +57,6 @@ let pp_generation_error ppf = function
       pp_tool_preprocessing_error ppf e
   | Tool_computation_error e ->
       pp_tool_computation_error ppf e
+
+let pp_replay_error _ppf : replay_error -> unit = function
+  | _ -> .
