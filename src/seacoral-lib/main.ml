@@ -369,9 +369,9 @@ let replay ~project_config ~encoding_params (options: replay_options) =
            Log.LWT.app
              "Outcome@ for@ test@ %i:@ %a."
              test.metadata.serialnum
-             Sc_corpus.Printer.pp_test_outcome o.Sc_corpus.Types.test_outcome
+             Sc_corpus.Printer.pp_test_outcome o
          in
-         if o.test_outcome <> test.metadata.outcome then
+         if o <> test.metadata.outcome then
            Log.LWT.err "Expected@ outcome:@ %a.\
                        " Sc_corpus.Printer.pp_test_outcome test.metadata.outcome
          else Lwt.return ()

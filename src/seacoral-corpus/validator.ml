@@ -486,7 +486,9 @@ let on_error status =
 let on_success () =
   Lwt.return_ok ()
 
-let validate_raw_test_file ready_validator ?purpose file =
+let only_outcome = Option.map (fun tr -> tr.test_outcome)
+
+let validate_raw_test_file' ready_validator ?purpose file =
   let* test_ident = Sc_sys.Lwt_file.digest file in
   validate ready_validator ?purpose ~test_ident
     ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
@@ -499,7 +501,7 @@ let validate_raw_test_file ready_validator ?purpose file =
 (** Take care to avoid large amounts of concurrent calls to this function, as
     this may induce an overuse of system pipes.  In these cases, prefer using
     {!validate_raw_test_file}. *)
-let validate_raw_test_string ready_validator ?purpose str =
+let validate_raw_test_string' ready_validator ?purpose str =
   let test_ident = Digest.to_hex @@ Digest.string str in
   validate ready_validator ?purpose ~test_ident
     ~exec_validator:begin fun ~exe ~env ~stdout ~stderr ->
@@ -515,12 +517,21 @@ let validate_raw_test_string ready_validator ?purpose str =
     end
 
 (** Warning for {!validate_raw_test_string} applies. *)
-let validate_raw_test (type raw_test) (ready_validator: raw_test ready)
+let validate_raw_test' (type raw_test) (ready_validator: raw_test ready)
     ?purpose (raw_test: raw_test) =
   let module Raw_test = (val ready_validator.validator.params.test_repr) in
-  validate_raw_test_string ready_validator ?purpose @@
+  validate_raw_test_string' ready_validator ?purpose @@
   Raw_test.Val.to_string raw_test
 
+let validate_raw_test ready_validator ?purpose raw_test =
+  validate_raw_test' ready_validator ?purpose raw_test >|= only_outcome
+
+let validate_raw_test_file ready_validator ?purpose file =
+  validate_raw_test_file' ready_validator ?purpose file >|= only_outcome
+
+let validate_raw_test_string ready_validator ?purpose file =
+  validate_raw_test_string' ready_validator ?purpose file >|= only_outcome
+  
 let show_outcome ?(log_outcome = false) outcome =
   if log_outcome then
     Log.LWT.debug "Test@ outcome:@ %a"
@@ -534,7 +545,7 @@ let show_outcome ?(log_outcome = false) outcome =
 let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
     ~(corpus: raw_test Main.corpus) ~toolname ?purpose ?log_outcome
     (raw_test: raw_test) =
-  validate_raw_test ready_validator ?purpose raw_test >>=
+  validate_raw_test' ready_validator ?purpose raw_test >>=
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()
@@ -547,7 +558,7 @@ let validate_n_share_raw_test (type raw_test) (ready_validator: raw_test ready)
 let validate_n_share_raw_test_file (type raw_test) (ready_validator: raw_test ready)
     ~(corpus: raw_test Main.corpus) ~toolname ?purpose ?log_outcome file =
   let module Raw_test = (val ready_validator.validator.params.test_repr) in
-  validate_raw_test_file ready_validator ?purpose file >>=
+  validate_raw_test_file' ready_validator ?purpose file >>=
   show_outcome ?log_outcome >>= function
   | None ->                                 (* Valid test, but no new coverage *)
       Lwt.return ()

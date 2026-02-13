@@ -29,7 +29,7 @@ val validate_raw_test_file
   : _ ready
   -> ?purpose: validation_purpose
   -> _ Sc_sys.File.t
-  -> Types.test_result option Lwt.t
+  -> Types.test_outcome option Lwt.t
 
 (** Take care to avoid large amounts of concurrent calls to this function, as
     this may induce an overuse of system pipes.  In these cases, prefer using
@@ -38,14 +38,14 @@ val validate_raw_test_string
   : _ ready
   -> ?purpose: validation_purpose
   -> string
-  -> Types.test_result option Lwt.t
+  -> Types.test_outcome option Lwt.t
 
 (** Warning for {!validate_raw_test_string} applies. *)
 val validate_raw_test
   : 'raw_test ready
   -> ?purpose: validation_purpose
   -> 'raw_test
-  -> Types.test_result option Lwt.t
+  -> Types.test_outcome option Lwt.t
 
 (** Warning for {!validate_raw_test_string} applies. *)
 val validate_n_share_raw_test
