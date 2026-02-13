@@ -248,7 +248,7 @@ let write_headers_in ~workspace (params: _ project_params) =
   in
   Lwt.return (types_h, entry_h)
 
-let elaborate ~inhibit_store_auto_termination ~test_repr
+let elaborate ~ignore_tests_not_covering_labels ~test_repr
       ({ workspace; codebase; config; label_data;
          given_entrypoint_name; _ } as preprocessed) =
   let outdir = workspace.workdir / "tests" in
@@ -277,7 +277,10 @@ let elaborate ~inhibit_store_auto_termination ~test_repr
     Sc_store.make ~workspace
       { num_labels = List.length labels.any;
         inhibit_auto_termination =
-          inhibit_store_auto_termination || params.oracle_func <> None }
+          not ignore_tests_not_covering_labels (* If so, we want to continue
+                                                  despite all labels being
+                                                  covered *)
+          || params.oracle_func <> None }
   and* decoder =
     let* workspace = Sc_core.Workspace.LWT.mksub workspace "decoder" in
     Sc_corpus.Decoder.make ~workspace { test_struct = params.test_struct;
@@ -302,7 +305,9 @@ let elaborate ~inhibit_store_auto_termination ~test_repr
         init_func = params.init_func;
         oracle_func =
           if params.seek_oracle_failures then params.oracle_func else None;
-        labelized_file = label_data.labelized_file }
+        labelized_file = label_data.labelized_file;
+        ignore_tests_not_covering_labels;
+      }
   in
   let* covinfo = Sc_store.covinfo store in
   let labels = update_labels_status ~covinfo labels in
@@ -321,13 +326,15 @@ let elaborate ~inhibit_store_auto_termination ~test_repr
     An input project is either a raw project to prepare for other tools, or a
     project already prepared that a tool may want to customize. *)
 let initialize
-    ~initialization_options
+    ~(initialization_options : initialization_options)
     ~test_repr
     ~config:({ project_workspace = workspace; _ } as config)
   =
   let* () = check_external_tools_availability () in
   let* incdir = install_include_dir_in ~workspace in
-  let inhibit_store_auto_termination = initialization_options.inhibit_store_auto_termination in
+  let ignore_tests_not_covering_labels =
+    initialization_options.ignore_tests_not_covering_labels
+  in
   Log.debug "Initializing";
   log_unexpected_errors begin fun () ->
     Sc_sys.Lwt_lazy.persist_in ~dir:workspace.workdir
@@ -345,7 +352,7 @@ let initialize
       end
     >>= fun preprocessed ->
     Lwt.catch
-      (fun () -> elaborate ~inhibit_store_auto_termination ~test_repr preprocessed)
+      (fun () -> elaborate ~ignore_tests_not_covering_labels ~test_repr preprocessed)
       (failed_elaboration)
   end
 

@@ -359,11 +359,14 @@ let replay_with_store_update ready_validator ~exec_validator ~log =
            with_new_coverage = false;
           }
     | Error Unix.WEXITED code when code = no_new_coverage_code ->
-        let* labels = read_labels_from_file label_file in
-        Lwt.return_ok @@ Some {
-           test_outcome = Covering_label labels;
-           with_new_coverage = false;
-          }
+        if ready_validator.validator.params.ignore_tests_not_covering_labels
+        then Lwt.return_ok None
+        else
+          let* labels = read_labels_from_file label_file in
+          Lwt.return_ok @@ Some {
+              test_outcome = Covering_label labels;
+              with_new_coverage = false;
+            }
     | Error Unix.WEXITED code when code = assumption_failure_code ->
         Lwt.return_ok None
     | Error _ ->

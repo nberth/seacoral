@@ -44,6 +44,9 @@ type 'r validator_params =
     validator_verbosity: int;  (** when strictly positive, enable some logging
                                    from validation executables (only one level
                                    for now) *)
+    ignore_tests_not_covering_labels: bool (** when true, ignores tests that do
+                                               not cover at least one new
+                                               label. *)
   }
 
 (** A type that enables tools to either retrieve an actual test inputs value

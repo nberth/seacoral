@@ -178,7 +178,7 @@ let generate ~project_config ~encoding_params (options: generation_options) =
   let initialization_options =
     Sc_core.Types.{
       force_preprocess = options.run.force_preprocess;
-      inhibit_store_auto_termination = false;
+      ignore_tests_not_covering_labels = true;
     }
   in
 
@@ -318,7 +318,7 @@ let replay ~project_config ~encoding_params (options: replay_options) =
   let initialization_options =
     Sc_core.Types.{
       force_preprocess = options.replay_config.force_preprocess;
-      inhibit_store_auto_termination = true;
+      ignore_tests_not_covering_labels = false;
     }
   in
 
