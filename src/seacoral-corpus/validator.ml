@@ -486,7 +486,7 @@ let on_error status =
 let on_success () =
   Lwt.return_ok ()
 
-let only_outcome = Option.map (fun tr -> tr.test_outcome)
+let outcome_only = Option.map (fun tr -> tr.test_outcome)
 
 let validate_raw_test_file' ready_validator ?purpose file =
   let* test_ident = Sc_sys.Lwt_file.digest file in
@@ -524,13 +524,13 @@ let validate_raw_test' (type raw_test) (ready_validator: raw_test ready)
   Raw_test.Val.to_string raw_test
 
 let validate_raw_test ready_validator ?purpose raw_test =
-  validate_raw_test' ready_validator ?purpose raw_test >|= only_outcome
+  validate_raw_test' ready_validator ?purpose raw_test >|= outcome_only
 
 let validate_raw_test_file ready_validator ?purpose file =
-  validate_raw_test_file' ready_validator ?purpose file >|= only_outcome
+  validate_raw_test_file' ready_validator ?purpose file >|= outcome_only
 
 let validate_raw_test_string ready_validator ?purpose file =
-  validate_raw_test_string' ready_validator ?purpose file >|= only_outcome
+  validate_raw_test_string' ready_validator ?purpose file >|= outcome_only
   
 let show_outcome ?(log_outcome = false) outcome =
   if log_outcome then
