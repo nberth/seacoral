@@ -39,7 +39,7 @@ val existing_test_ids
     [sort_by_serial_num] is [true], sorts the tests in the stream by their
     serial number. *)
 val existing_tests
-    : ?exclude: Basics.Digests.t
+  : ?exclude: Basics.Digests.t
   -> ?sort_by_serial_num: bool
   -> 'raw_test corpus
   -> ('raw_test Types.test_view) Lwt_stream.t
