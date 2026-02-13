@@ -182,7 +182,7 @@ let existing_tests ?(exclude = Digests.empty) ?(sort_by_serial_num = false)
           Lwt.return (Some { raw; link; metadata })
     end |>
     Lwt.return
-  end |>  
+  end |>
   Lwt_stream.return_lwt |>
   Lwt_stream.concat |> begin fun stream ->
     if sort_by_serial_num then
