@@ -1,7 +1,0 @@
-
-[project]
-files = ["no-args.c"]
-entrypoint = "f"
-
-[run]
-tools = ["*"]
