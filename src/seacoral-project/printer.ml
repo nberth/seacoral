@@ -49,6 +49,7 @@ let pp_oracle_failures_info ppf ((_covinfo, corpus_info): Types.info) =
 let pp_preproc_error ppf = function
   | Missing_entrypoint s -> Fmt.pf ppf "Missing entrypoint %s" s
   | Missing_cover_target s -> Fmt.pf ppf "Missing cover target %s" s
+  | No_arguments -> Fmt.pf ppf "Entrypoint has no argument and no defined globals (unsupported)"
 
 let pp_setup_error ppf =
   function

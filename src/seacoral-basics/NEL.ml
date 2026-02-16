@@ -19,6 +19,8 @@ open TYPES
 
 type 'a t = 'a nel
 
+let one v = One v
+
 (** [compare_lazy cmp nel0 nel1] compares [nel0] and [nel1] using [cmp].
     [compare_lazy] is slightly more lazy than its [compare] counterpart, but the
     order is not lexicographical. *)
