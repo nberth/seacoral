@@ -216,6 +216,10 @@ let start_klee wd { workdir; seedsdir; _ }
         else Lwt.return seedsdir
   in
   let seeding_options =
+    (* If a pointer size is set to be symbolic, klee complains when
+       using seed mode.
+       We should be careful if we use constants or literals as pointer size
+       specification, in which case we should rework this check. *)
     if project_uses_symbolic_pointer_size wd.project then
       []
     else match seedsdir with
