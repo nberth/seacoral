@@ -193,6 +193,9 @@ let setup ws ~optional p =
 (* Log module for reporting klee's outputs *)
 module Log_lwt_klee = (val Ez_logs.subproc "klee")
 
+let project_uses_symbolic_pointer_size (project : _ project) =
+  project.config.project_pointer_handling.array_size_mapping <> []
+
 (* TODO: make klee options customizable *)
 let start_klee wd { workdir; seedsdir; _ }
   : (unit Sc_sys.Process.t * (unit -> unit Lwt.t)) Lwt.t =
@@ -213,14 +216,16 @@ let start_klee wd { workdir; seedsdir; _ }
         else Lwt.return seedsdir
   in
   let seeding_options =
-    match seedsdir with
-    | Some dir ->
-        [ Fmt.str "--seed-dir=%s" (Sc_sys.File.name dir);
-          "--seed-time=20s";                           (* TODO: new parameter *)
-          "--allow-seed-extension"; (* when seeding, handle unspecified inputs as symbolic *)
-          "--always-output-seeds=false" ] (* do not put seed inputs in output dir *)
-    | None ->
-        []
+    if project_uses_symbolic_pointer_size wd.project then
+      []
+    else match seedsdir with
+      | Some dir ->
+          [ Fmt.str "--seed-dir=%s" (Sc_sys.File.name dir);
+            "--seed-time=20s";                           (* TODO: new parameter *)
+            "--allow-seed-extension"; (* when seeding, handle unspecified inputs as symbolic *)
+            "--always-output-seeds=false" ] (* do not put seed inputs in output dir *)
+      | None ->
+          []
   in
   let* { env; _ } = Sc_store.for_compiled_subprocess wd.project.store in
   let* process =
