@@ -276,11 +276,20 @@ let add_cil_var_attributes ptr_config cil_var =
   and cstring =
     Sc_C.Ptr_specs.var_mem ~pointer_var ptr_config.treat_pointer_as_cstring
   in
-  match size, carray, cstring with           (* carray if in size mapping *)
-  | Some v,  _,    _ -> Sc_C.Defs.as_pointer_to_carray ~size:(`Var v) cil_var
-  | None, true,    _ -> Sc_C.Defs.as_pointer_to_carray cil_var
-  | None,    _, true -> Sc_C.Defs.as_pointer_to_cstring cil_var
-  | None,    _,    _ -> cil_var
+  match size, carray, cstring with               (* carray if in size mapping *)
+  | Some v,  _,   cs ->
+      if cs then         (* Later: return as symbolic warning to be displayed at
+                            application-level (++) *)
+        Log.warn "Ignoring@ `string'@ specification@ for@ pointer@ `%s'@ that@ \
+                  is@ already@ constrained@ as@ an@ array@ with@ size@ variable@ \
+                  `%s'." pointer_var v;
+      Sc_C.Defs.as_pointer_to_carray ~size:(`Var v) cil_var
+  | None,    true,    _ ->
+      Sc_C.Defs.as_pointer_to_carray cil_var
+  | None,       _, true ->
+      Sc_C.Defs.as_pointer_to_cstring cil_var
+  | None,       _,    _ ->
+      cil_var
 
 (** Adds attributes to function parameters based on given pointer constraints
     stored in [config] (treat_pointer_as_array/cstring & array_size_mapping) *)
@@ -306,7 +315,12 @@ let add_struct_type_attributes ~config (compinfo: Cil.compinfo) =
           config.project_pointer_handling.treat_pointer_as_cstring
       in
       match size, carray, cstring with
-      | Some f,  _,    _ ->
+      | Some f,  _,    s ->
+          if s then                                          (* cf (++) above *)
+            Log.warn "Ignoring@ `string'@ specification@ for@ pointer@ field@ \
+                      `%s'@ in@ `struct %s' that@ is@ already@ constrained@ as@ \
+                      an@ array@ with@ size@ field@ `%s'.\
+                     " pointer_field_name struct_name f;
           Sc_C.Defs.as_pointer_field_to_carray_field ~size:(`Var f) field
       | None, true,    _ ->
           Sc_C.Defs.as_pointer_field_to_carray_field field
@@ -346,10 +360,9 @@ let check_entrypoint_func ~config (func: Sc_C.Types.func_repr) =
   let discarded_globals, kept_globals =
     List.partition (fun (t, _, _) -> voidp_ t) kept_globals
   in
-  List.iter begin fun (t, f, _) ->
-    (* Later: return as symbolic warnings to be displayed at application-level *)
-    Log.warn "Ignoring@ global@ variable@ `%a'@ as it has@ an@ unsupported@ type"
-      Sc_values.Printer.cil_decl (t, f);
+  List.iter begin fun (t, f, _) ->                              (* cf (++) above *)
+    Log.warn "Ignoring@ global@ variable@ `%a'@ as@ it@ has@ an@ unsupported@ \
+              type" Sc_values.Printer.cil_decl (t, f);
   end discarded_globals;
   let _const_globals, kept_globals =
     List.partition (fun (t, _, _) -> Sc_C.Defs.const_typ t) kept_globals
