@@ -23,7 +23,8 @@ let pp_config_error ppf = function
       Fmt.pf ppf "unknown@ tools@ %a"
         Basics.PPrt.(with_oxford_comma Fmt.string) (NEL.to_list tools)
   | Invalid_pointer_specs errors ->
-      Fmt.(vbox @@ list (hbox @@ Sc_C.Printer.pp_error)) ppf
+      Fmt.(pf ppf "invalid@ pointer@ constraint@ specifications:@ %a\
+                  " @@ vbox @@ list (hbox @@ Sc_C.Printer.pp_error))
         (NEL.to_list errors)
 
 let pp_exn_lines ppf exn =

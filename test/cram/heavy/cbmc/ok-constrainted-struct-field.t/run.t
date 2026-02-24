@@ -22,7 +22,6 @@
                 10: Covered
           Coverage: (7/10) 70.0%
 
-Note: CBMC integration fails this case as harness generation assumes the size field comes BEFORE the pointer field when visited in Sc_values.
   $ seacoral --tools cbmc --config simple-rev.toml
   [A]{Sc} Starting to log into `_sc/simple-rev.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
@@ -46,6 +45,7 @@ Note: CBMC integration fails this case as harness generation assumes the size fi
                  9: Unknown
                 10: Covered
           Coverage: (7/10) 70.0%
+
   $ seacoral --tools cbmc --config complex.toml
   [A]{Sc} Starting to log into `_sc/complex.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...

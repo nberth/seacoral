@@ -33,7 +33,7 @@ let var_mem ~pointer_var (nll : pointer_refs) =
 let field_mem ~struct_name ~pointer_field_name l =
   List.mem (Struct_field { struct_name; pointer_field_name }) l
 
-let find_var ~pointer_var:pv (nlal : pointer_constraints) : string option =
+let find_size_var ~pointer_var:pv (nlal : pointer_constraints) : string option =
   List.find_map begin function
     | Distinct_variables { pointer_var; size_var } when pointer_var = pv ->
         Some size_var
@@ -42,7 +42,7 @@ let find_var ~pointer_var:pv (nlal : pointer_constraints) : string option =
         None
   end nlal
 
-let find_field ~struct_name:sn ~pointer_field_name:pn =
+let find_size_field ~struct_name:sn ~pointer_field_name:pn =
   List.find_map begin function
     | From_same_struct { struct_name; pointer_field_name; size_field_name }
       when struct_name = sn && pointer_field_name = pn ->

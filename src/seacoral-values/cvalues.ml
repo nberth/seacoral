@@ -1603,22 +1603,19 @@ module Printer = struct
       }
 
     let instructions_as_c_code ~globals ~locals (instructions: instructions) =
+      ignore globals;
       let local_names =
         Strings.of_list @@ List.rev_map Sc_C.Defs.var_name locals
-      and global_names =
-        Strings.of_list @@ List.rev_map Sc_C.Defs.var_name globals
       in
       let local_decls =
         List.filter (fun (v, _) -> Strings.mem v local_names) instructions.decls
       in
-      let filter_instrs var_names instrs =
-        List.filter begin function
-          | Assignment { ap; _ } -> Strings.mem (AP.origin' ap) var_names
-          | Alloc { ptr_ap; _ } -> Strings.mem (AP.origin' ptr_ap) var_names
-        end instrs
+      let locals_instrs, globals_instrs =
+        List.partition begin function
+          | Assignment { ap; _ } -> Strings.mem (AP.origin' ap) local_names
+          | Alloc { ptr_ap; _ } -> Strings.mem (AP.origin' ptr_ap) local_names
+        end instructions.instructions
       in
-      let locals_instrs = filter_instrs local_names instructions.instructions
-      and globals_instrs = filter_instrs global_names instructions.instructions in
       {
         pp_heap = (fun ~static:_ _ppf -> ());
         pp_globals = begin fun ppf ->

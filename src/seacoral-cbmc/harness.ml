@@ -384,6 +384,13 @@ and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) : AP.t =
 
 and emit_struct_fields:
   type s. sd:_ -> env:_ -> id:_ -> _ -> s Ctypes_static.boxed_field list -> unit =
+  (* For now, pointer/array length constraints always relate fields that belong
+     to the same `struct`. So we symbolize primitive fields before any other
+     kind of field to ensure size fields are declared and symbolized and before
+     the pointers they constrain.
+
+     Constraints with more general access paths may require two distinct
+     in-depth traversals for symbolization. *)
   fun ~sd ~env ~id ppf fields ->
   List.iter begin fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
     match ftype with

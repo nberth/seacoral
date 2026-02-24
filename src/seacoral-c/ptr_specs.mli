@@ -40,17 +40,17 @@ val field_mem
 
 (* --- *)
 
-(** [find_var ~varname gap_list] returns the name of the variable that holds the
-    size of the array referenced by a pointer [varname], if any. *)
-val find_var
+(** [find_size_var ~varname gap_list] returns the name of the variable that
+    holds the size of the array referenced by a pointer [varname], if any. *)
+val find_size_var
   : pointer_var: string
   -> pointer_constraints
   -> string option
 
-(** [find_field ~struct_name ~field_name gap_list] returns the name of the field
-    of any structure [struct_name] that holds the size of the array referenced
-    by a pointer field [field_name] in the same structure. *)
-val find_field
+(** [find_size_field ~struct_name ~field_name gap_list] returns the name of the
+    field of any structure [struct_name] that holds the size of the array
+    referenced by a pointer field [field_name] in the same structure. *)
+val find_size_field
   : struct_name: string
   -> pointer_field_name: string
   -> pointer_constraints

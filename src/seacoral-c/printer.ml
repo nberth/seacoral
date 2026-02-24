@@ -164,7 +164,7 @@ let pp_parsed_item ppf = function
 
 let pp_error ppf = function
   | Syntax_error { expected; string } ->
-      Fmt.pf ppf "syntax@ error@ in@ %S: expected@ %a" string
+      Fmt.pf ppf "syntax@ error@ in@ %S:@ expected@ %a" string
         pp_parsed_item expected
 
 (* --- *)
