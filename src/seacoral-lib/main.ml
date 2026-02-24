@@ -174,6 +174,7 @@ let generation_error err =
   raise @@ GENERATION_ERROR err
 
 let initialize_project ~initialization_options ~test_repr ~config =
+  Log.app "Initializing@ working@ environment...";
   Lwt.catch begin fun () ->
     Sc_project.Manager.initialize ~initialization_options ~test_repr ~config
   end begin function
@@ -187,16 +188,20 @@ let initialize_project ~initialization_options ~test_repr ~config =
         Lwt.reraise e
   end
 
+
+let init_check ~project_config ~encoding_params (options: generation_options) =
+  let module Raw_test = (val make_test_repr_module encoding_params) in
+  Lwt.map ignore @@
+  initialize_project
+    ~initialization_options:{ force_preprocess = options.run.force_preprocess }
+    ~test_repr:(module Raw_test)
+    ~config:project_config
+
+
 let generate ~project_config ~encoding_params (options: generation_options) =
-
   let initialization_options =
-    Sc_core.Types.{
-      force_preprocess = options.run.force_preprocess;
-    }
+    { force_preprocess = options.run.force_preprocess }
   in
-
-  Log.app "Initializing@ working@ environment...";
-
   let module Raw_test = (val make_test_repr_module encoding_params) in
   let* project =
     initialize_project ~initialization_options
@@ -311,22 +316,17 @@ let generate ~project_config ~encoding_params (options: generation_options) =
 
   Lwt.return ()
 
+
 let replay ~project_config ~encoding_params (options: replay_options) =
-
   let initialization_options =
-    Sc_core.Types.{
-      force_preprocess = options.replay_config.force_preprocess;
-    }
+    { force_preprocess = options.replay_config.force_preprocess }
   in
-
-  Log.app "Initializing@ working@ environment...";
-
   let module Raw_test = (val make_test_repr_module encoding_params) in
   let* project =
     initialize_project ~initialization_options
       ~test_repr:(module Raw_test)
-      ~config: { project_config with
-                 project_inhibit_store_autostop = true }
+      ~config:{ project_config with
+                project_inhibit_store_autostop = true }
   in
 
   let* validator = Sc_corpus.Validator.setup project.validator in

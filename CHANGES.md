@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- Argument `--initialization` to `seacoral check` to assess proper project initialization after configuration checks [#73](https://github.com/OCamlPro/seacoral/pull/73)
 - New subcommand for replaying tests only [#47](https://github.com/OCamlPro/seacoral/pull/47)
 - The association between labels and tests in the corpus [#53](https://github.com/OCamlPro/seacoral/pull/53)
 - A pretty error message when entrypoints or cover targers are missing from the C code [#52](https://github.com/OCamlPro/seacoral/pull/52)
