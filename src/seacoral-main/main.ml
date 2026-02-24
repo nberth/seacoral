@@ -11,6 +11,7 @@
 (* If you delete or rename this file, you should add
    'src/sc_main/main.ml' to the 'skip' field in "drom.toml" *)
 
+open Types
 open Sc_core.Types
 open Sc_project.Types
 
@@ -230,7 +231,7 @@ let run
     end
   and* mode =
     match mode with
-    | `Replay | `Config_check as mode ->
+    | `Replay | `Check _ as mode ->
         Lwt.return mode
     | `Generate ->
         config_step begin fun () ->
@@ -241,8 +242,14 @@ let run
     log_config_info config;
     Lwt.catch begin fun () ->
       match mode with
-      | `Config_check ->
+      | `Check { check_initialization = false } ->
           Lwt.return ()
+      | `Check { check_initialization = true } ->
+          Sc_lib.Main.init_check ~project_config ~encoding_params
+            { run = config.run;
+              enable_detailed_stats;
+              strategy = Nothing;
+              print_statistics = args.print_statistics }              (* temp *)
       | `Generate strategy ->
           Sc_lib.Main.generate ~project_config ~encoding_params
             { run = config.run;
@@ -332,9 +339,10 @@ let gen_man =
 
 let load_args ?argv () =
   let open Cmdliner.Cmd in
-  let gen_term = Options.term ~config_sections_that_show_up_as_arguments in
+  let gen_term = Options.gen_term ~config_sections_that_show_up_as_arguments in
+  let chk_term = Cmdliner.Term.product gen_term Options.check_term in
   let generate = Cmdliner.Term.map (fun options -> `Generate options) gen_term
-  and check = Cmdliner.Term.map (fun options -> `Check options) gen_term
+  and check = Cmdliner.Term.map (fun options -> `Check options) chk_term
   and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term in
   eval_value ~catch:false ?argv @@
   group ~default:generate
@@ -356,7 +364,8 @@ let load_args ?argv () =
                $(b,config initialize) sub-command)")
       (Cmdliner.Term.const `Config_init);
     v (info "check" ~man:gen_man
-         ~doc:"Check configuration and perform initial project initialization")
+         ~doc:"Check configuration and (optionally) perform initial project \
+               initialization")
       check;
     v (info "replay" ~man:gen_man
          ~doc:"Replay the current test suite without starting any test \
@@ -376,9 +385,9 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
   | Ok `Ok `Generate args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~mode:`Generate args)
-  | Ok `Ok `Check args ->
+  | Ok `Ok `Check (gen_args, check_options) ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
-                  ?enable_console_timing ~mode:`Config_check args)
+                  ?enable_console_timing ~mode:(`Check check_options) gen_args)
   | Ok `Ok `Replay args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~mode:`Replay args)

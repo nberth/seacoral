@@ -12,8 +12,11 @@ val logs_section: Types.logs_config Sc_config.Section.section
 
 val default: Types.options
 
-val term
+val gen_term
   : config_sections_that_show_up_as_arguments:
       (Sc_config.Section.any_section * [ `with_section_name_prefix
                                        | `without_section_name_prefix ]) list
   -> Types.options Cmdliner.Term.t
+
+val check_term
+  : Types.check_options Cmdliner.Term.t

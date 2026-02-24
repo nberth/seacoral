@@ -32,3 +32,9 @@ type options =                                (* TODO: split per sub-command  *)
     print_statistics: bool;
     (** When set, print statistics at the end of the run. *)
   }
+
+type check_options =
+  {
+    check_initialization: bool;
+    (** Additionally perform project initialization. *)
+  }
