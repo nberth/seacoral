@@ -66,14 +66,19 @@ open !CilShortcuts
 let postproc s =
   Stdlib.print_string s                           (* print on stdout directly *)
 
-let pp_c_code (type v) (module Val: Sc_values.Struct.VAL with type t = v) (v: v) ~vars =
-  let lit = Val.fields_as_c_literals v in
-  let c_lit = Val.Printer.literal_memory_as_c_code ~globals:[] ~locals:vars lit in
+let pp_c_code (type v) (module Val: Sc_values.Struct.VAL with type t = v)
+    (v: v) ~vars =
+  let c_lit =
+    Val.Printer.literal_memory_as_c_code ~globals:[] ~locals:vars @@
+    Val.fields_as_c_literals v
+  in
   Fmt.pr "@[<2>literal:@\n";
   Fmt.pr "heap: @[%t@]@\n" (c_lit.pp_heap ~static:false);
   Fmt.pr "vars: @[%t@]@]@\n" c_lit.pp_locals;
-  let als = Val.fields_as_c_allocations v in
-  let c_als = Val.Printer.instructions_as_c_code ~globals:[] ~locals:vars als in
+  let c_als =
+    Val.Printer.initialization_block_as_c_code ~globals:[] ~locals:vars @@
+    Val.fields_as_c_allocations v
+  in
   Fmt.pr "@[<2>allocation/initialization:@\n";
   Fmt.pr "vars: @[%t@]@]@\n" c_als.pp_locals
 

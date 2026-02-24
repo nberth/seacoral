@@ -159,7 +159,7 @@ let emit_test_file (type raw_test) ~(project: raw_test project) ~metadata ppf
     let globals = project.params.func_repr.func_env.glob_vars
     and locals = project.params.func_repr.func_args in
     if export_options.malloc_heapside_memory
-    then C_printer.instructions_as_c_code ~globals ~locals
+    then C_printer.initialization_block_as_c_code ~globals ~locals
       @@ Raw_test.Val.fields_as_c_allocations raw_test
     else C_printer.literal_memory_as_c_code ~globals ~locals
       @@ Raw_test.Val.fields_as_c_literals raw_test
@@ -249,7 +249,7 @@ let emit_testsuite_file (type raw_test) ~(project: raw_test project)
       let C_printer.{ pp_heap; pp_globals; pp_locals } =
         let globals = project.params.func_repr.func_env.glob_vars
         and locals = project.params.func_repr.func_args in
-        C_printer.instructions_as_c_code ~globals ~locals @@
+        C_printer.initialization_block_as_c_code ~globals ~locals @@
         Raw_test.Val.fields_as_c_allocations (Lazy.force raw)
       in
       ignore pp_heap; (* always a no-op (cf Sc_values...instructions_as_c_code) *)

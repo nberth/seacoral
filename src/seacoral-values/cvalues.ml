@@ -1174,7 +1174,7 @@ module type VALUE_PRINTER = sig
   type literal_memory = literal_assignments * literal_heap
   and literal_assignments
   and literal_heap
-  and instructions
+  and initialization_block
   type c_code =
     {
       pp_heap: static:bool -> PPrt.pu;
@@ -1186,10 +1186,10 @@ module type VALUE_PRINTER = sig
     -> locals: Sc_C.Types.vars
     -> literal_memory
     -> c_code
-  val instructions_as_c_code
+  val initialization_block_as_c_code
     : globals: Sc_C.Types.vars
     -> locals: Sc_C.Types.vars
-    -> instructions
+    -> initialization_block
     -> c_code
 end
 
@@ -1305,11 +1305,12 @@ module Printer = struct
         lit: lit;
       }
 
-    and instructions =
+    and initialization_block =
       {
-        instructions: instruction list;
         decls: (string * boxed_typ) list;
+        instrs: instruction list;
       }
+
     and instruction =
       | Assignment of literal_assignment
       | Alloc of
@@ -1469,7 +1470,7 @@ module Printer = struct
       in
       aux typ ap v
 
-    let fields_as_c_allocations { fields; _ } v h : instructions =
+    let fields_as_c_allocations { fields; _ } v h : initialization_block =
       let acc, decls =
         List.fold_left begin fun (acc, decls) (BoxedField f) ->
           let var = field_name f and ft = field_type f in
@@ -1477,7 +1478,7 @@ module Printer = struct
           (var, BoxedType ft) :: decls
         end ([], []) fields
       in
-      { instructions = List.rev acc; decls }
+      { instrs = List.rev acc; decls }
 
     let as_c_literal t ?lit_heap ~h v =
       let lit, lit_heap = as_c_literal t ?lit_heap ~h v in
@@ -1602,19 +1603,19 @@ module Printer = struct
         end;
       }
 
-    let instructions_as_c_code ~globals ~locals (instructions: instructions) =
+    let initialization_block_as_c_code ~globals ~locals block =
       ignore globals;
       let local_names =
         Strings.of_list @@ List.rev_map Sc_C.Defs.var_name locals
       in
       let local_decls =
-        List.filter (fun (v, _) -> Strings.mem v local_names) instructions.decls
+        List.filter (fun (v, _) -> Strings.mem v local_names) block.decls
       in
       let locals_instrs, globals_instrs =
         List.partition begin function
           | Assignment { ap; _ } -> Strings.mem (AP.origin' ap) local_names
           | Alloc { ptr_ap; _ } -> Strings.mem (AP.origin' ptr_ap) local_names
-        end instructions.instructions
+        end block.instrs
       in
       {
         pp_heap = (fun ~static:_ _ppf -> ());
@@ -2289,7 +2290,7 @@ module Struct: sig
         initializes one variable [f] for each field [f] of [v].  Each heap
         object pointed to via a field that is (transitively) reachable from any
         [f] is dynamically allocated.  *)
-    val fields_as_c_allocations: t -> Printer.instructions
+    val fields_as_c_allocations: t -> Printer.initialization_block
   end
   module type REPR = sig
     include REPR
@@ -2323,7 +2324,7 @@ end = struct
   module type VAL = sig
     include VAL with type typ := typ
     val fields_as_c_literals: t -> Printer.literal_memory
-    val fields_as_c_allocations: t -> Printer.instructions
+    val fields_as_c_allocations: t -> Printer.initialization_block
   end
 
   module type REPR = sig
