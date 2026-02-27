@@ -1,4 +1,5 @@
 /docker/Dockerfile*
+/docker/Superdockerfile*
 /docker/README.md
 _drom
 _opam
