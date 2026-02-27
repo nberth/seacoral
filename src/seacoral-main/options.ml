@@ -54,6 +54,11 @@ let default: options =
     print_statistics = false;
   }
 
+let default_check_options: check_options =
+  {
+    check_initialization = false;
+  }
+
 module Parsing = struct
   open Cmdliner
 
@@ -98,7 +103,22 @@ module Parsing = struct
     |> config_file_term
     |> config_amendments_term ?amendable_sections
 
+  (* --- `check'-specific --- *)
+
+  let check_option check_config_term =
+    let keys = ["initialization"; "init"] in
+    let doc = "Additionally perform project initialization" in
+    let v = Arg.(value & flag & info keys ~doc ~docs) in
+    let set _c b = { check_initialization = b } in
+    Term.(map set check_config_term $ v)
+
+  let check_term =
+    Term.const default_check_options |> check_option
+
 end
 
-let term ~config_sections_that_show_up_as_arguments:amendable_sections =
+let gen_term ~config_sections_that_show_up_as_arguments:amendable_sections =
   Parsing.config_term ~amendable_sections default
+
+let check_term =
+  Parsing.check_term
