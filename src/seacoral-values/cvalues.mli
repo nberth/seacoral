@@ -219,7 +219,7 @@ module type VALUE_PRINTER = sig
   type literal_memory = literal_assignments * literal_heap
   and literal_assignments
   and literal_heap
-  and instructions
+  and initialization_block
 
   (** C code used to declare and initialize C memory *)
   type c_code =
@@ -247,15 +247,15 @@ module type VALUE_PRINTER = sig
     -> literal_memory
     -> c_code
 
-  (** [instructions_as_c_code ~globals ~locals instructions] constructs printers
-      that output [instructions] in C.  This code makes use of `malloc` and
-      potentially `memcpy` to allocate and initialize heap objects.  Note
+  (** [initialization_block_as_c_code ~globals ~locals instructions] constructs
+      printers that output [instructions] in C.  This code makes use of `malloc`
+      and potentially `memcpy` to allocate and initialize heap objects.  Note
       [pp_heap] is a no-op (as the code of [instructions] does not rely on any
       static declaration or initialization of heap objects). *)
-  val instructions_as_c_code
+  val initialization_block_as_c_code
     : globals: Sc_C.Types.vars
     -> locals: Sc_C.Types.vars
-    -> instructions
+    -> initialization_block
     -> c_code
 end
 
@@ -568,7 +568,7 @@ module Struct: sig
         initializes one variable [f] for each field [f] of [v].  Each heap
         object pointed to via a field that is (transitively) reachable from any
         [f] is dynamically allocated.  *)
-    val fields_as_c_allocations: t -> Printer.instructions
+    val fields_as_c_allocations: t -> Printer.initialization_block
   end
 
   (** Structure-specific functions *)

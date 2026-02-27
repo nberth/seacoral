@@ -66,14 +66,19 @@ open !CilShortcuts
 let postproc s =
   Stdlib.print_string s                           (* print on stdout directly *)
 
-let pp_c_code (type v) (module Val: Sc_values.Struct.VAL with type t = v) (v: v) ~vars =
-  let lit = Val.fields_as_c_literals v in
-  let c_lit = Val.Printer.literal_memory_as_c_code ~globals:[] ~locals:vars lit in
+let pp_c_code (type v) (module Val: Sc_values.Struct.VAL with type t = v)
+    (v: v) ~vars =
+  let c_lit =
+    Val.Printer.literal_memory_as_c_code ~globals:[] ~locals:vars @@
+    Val.fields_as_c_literals v
+  in
   Fmt.pr "@[<2>literal:@\n";
   Fmt.pr "heap: @[%t@]@\n" (c_lit.pp_heap ~static:false);
   Fmt.pr "vars: @[%t@]@]@\n" c_lit.pp_locals;
-  let als = Val.fields_as_c_allocations v in
-  let c_als = Val.Printer.instructions_as_c_code ~globals:[] ~locals:vars als in
+  let c_als =
+    Val.Printer.initialization_block_as_c_code ~globals:[] ~locals:vars @@
+    Val.fields_as_c_allocations v
+  in
   Fmt.pr "@[<2>allocation/initialization:@\n";
   Fmt.pr "vars: @[%t@]@]@\n" c_als.pp_locals
 
@@ -101,8 +106,48 @@ let%expect_test "Struct { int x; float y }" =
       vars: int x = 1;
             float y = 0x1.5p+5 /*42*/;
     allocation/initialization:
-      vars: int x = 1;
-            float y = 0x1.5p+5 /*42*/;
+      vars: float y;
+            int x;
+            x = 1;
+            y = 0x1.5p+5 /*42*/;
+    |}]
+;;
+
+let%expect_test "Struct { struct { int i; char c; } s; }" =
+  let open Struct in
+  let open Repr (Params) in
+  let typdecls =
+    Sc_values.empty_typdecls |>
+    Sc_values.append_global_cil_declarations_to_typdecls
+      [ struct_decl "s" [ int, "i", [];
+                          char, "c", []; ] ]
+  in
+  let vars = !@[ struct_ "s", "s" ] in
+  let typ = from_cil_fields ~typdecls "t" vars in
+  [%test_eq: int] (size typ) 8;
+  [%test_eq: int list] (padding_bytes typ) [0];
+  let v = Val.blank typ in
+  Fmt.pr "%a: %S@." Val.print v (Val.to_string v);
+  Val.assign_from_literal empty_typdecls v
+    (LBMap StrMap.(empty |>
+                   add "s" @@ LBMap (empty |>
+                                     add "i" (LBStr "42") |>
+                                     add "c" (LBStr "'a'"))));
+  Fmt.pr "%a@." Val.print v;
+  pp_c_code (module Val) v ~vars;
+  postproc [%expect.output];
+  [%expect {|
+    {.s = {.i = 0, .c = '\000'}}: "\000\000\000\000\000\000\000\000"
+    {.s = {.i = 42, .c = 'a'}}
+    literal:
+      heap:
+      vars: struct s s;
+            (void) memcpy (&(s), &(struct s){.i = 42, .c = 'a'},
+                           sizeof (struct s));
+    allocation/initialization:
+      vars: struct s s;
+            (void) memcpy (&(s), &(struct s){.i = 42, .c = 'a'},
+                           sizeof (struct s));
     |}]
 ;;
 
@@ -133,8 +178,10 @@ let%expect_test "Struct { char c; int i }" =                 (* tests padding *)
       vars: char c = 'd';
             int i = -42;
     allocation/initialization:
-      vars: char c = 'd';
-            int i = -42;
+      vars: int i;
+            char c;
+            c = 'd';
+            i = -42;
     |}]
 ;;
 
@@ -168,9 +215,12 @@ let%expect_test "Struct { char c; int i; char d }" =   (* tests end-of-struct pa
             int i = -1;
             char d = 'd';
     allocation/initialization:
-      vars: char c = 'c';
-            int i = -1;
-            char d = 'd';
+      vars: char d;
+            int i;
+            char c;
+            c = 'c';
+            i = -1;
+            d = 'd';
     |}]
 ;;
 
@@ -199,9 +249,10 @@ let%expect_test "Struct { int x[2]; float y }" =
             (void) memcpy (x, (int[2]){2, -3}, sizeof (int[2]));
             float y = 0x1.5p+5 /*42*/;
     allocation/initialization:
-      vars: int x[2];
+      vars: float y;
+            int x[2];
             (void) memcpy (x, (int[2]){2, -3}, sizeof (int[2]));
-            float y = 0x1.5p+5 /*42*/;
+            y = 0x1.5p+5 /*42*/;
     |}]
 ;;
 
@@ -381,14 +432,16 @@ let%expect_test "Struct with int* field" =
             _heap_obj_0_ = 42;
       vars: int (* x) = &_heap_obj_0_;
     allocation/initialization:
-      vars: int (* x) = malloc (sizeof (int[1]));
+      vars: int (* x);
+            x = malloc (sizeof (int[1]));
             (void) memcpy (x, (int[1]){42}, sizeof (int[1]));
     literal:
       heap: int _heap_obj_0_[2];
             (void) memcpy (&(_heap_obj_0_), (int[2]){42, 24}, sizeof (int[2]));
       vars: int (* x) = _heap_obj_0_;
     allocation/initialization:
-      vars: int (* x) = malloc (sizeof (int[2]));
+      vars: int (* x);
+            x = malloc (sizeof (int[2]));
             (void) memcpy (x, (int[2]){42, 24}, sizeof (int[2]));
     |}]
 ;;
@@ -556,7 +609,8 @@ let%expect_test "Struct with char* field" =
                            "foobar\000\000\000\000\000\000\000\000\000\000\000\000\000\000",
                            sizeof (char[21]));
     allocation/initialization:
-      vars: char (* str) = malloc (sizeof (char[21]));
+      vars: char (* str);
+            str = malloc (sizeof (char[21]));
             (void) memcpy (str,
                            "foobar\000\000\000\000\000\000\000\000\000\000\000\000\000\000",
                            sizeof (char[21]));
@@ -564,7 +618,8 @@ let%expect_test "Struct with char* field" =
       heap:
       vars: char (* str) = NULL;
     allocation/initialization:
-      vars: char (* str) = NULL;
+      vars: char (* str);
+            str = NULL;
     literal:
       heap:
       vars: char str[21];
@@ -572,7 +627,8 @@ let%expect_test "Struct with char* field" =
                            "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",
                            sizeof (char[21]));
     allocation/initialization:
-      vars: char (* str) = malloc (sizeof (char[21]));
+      vars: char (* str);
+            str = malloc (sizeof (char[21]));
             (void) memcpy (str,
                            "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",
                            sizeof (char[21]));
@@ -628,17 +684,21 @@ let%expect_test "Struct with an int* field constrained with an int" =
       vars: int (* x) = NULL;
             int n = 0;
     allocation/initialization:
-      vars: int (* x) = NULL;
-            int n = 0;
+      vars: int n;
+            int (* x);
+            x = NULL;
+            n = 0;
     literal:
       heap: int _heap_obj_0_;
             _heap_obj_0_ = 42;
       vars: int (* x) = &_heap_obj_0_;
             int n = 1;
     allocation/initialization:
-      vars: int (* x) = malloc (sizeof (int[1]));
+      vars: int n;
+            int (* x);
+            x = malloc (sizeof (int[1]));
             (void) memcpy (x, (int[1]){42}, sizeof (int[1]));
-            int n = 1;
+            n = 1;
     |}]
 ;;
 
@@ -678,9 +738,11 @@ let%expect_test "Struct with an int* field constrained with a char" =
       vars: int (* x) = _heap_obj_0_;
             char c = '\002';
     allocation/initialization:
-      vars: int (* x) = malloc (sizeof (int[2]));
+      vars: char c;
+            int (* x);
+            x = malloc (sizeof (int[2]));
             (void) memcpy (x, (int[2]){42, 43}, sizeof (int[2]));
-            char c = '\002';
+            c = '\002';
     |}]
 ;;
 
@@ -750,7 +812,8 @@ let%expect_test "List of ints" =
       heap:
       vars: struct list (* list) = NULL;
     allocation/initialization:
-      vars: struct list (* list) = NULL;
+      vars: struct list (* list);
+            list = NULL;
 
     - 1-element list:
     literal:
@@ -759,7 +822,8 @@ let%expect_test "List of ints" =
                            sizeof (struct list));
       vars: struct list (* list) = &_heap_obj_0_;
     allocation/initialization:
-      vars: struct list (* list) = malloc (sizeof (struct list[1]));
+      vars: struct list (* list);
+            list = malloc (sizeof (struct list[1]));
             list[0].next = NULL;
             list[0].x = 42;
 
@@ -774,7 +838,8 @@ let%expect_test "List of ints" =
                            sizeof (struct list));
       vars: struct list (* list) = &_heap_obj_1_;
     allocation/initialization:
-      vars: struct list (* list) = malloc (sizeof (struct list[1]));
+      vars: struct list (* list);
+            list = malloc (sizeof (struct list[1]));
             list[0].next = malloc (sizeof (struct list[1]));
             list[0].next[0].next = NULL;
             list[0].next[0].x = 43;
@@ -856,10 +921,14 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             int n = 0;
             char (* f) = NULL;
     allocation/initialization:
-      vars: struct s1 (* s1) = NULL;
-            struct s2 (* s2) = NULL;
-            int n = 0;
-            char (* f) = NULL;
+      vars: char (* f);
+            int n;
+            struct s2 (* s2);
+            struct s1 (* s1);
+            s1 = NULL;
+            s2 = NULL;
+            n = 0;
+            f = NULL;
     >> _
     >>  _.s1
     >>   _.s1[0]
@@ -1135,7 +1204,11 @@ let%expect_test "Bits of everything, mostly to check output of values that \
                            "\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001",
                            sizeof (char[21]));
     allocation/initialization:
-      vars: struct s1 (* s1) = malloc (sizeof (struct s1[2]));
+      vars: char (* f);
+            int n;
+            struct s2 (* s2);
+            struct s1 (* s1);
+            s1 = malloc (sizeof (struct s1[2]));
             s1[0].s11 = malloc (sizeof (struct s1[1]));
             s1[0].s11[0].s11 = NULL;
             s1[0].s11[0].a = 16843009;
@@ -1154,7 +1227,7 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             s1[1].b = true;
             s1[1].c = malloc (sizeof (char[1]));
             (void) memcpy (s1[1].c, (char[1]){'\001'}, sizeof (char[1]));
-            struct s2 (* s2) = malloc (sizeof (struct s2[1]));
+            s2 = malloc (sizeof (struct s2[1]));
             s2[0].s12 = malloc (sizeof (struct s1[1]));
             s2[0].s12[0].s11 = NULL;
             s2[0].s12[0].a = 16843009;
@@ -1163,8 +1236,8 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             s2[0].d = 0x1.020202p-125 /*2.36943e-38*/;
             s2[0].e = malloc (sizeof (char[1]));
             (void) memcpy (s2[0].e, (char[1]){'\001'}, sizeof (char[1]));
-            int n = 1;
-            char (* f) = malloc (sizeof (char[21]));
+            n = 1;
+            f = malloc (sizeof (char[21]));
             (void) memcpy (f,
                            "\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001\001",
                            sizeof (char[21]));
@@ -1201,19 +1274,23 @@ let%expect_test "Bits of everything, mostly to check output of values that \
             int n = 2;
             char (* f) = NULL;
     allocation/initialization:
-      vars: struct s1 (* s1) = malloc (sizeof (struct s1[1]));
+      vars: char (* f);
+            int n;
+            struct s2 (* s2);
+            struct s1 (* s1);
+            s1 = malloc (sizeof (struct s1[1]));
             s1[0].s11 = malloc (sizeof (struct s1[0]));
             s1[0].a = 33686018;
             s1[0].b = 2;
             s1[0].c = malloc (sizeof (char[0]));
-            struct s2 (* s2) = malloc (sizeof (struct s2[2]));
+            s2 = malloc (sizeof (struct s2[2]));
             s2[0].s12 = malloc (sizeof (struct s1[0]));
             s2[0].d = 0x1.040404p-123 /*9.55147e-38*/;
             s2[0].e = malloc (sizeof (char[0]));
             s2[1].s12 = malloc (sizeof (struct s1[0]));
             s2[1].d = 0x1.040404p-123 /*9.55147e-38*/;
             s2[1].e = malloc (sizeof (char[0]));
-            int n = 2;
-            char (* f) = NULL;
+            n = 2;
+            f = NULL;
     |}]
 ;;

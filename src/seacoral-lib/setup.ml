@@ -122,6 +122,35 @@ let locate_files (config: config) =
   let header_dirs = List.map (fun d -> root / d) config.project.header_dirs in
   root, input_files, header_dirs, fixtures_files
 
+let parse_pointer_handling pointer_handling_config =
+  let parse_list parser =
+    List.partition_map begin fun spec ->
+      match parser spec with
+      | Ok s -> Either.left s
+      | Error e -> Either.right e
+    end
+  in
+  let treat_pointer_as_array, errs1 =
+    parse_list Sc_C.Ptr_specs.pointer_ref_of_string
+      pointer_handling_config.treat_pointer_as_array
+  and treat_pointer_as_cstring, errs2 =
+    parse_list Sc_C.Ptr_specs.pointer_ref_of_string
+      pointer_handling_config.treat_pointer_as_cstring
+  and array_size_mapping, errs3 =
+    parse_list Sc_C.Ptr_specs.pointer_constraint_of_string
+      pointer_handling_config.array_size_mapping
+  in
+  match errs1 @ errs2 @ errs3 with
+  | [] ->
+      Result.ok @@
+      Sc_project.Types.{
+        treat_pointer_as_array;
+        treat_pointer_as_cstring;
+        array_size_mapping;
+      }
+  | errs ->
+      Result.error (NEL.of_list errs)
+
 (** Configuration validation and project initialization function *)
 let project ?clean_start ~salt (config: config) =
 
@@ -136,6 +165,14 @@ let project ?clean_start ~salt (config: config) =
   then raise @@ CONFIG_ERROR Missing_entrypoint;
 
   Strategy.check_tools_spec config.run.tools;
+
+  let pointer_handling =
+    match parse_pointer_handling config.pointer_handling with
+    | Ok x ->
+        x
+    | Error errors ->
+        raise @@ CONFIG_ERROR (Invalid_pointer_specs errors)
+  in
 
   let resroot = Sc_sys.File.assume config.run.workdir / "shared" in
 
@@ -188,18 +225,7 @@ let project ?clean_start ~salt (config: config) =
     project_max_validation_concurrency = config.run.max_validation_concurrency;
     project_verbose_validation = config.run.verbose_validation;
     project_inhibit_store_autostop = false;
-    project_pointer_handling =
-      {
-        treat_pointer_as_array =
-          List.map Sc_C.Named_loc.of_string
-            config.pointer_handling.treat_pointer_as_array;
-        treat_pointer_as_cstring =
-          List.map Sc_C.Named_loc.of_string
-            config.pointer_handling.treat_pointer_as_cstring;
-        array_size_mapping =
-          List.map Sc_C.Named_loc.assoc_of_string
-            config.pointer_handling.array_size_mapping;
-      };
+    project_pointer_handling = pointer_handling;
     project_srcdir_root = srcdir_root;
   }
 

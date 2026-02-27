@@ -251,7 +251,7 @@ let pp_cstring_input ~env ~id ~buff_len ppf =
 
 (** Prints a set of instruction for allocating a pointer [id] to a dynamic size,
     but with static_calls up to a given [max_size]. *)
-let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
+let pp_static_malloc ~env ~id ~size_ap ~max_size ~typ ppf =
   let typ_size = Ctypes_static.sizeof typ in
   let n = AP.to_string id in
   let empty_array_flag = Fmt.str "empty-array:%s" n in
@@ -263,12 +263,12 @@ let pp_static_malloc ~env ~id ~size_var ~max_size ~typ ppf =
   Fmt.pf ppf "if (__empty) {@,";
   Fmt.pf ppf "  static %a;@," Sc_values.Printer.c_decl (Array (typ, 0), "x");
   Fmt.pf ppf "  %s = x;@," n;
-  Fmt.pf ppf "  __CPROVER_assume(%s == 0);@," size_var;
+  Fmt.pf ppf "  __CPROVER_assume(%s == 0);@," size_ap;
   Fmt.pf ppf "}@,";
-  Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_var n;
+  Fmt.pf ppf "else if (%s == 0) %s = 0;@," size_ap n;
   for i = 0 to max_size do
     Fmt.pf ppf "else if (%s == %i) %s = malloc(%i);@,\
-               " size_var i n (typ_size * i)
+               " size_ap i n (typ_size * i)
   done;
   Fmt.pf ppf "else __CPROVER_assume(0);";
   Fmt.pf ppf "@]@,} while (0);"
@@ -308,11 +308,11 @@ let rec make_symbolic_cons
             (size, id)).f t
       | Ctypes_static.Pointer pted ->
          Log.debug "Symbolizing pointer %a" AP.print id;
-         let pp_initialize_referenced_values ~id ~size_var ~max =
+         let pp_initialize_referenced_values ~id ~size_ap ~max =
            Fmt.pf ppf "@[<v>/* Initializing referenced values */@,";
            for cpt = 0 to max - 1 do
              let new_id = AP.append_index id cpt in
-             Fmt.pf ppf "@[<v 2>if (%s > %i) {@," size_var cpt;
+             Fmt.pf ppf "@[<v 2>if (%s > %i) {@," size_ap cpt;
              (make_symbolic_cons ~sd ~env ppf new_id).f pted;
              Fmt.pf ppf "@]@,}@,"
            done;
@@ -320,11 +320,7 @@ let rec make_symbolic_cons
          in
          Encoding.ctyp_fold_direct_access_paths t () ~f_ptr:{
              f = fun _ ap_suffix _pv () ->
-               let new_id =
-                 match ap_suffix with
-                 | None -> id
-                 | Some suff -> AP.append id suff
-               in
+               let new_id = AP.append' id ap_suffix in
                match AP.Map.find new_id sd.pointer_memory_map with
                | exception Not_found ->
                   Log.debug
@@ -332,33 +328,31 @@ let rec make_symbolic_cons
                     AP.print new_id;
                   Fmt.pf ppf "%s = 0;" (AP.to_string new_id);
                | `Carray_with_bound_length max ->
-                  let size_var = fresh_size_var () in
-                  Fmt.pf ppf "int %s = %a;@," size_var nondet_call "int";
-                  pp_static_malloc ~env ~id:new_id ~size_var ~max_size:max ~typ:pted ppf;
+                  let size_ap = fresh_size_var () in
+                  Fmt.pf ppf "int %s = %a;@," size_ap nondet_call "int";
+                  pp_static_malloc ~env ~id:new_id ~size_ap ~max_size:max ~typ:pted ppf;
                   Fmt.pf ppf "@,";
-                  pp_initialize_referenced_values ~id:new_id ~size_var ~max
+                  pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Carray_with_length_field f ->
-                  let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
-                  let size_var = AP.to_string size_ap in
-                  let BoxedType t = Sc_values.struct_field_typ f.length_field in
-                  (* Initializing the size variable if not already done *)
-                  make_symbolic_base ~env ppf (t, size_ap);
+                  (* Note: for now `f.ap_suffix` is assumed to be relative to
+                     the same structure as the visited constrained pointer
+                     field. *)
+                  let size_ap =
+                    AP.to_string @@
+                    emit_size_ap ~env ~id ~constrained_ptr_id:new_id ppf f
+                  in
                   Fmt.pf ppf "@,";
                   let max = Test_repr.Params.encoding_params.max_ptr_array_length in
-                  pp_static_malloc ~env ~id:new_id ~size_var ~max_size:max ~typ:pted ppf;
+                  pp_static_malloc ~env ~id:new_id ~size_ap ~max_size:max ~typ:pted ppf;
                   Fmt.pf ppf "@,";
-                  pp_initialize_referenced_values ~id:new_id ~size_var ~max
+                  pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Cstring ->
                   pp_cstring_input ~env ~id:new_id ppf
                     ~buff_len:Test_repr.Params.encoding_params.max_cstring_length;
                   Fmt.pf ppf "@,"
            }
       | Ctypes_static.Struct {fields; _} ->
-         List.iter
-           (fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
-             let id = AP.append_field id fname in
-             (make_symbolic_cons ~sd ~env ppf id).f ftype)
-           fields
+         emit_struct_fields ~sd ~env ~id ppf fields
       | Ctypes_static.Union {ufields = []; _} ->
          (* Is this even possible? *)
          make_symbolic_base ~env ppf (t, id)
@@ -379,6 +373,44 @@ let rec make_symbolic_cons
       | t ->
          make_symbolic_base ~env ppf (t, id)
   }
+
+and emit_size_ap ~env ~id ~constrained_ptr_id ppf (f: field_access) : AP.t =
+  if AP.suffix id = None then begin
+    (* Initialize the size variable if not already done *)
+    let size_ap = AP.HACK.forget_first_suffix_punct f.ap_suffix in
+    let BoxedType t = Sc_values.struct_field_typ f.length_field in
+    make_symbolic_base ~env ppf (t, size_ap);
+    size_ap
+  end else begin
+    AP.subst_rightmost_suffix constrained_ptr_id f.ap_suffix
+  end
+
+and emit_struct_fields:
+  type s. sd:_ -> env:_ -> id:_ -> _ -> s Ctypes_static.boxed_field list -> unit =
+  (* For now, pointer/array length constraints always relate fields that belong
+     to the same `struct`. So we symbolize primitive fields before any other
+     kind of field to ensure size fields are declared and symbolized and before
+     the pointers they constrain.
+
+     Constraints with more general access paths may require two distinct
+     in-depth traversals for symbolization. *)
+  fun ~sd ~env ~id ppf fields ->
+  List.iter begin fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
+    match ftype with
+    | Primitive _ ->
+        let id = AP.append_field id fname in
+        (make_symbolic_cons ~sd ~env ppf id).f ftype
+    | _ ->
+        ()
+  end fields;
+  List.iter begin fun (Ctypes_static.BoxedField {fname; ftype; _}) ->
+    match ftype with
+    | Primitive _ ->
+        ()
+    | _ ->
+        let id = AP.append_field id fname in
+        (make_symbolic_cons ~sd ~env ppf id).f ftype
+  end fields
 
 (** Takes a variable name [v] of type [t], and prints its symbolization
     for the CBMC harness on [ppf]. *)

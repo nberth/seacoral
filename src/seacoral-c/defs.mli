@@ -28,8 +28,15 @@ val typ : var -> Cil.typ
 (** Returns details on the attributes of an array {e type}. *)
 val carray_type_attributes: Cil.attributes -> carray_type_attrs
 
-val as_pointer_to_carray: ?size:[`Int of int | `Var of string] -> var -> var
-val as_pointer_to_cstring: var -> var
+val as_pointer_to_carray
+  : ?size:[`Int of int | `Var of string] -> var -> var
+val as_pointer_to_cstring
+  : var -> var
+
+val as_pointer_field_to_carray_field
+  : ?size:[`Int of int | `Var of string] -> Cil.fieldinfo -> Cil.fieldinfo
+val as_pointer_field_to_cstring_field
+  : Cil.fieldinfo -> Cil.fieldinfo
 
 (** [pointer_validity attrs] retrieves the kind of a pointer {e variable} or {e
     field} from its attributes [attrs]: it is either a regular C array (the
@@ -89,6 +96,10 @@ val fold_typ_defs: Cil.file -> (Cil.global -> 'a -> 'a) -> 'a -> 'a
 (** [diff_globals cil1 cil2] Performs a diff between [cil1] and [cil2] by
     relying on source file locations to check equality.  *)
 val diff_globals: Cil.file -> Cil.file -> Cil.file
+
+(** [visit_globals ~f cil] replaces every global definition [g] of the given CIL
+    file [f] with the result of [f g]. *)
+val replace_globals: f:(Cil.global -> Cil.global) -> Cil.file -> unit
 
 (* Other stuff: *)
 

@@ -120,44 +120,49 @@ type _ cov_label =
 
 (* --- *)
 
-(* TODO: rename what's below *)
+(** Representation for sets of pointer references *)
+type pointer_refs =
+  pointer_ref list
 
-type access_path_node =
-  | Access_field of string                    (** A field access (arr.field). *)
-  | Access_ptr  (** All subarrays of a pointer ( *arr, arr[1]... arr[size-1]) *)
+(** Type of pointer references *)
+and pointer_ref =
+  | Variable of
+      {
+        pointer_var: string;
+      }                                   (** Reference to a pointer variable *)
+  | Struct_field of
+      {
+        struct_name: string;
+        pointer_field_name: string;
+      }                                      (** Reference to a pointer field *)
 
-type abstract_access_path = access_path_node list               (* deprecated *)
+(** Representation for pointer constraints *)
+type pointer_constraints =
+  pointer_constraint list
 
-type named_location_prefix =
-  | Variable of string              (** Starting from a specific variable *)
-  | Struct of string                (** Starting from any struct of this type *)
+(** A single pointer constraint relates distinct variables or fields in the same
+    structure. *)
+and pointer_constraint =
+  | Distinct_variables of
+      {
+        pointer_var: string;    (** Name of the constrained pointer variable *)
+        size_var: string;       (** Name of the constraining size variable *)
+      }                         (** Constraint between two distinct variables *)
+  | From_same_struct of
+      {
+        struct_name: string;        (** The structure type name *)
+        pointer_field_name: string; (** Name of the constrained pointer field *)
+        size_field_name: string;    (** Name of the constraining size field *)
+      }               (** Constraint between two fields of the same structure *)
 
-(** A named location: can start from a variable or a generic structure type. *)
-type named_location =
-  {
-    prefix: named_location_prefix; (** the variable or structure. *)
-    access_path: abstract_access_path; (** how to access the memory location. *)
-  }
+(** {2 Errors and exceptions} *)
 
-(** A memory location associated to another variable.
-    Used to map arrays to their (variable) size. *)
-type named_loc_assoc =
-  | Separate_variables of {
-    array: named_location;
-    (** The array *)
-    size: string * abstract_access_path
-    (** The variable path of the array. *)
-  }
-  | From_same_struct of {
-      struct_name: string;
-      (** The structure type name. *)
-      array: abstract_access_path;
-      (** How to access the array from a value of type [struct_name]. *)
-      size: abstract_access_path;
-      (** How to access the arrat size from the same value than for [array]. *)
-    }
+type error =
+  | Syntax_error of { expected: parsed_item; string: string }
 
-(** {2 Exceptions} *)
+and parsed_item =
+  | Pointer_reference
+  | Pointer_constraint
 
 exception Unknown_function of string
 exception Invalid_attribute_payload of Cil.attribute

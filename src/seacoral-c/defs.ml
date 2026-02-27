@@ -29,12 +29,26 @@ let rec remove_attribute name = function
   | Cil.Attr (n, _) :: tl when n = name -> remove_attribute name tl
   | a :: tl -> a :: remove_attribute name tl                (* non-tailrec, fine *)
 
-let as_pointer_to_carray ?size (t, v, a) =
+let add_carray_attribute ?size a =
   let args = match size with Some sz -> size_arg sz | None -> [] in
-  t, v, Cil.(Attr ("carray", args)) :: remove_attribute "carray" a
+  Cil.(Attr ("carray", args)) :: remove_attribute "carray" a
+
+let as_pointer_to_carray ?size (t, v, a) =
+  t, v, add_carray_attribute ?size a
+
+let as_pointer_field_to_carray_field ?size field =
+  Cil.{ field with fattr = add_carray_attribute ?size field.fattr }
+
+let add_cstring_attribute a =
+  Cil.(Attr ("cstring", [])) :: remove_attribute "cstring" a
 
 let as_pointer_to_cstring (t, v, a) =
-  t, v, Cil.(Attr ("cstring", [])) :: remove_attribute "cstring" a
+  t, v, add_cstring_attribute a
+
+let as_pointer_field_to_cstring_field field =
+  Cil.{ field with
+        fattr = Cil.(Attr ("cstring", [])) ::
+                remove_attribute "cstring" field.fattr }
 
 let find_attribute attr_name =
   List.find_map begin function
@@ -130,6 +144,9 @@ let get_fun (fname : string) (gl : Cil.global list) : Cil.varinfo =
         loop tl
   in
   loop gl
+
+let replace_globals ~f cil =
+  Cil.mapGlobals cil f
 
 let map_filter_globals f cil =
   Cil.foldGlobals cil begin fun acc g ->
