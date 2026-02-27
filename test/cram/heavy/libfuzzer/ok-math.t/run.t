@@ -1,3 +1,4 @@
+  $ export SC_ENABLE_DETAILED_STATS=yes
   $ seacoral --config math.toml --tool libfuzzer
   [A]{Sc} Starting to log into `_sc/math.c-DC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
