@@ -356,7 +356,7 @@ let check_init_func (func: Sc_C.Types.func_repr) =
 let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
   match Sc_C.Defs.func_inputs func with
   | [] ->
-     setup_error (NEL.one No_arguments)
+     setup_error (NEL.one No_inputs)
   | inputs -> 
      try
        Sc_values.Struct.from_cil_fields ~typdecls
