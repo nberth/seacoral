@@ -7,10 +7,10 @@
   [A]{Sc} Extracting new testcases from corpus...
   [A]{Sc} Hard work done
   [A]{Sc} Coverage statistics for `obfuscated_one':
-          cov: 1 (50.0%) uncov: 0 (0.0%) unkwn: 1 (50.0%) with 1 test
-  [A]{Sc} Covered labels: {1}
+          cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
+  [A]{Sc} Covered labels: {1, 2}
   [A]{Sc} Uncoverable labels: {}
   [A]{Sc} Crash statistics: rte: none
   [A]{Sc}        1: Covered
-                 2: Unknown
-          Coverage: (1/2) 50.0%
+                 2: Covered
+          Coverage: (2/2) 100.0%
