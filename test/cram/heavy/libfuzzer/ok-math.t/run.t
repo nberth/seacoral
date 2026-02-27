@@ -1,0 +1,15 @@
+  $ seacoral --config math.toml --tool libfuzzer
+  [A]{Sc} Starting to log into `_sc/math.c-DC-@1/logs/1.log'
+  [A]{Sc} Initializing working environment...
+  [A]{Sc} Doing the hard work...
+  [A]{Sc} Launching libfuzzer on `obfuscated_one'
+  [A]{Sc} Extracting new testcases from corpus...
+  [A]{Sc} Hard work done
+  [A]{Sc} Coverage statistics for `obfuscated_one':
+          cov: 1 (50.0%) uncov: 0 (0.0%) unkwn: 1 (50.0%) with 1 test
+  [A]{Sc} Covered labels: {1}
+  [A]{Sc} Uncoverable labels: {}
+  [A]{Sc} Crash statistics: rte: none
+  [A]{Sc}        1: Covered
+                 2: Unknown
+          Coverage: (1/2) 50.0%
