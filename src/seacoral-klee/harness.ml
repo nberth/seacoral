@@ -175,6 +175,8 @@ let declare_support_functions ppf (sd: support_data) =
         | `Carray_with_bound_length l ->
             emit_carray_init sd ppf (t, ap, l, "depth")
         | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
+            (* Note: for now `ap_suffix` is assumed to be relative to the same
+               structure as the visited pointer field of type `t`. *)
             let size_ap = AP.subst_rightmost_suffix ap len_suffix in
             let BoxedType size_typ = Sc_values.struct_field_typ length_field in
             emit_constrained_carray_init sd ppf (t, ap, size_typ,

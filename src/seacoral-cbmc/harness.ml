@@ -334,6 +334,9 @@ let rec make_symbolic_cons
                   Fmt.pf ppf "@,";
                   pp_initialize_referenced_values ~id:new_id ~size_ap ~max
                | `Carray_with_length_field f ->
+                  (* Note: for now `f.ap_suffix` is assumed to be relative to
+                     the same structure as the visited constrained pointer
+                     field. *)
                   let size_ap =
                     AP.to_string @@
                     emit_size_ap ~env ~id ~constrained_ptr_id:new_id ppf f

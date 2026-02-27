@@ -97,6 +97,8 @@ let emit_struct_decoder ppf ((module Raw_test: Cvalues.Struct.REPR), inputs_stru
         | `Carray_with_bound_length ub ->
             emit_decode_carray ppf (t, ap, ub)
         | `Carray_with_length_field { ap_suffix = len_suffix; length_field } ->
+            (* Note: for now `ap_suffix` is assumed to be relative to the same
+               structure as the visited pointer field of type `t`. *)
             let ub = Raw_test.Params.encoding_params.max_ptr_array_length in
             let BoxedType size_typ = Cvalues.struct_field_typ length_field in
             let size_ap = AP.subst_rightmost_suffix ap len_suffix in
