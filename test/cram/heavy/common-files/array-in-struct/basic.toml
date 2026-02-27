@@ -1,0 +1,16 @@
+[project]
+files = ["basic.c"]
+entrypoint = "foo"
+criterion = "CC"
+
+[pointer-handling]
+treat-pointer-as-array = ["{struct t}.p"]
+max-ptr-array-length = 1
+
+[klee]
+timeout = 5
+
+[libfuzzer]
+timeout = 0
+runs = 500
+seed = 2

@@ -267,47 +267,77 @@ let extract_cils (c_file: [`C | `labelized] file) =
   let cil = Sc_C.Defs.diff_globals full_cil lib_cil in
   Lwt.return (full_cil, cil)
 
-let inputs_with_constraints pointer_handling =
-  List.fold_left begin fun acc -> function
-    | Sc_C.Types.Separate_variables { array; _ } ->
-        Strings.add (Fmt.str "%a" Sc_C.Printer.pp_named_location array) acc
-    | _ ->
-        acc
-  end Strings.empty pointer_handling.array_size_mapping
-
-let add_cil_attributes ptr_config cil_var =
-  let varname = Sc_C.Defs.var_name cil_var in
+let add_cil_var_attributes ptr_config cil_var =
+  let pointer_var = Sc_C.Defs.var_name cil_var in
   let size =
-    (* Calculating size if constrained by array_size_mapping *)
-    let sz =
-      Sc_C.Named_loc.find_assoc
-        ~varname
-        ~access_path:[]
-        ptr_config.array_size_mapping
-    in
-    Option.map begin fun (v, p) ->
-      let nl = Sc_C.Named_loc.of_varname ~access_path:p v in
-      `Var (Format.asprintf "%a" Sc_C.Printer.pp_named_location nl)
-    end sz
+    Sc_C.Ptr_specs.find_size_var ~pointer_var ptr_config.array_size_mapping
   and carray =
-    Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_array
+    Sc_C.Ptr_specs.var_mem ~pointer_var ptr_config.treat_pointer_as_array
   and cstring =
-    Sc_C.Named_loc.var_mem varname ptr_config.treat_pointer_as_cstring
+    Sc_C.Ptr_specs.var_mem ~pointer_var ptr_config.treat_pointer_as_cstring
   in
-  match size, carray, cstring with           (* carray if in size mapping *)
-  | Some _,  _,    _ -> Sc_C.Defs.as_pointer_to_carray ?size cil_var
-  | None, true,    _ -> Sc_C.Defs.as_pointer_to_carray cil_var
-  | None,    _, true -> Sc_C.Defs.as_pointer_to_cstring cil_var
-  | None,    _,    _ -> cil_var
+  match size, carray, cstring with               (* carray if in size mapping *)
+  | Some v,  _,   cs ->
+      if cs then         (* Later: return as symbolic warning to be displayed at
+                            application-level (++) *)
+        Log.warn "Ignoring@ `string'@ specification@ for@ pointer@ `%s'@ that@ \
+                  is@ already@ constrained@ as@ an@ array@ with@ size@ variable@ \
+                  `%s'." pointer_var v;
+      Sc_C.Defs.as_pointer_to_carray ~size:(`Var v) cil_var
+  | None,    true,    _ ->
+      Sc_C.Defs.as_pointer_to_carray cil_var
+  | None,       _, true ->
+      Sc_C.Defs.as_pointer_to_cstring cil_var
+  | None,       _,    _ ->
+      cil_var
 
-(** Adds attributes to function input given the array constraints
-    of the configuration module (treat_pointer_as_array/cstring &
-    array_size_mapping) *)
+(** Adds attributes to function parameters based on given pointer constraints
+    stored in [config] (treat_pointer_as_array/cstring & array_size_mapping) *)
 (* /!\ Non-variable constraints (contraints on pointers of pointers for
    example) are not stored in attributes. *)
-let add_attributes ~config func_repr =
+let add_var_attributes ~config func_repr =
   Sc_C.Defs.map_func_inputs func_repr ~f:begin fun _ v ->
-    add_cil_attributes config.project_pointer_handling v
+    add_cil_var_attributes config.project_pointer_handling v
+  end
+
+let add_struct_type_attributes ~config (compinfo: Cil.compinfo) =
+  let struct_name = compinfo.cname in
+  let cfields =
+    List.map begin fun (Cil.{ fname = pointer_field_name; _ } as field) ->
+      let size =
+        Sc_C.Ptr_specs.find_size_field ~struct_name ~pointer_field_name
+          config.project_pointer_handling.array_size_mapping
+      and carray =
+        Sc_C.Ptr_specs.field_mem ~struct_name ~pointer_field_name
+          config.project_pointer_handling.treat_pointer_as_array
+      and cstring =
+        Sc_C.Ptr_specs.field_mem ~struct_name ~pointer_field_name
+          config.project_pointer_handling.treat_pointer_as_cstring
+      in
+      match size, carray, cstring with
+      | Some f,  _,    s ->
+          if s then                                          (* cf (++) above *)
+            Log.warn "Ignoring@ `string'@ specification@ for@ pointer@ field@ \
+                      `%s'@ in@ `struct %s' that@ is@ already@ constrained@ as@ \
+                      an@ array@ with@ size@ field@ `%s'.\
+                     " pointer_field_name struct_name f;
+          Sc_C.Defs.as_pointer_field_to_carray_field ~size:(`Var f) field
+      | None, true,    _ ->
+          Sc_C.Defs.as_pointer_field_to_carray_field field
+      | None,    _, true ->
+          Sc_C.Defs.as_pointer_field_to_cstring_field field
+      | None,    _,    _ ->
+          field
+    end compinfo.cfields
+  in
+  { compinfo with cfields }
+
+let add_global_type_attributes ~config cil =
+  Sc_C.Defs.replace_globals cil ~f:begin function
+    | GCompTag ({ cstruct; _ } as s, loc) when cstruct ->
+        GCompTag (add_struct_type_attributes ~config s, loc)
+    | x ->
+        x
   end
 
 let rec voidp_: Cil.typ -> bool = function
@@ -330,10 +360,9 @@ let check_entrypoint_func ~config (func: Sc_C.Types.func_repr) =
   let discarded_globals, kept_globals =
     List.partition (fun (t, _, _) -> voidp_ t) kept_globals
   in
-  List.iter begin fun (t, f, _) ->
-    (* Later: return as symbolic warnings to be displayed at application-level *)
-    Log.warn "Ignoring@ global@ variable@ `%a'@ as it has@ an@ unsupported@ type"
-      Sc_values.Printer.cil_decl (t, f);
+  List.iter begin fun (t, f, _) ->                              (* cf (++) above *)
+    Log.warn "Ignoring@ global@ variable@ `%a'@ as@ it@ has@ an@ unsupported@ \
+              type" Sc_values.Printer.cil_decl (t, f);
   end discarded_globals;
   let _const_globals, kept_globals =
     List.partition (fun (t, _, _) -> Sc_C.Defs.const_typ t) kept_globals
@@ -362,22 +391,12 @@ let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
     elaboration_error
       (Unknown_formals { formals = Strings.singleton field_name; func })
 
-(* NB: just checking there are no extraneous inputs *)
-(* TODO: check those that are ok are actually pointers (could be done
-   Sc_values?) *)
-let[@warning "-unused-value-declaration"] check_array_size_mapping ~config func =
-  let inputs = Sc_C.Defs.(varset @@ func_inputs func) in
-  let inputs_with_constraints
-    = inputs_with_constraints config.project_pointer_handling in
-  let unknown_inputs = Strings.diff inputs_with_constraints inputs in
-  if not (Strings.is_empty unknown_inputs) then
-    elaboration_error @@ Unknown_formals { formals = unknown_inputs; func }
-
 let setup_for ~config ~test_repr ~c_file =
   let* full_cil, cil = extract_cils c_file in
   patch_cil_file_types full_cil;
   let cil_typing_info = patch_and_inspect_cil_file_types cil in
   (* TODO: add Sc_values-specific attributes to some of the types *)
+  add_global_type_attributes ~config full_cil;    (* Note: after CIL patching *)
   let typdecls = Sc_values.typdecls_from_cil_file full_cil in
   (* TODO: extract globals/function environment from the function
      representation. *)
@@ -392,7 +411,7 @@ let setup_for ~config ~test_repr ~c_file =
     | fn -> Some (Sc_C.Defs.cil_func cil fn)             (* TODO: check_oracle *)
   in
   (* check_array_size_mapping ~config func_repr; *)
-  let func_repr = add_attributes ~config func_repr in
+  let func_repr = add_var_attributes ~config func_repr in
   let func_repr = check_entrypoint_func ~config func_repr in
   let test_struct = test_struct ~typdecls func_repr in
   let seek_oracle_failures = config.project_problem.seek_oracle_failures in

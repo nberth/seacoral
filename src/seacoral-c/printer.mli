@@ -49,16 +49,12 @@ val pp_func_env: func_env Fmt.t
     declaration. *)
 val pp_fundecl: ?enable_static_attr:bool -> func_repr Fmt.t
 
-(** Pretty prints a named location prefix. *)
-val pp_named_location_prefix : Format.formatter -> named_location_prefix -> unit
+(* --- *)
 
-(** Pretty prints a named location.
-    It may be used as a valid C identifier, but pointer accesses with offset
-    `'All` are set to the first case of the array ("[0]"). *)
-val pp_named_location : Format.formatter -> named_location -> unit
+(** {2 Pointer specifications} *)
 
-(** Prints a named loc assoc as a pair of named locations. *)
-val pp_named_loc_assoc : Format.formatter -> named_loc_assoc -> unit
+val pp_pointer_ref: pointer_ref Fmt.t
+val pp_pointer_constraint: pointer_constraint Fmt.t
 
 (* --- *)
 
@@ -83,3 +79,9 @@ val emit_testcall
   -> ?oracle_func: func_repr
   -> 'a
   -> Format.formatter -> unit
+
+(* --- *)
+
+(** {2 Errors} *)
+
+val pp_error: error Fmt.t

@@ -8,23 +8,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
-{ open Named_loc_parser }
+{ open Ptr_specs_parser }
 
 let cid =
   ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_' ]*
-
-let num = [ '0'-'9' ]+
 
 rule token = parse
   | [' ' '\t'] { token lexbuf }	(* Skip blanks *)
   | eof | "\n" { EOL }          (* End of the parsing *)
 
   (* Expression separator *)
-  | "->" { ARROW }
+  | "{" { LEFT_BRACKET }
+  | "}" { RIGHT_BRACKET }
+  | "struct" { STRUCT_KWD }
   | "." { DOT }
-  | "{struct " (cid as id) "}" { STRUCT id }
   | ":" { COLON }
-  | "[_]" { BRACKETED_UNDERSCORE }
 
   (* When no other word has been found *)
   | cid as id { ID id }
