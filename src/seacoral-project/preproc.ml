@@ -383,13 +383,17 @@ let check_init_func (func: Sc_C.Types.func_repr) =
   func
 
 let test_struct ~typdecls (Sc_C.Types.{ func_name; _ } as func) =
-  try
-    Sc_values.Struct.from_cil_fields ~typdecls
-      (Format.asprintf "__%s_inputs" func_name)
-      (Sc_C.Defs.func_inputs func)
-  with Sc_values.TYPES.SPECIFICATION_ERROR Unknown_field { field_name; _ } ->
-    elaboration_error
-      (Unknown_formals { formals = Strings.singleton field_name; func })
+  match Sc_C.Defs.func_inputs func with
+  | [] ->
+     setup_error (NEL.one No_inputs)
+  | inputs -> 
+     try
+       Sc_values.Struct.from_cil_fields ~typdecls
+         (Format.asprintf "__%s_inputs" func_name)
+         inputs
+     with Sc_values.TYPES.SPECIFICATION_ERROR Unknown_field { field_name; _ } ->
+       elaboration_error
+         (Unknown_formals { formals = Strings.singleton field_name; func })
 
 let setup_for ~config ~test_repr ~c_file =
   let* full_cil, cil = extract_cils c_file in

@@ -15,6 +15,7 @@ module TYPES: sig
 end
 type 'a t = 'a TYPES.nel
 
+val one : 'a -> 'a t
 val compare_lazy: ('a -> 'a -> int) -> 'a t -> 'a t -> int
 val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
 val equal: ('a -> 'a -> bool) -> 'a t -> 'a t -> bool

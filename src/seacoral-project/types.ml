@@ -163,6 +163,7 @@ and combined_tests_in_testsuite =
 type preproc_error =
   | Missing_entrypoint of string
   | Missing_cover_target of string
+  | No_inputs
 
 type setup_error =
   | Ltest of Sc_ltest.Types.error
