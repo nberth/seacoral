@@ -13,6 +13,7 @@
 - On the fly reporting and interpretation of CBMC results [#22](https://github.com/ocamlpro/seacoral/pull/22)
 
 ### Fixed
+- Improper handling of timeout behavior on CBMC that closes inputs while being read [#76](https://github.com/OCamlPro/seacoral/pull/76)
 - Missing external libraries while compiling the validator [#74](https://github.com/OCamlPro/seacoral/pull/74)
 - Deactivation of klee's seeding mode when specifying symbolic size arrays [#72](https://github.com/OCamlPro/seacoral/pull/72)
 - Improper failure handling on empty set on inputs [#70](https://github.com/OCamlPro/seacoral/pull/70)
