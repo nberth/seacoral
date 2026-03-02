@@ -45,6 +45,13 @@ reset-versions:
 	     done' _ {} \+;                                                    \
 	fi
 
+# Check that `docker/Superdockerfile` is properly generated from
+# `docker/Dockerfile` via `docker/Superdockerfile.patch`.
+.PHONY: check-superdockerfile
+check-superdockerfile:
+	patch -o - docker/Dockerfile docker/Superdockerfile.patch |	\
+	diff  -u - docker/Superdockerfile
+
 # Make sure `make opam` proceeds even though there exists an `opam`
 # subdirectory.
 .PHONY: opam

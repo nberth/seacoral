@@ -1,5 +1,7 @@
 /docker/Dockerfile*
+/docker/Superdockerfile*
 /docker/README.md
+/.gitattributes
 _drom
 _opam
 _build
