@@ -94,3 +94,15 @@ jobs:
            echo '```'
            echo "${{ steps.meta.outputs.tags }}"
            echo '```'
+
+  check-superdockerfile:
+    name: Check Superdockerfile w.r.t Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v5
+      -
+        name: Check docker/Superdockerfile and its patch against docker/Dockerfile
+        run: |
+          make check-superdockerfile

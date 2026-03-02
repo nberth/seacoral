@@ -72,15 +72,6 @@ RUN echo >/etc/apt/sources.list.d/trixie.list                                  \
 # Creating the executable image. It comes with base tools and seacoral itself
 FROM base AS executable
 
-# # Create a dedicated user
-# RUN adduser --comment "Reef explorer" diver \
-#  && adduser --group divers \
-#  && adduser diver divers \
-#  && usermod --append --groups sudo diver \
-#  && echo >>/etc/sudoers "diver ALL = NOPASSWD:ALL"
-# USER diver
-# WORKDIR /home/diver
-
 # Be sure to source `~/.profile` so we don't have to `eval $(opam
 # env)` manually.
 SHELL ["/bin/bash","-l","-c"]
