@@ -247,9 +247,14 @@ let cbmc_generic_process
   in
   Lwt.async begin fun () ->
     let oc = Lwt_io.of_fd outputs_fd ~mode:Output in
-    let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
-    Lwt_io.close oc
-  end;
+    Lwt.catch
+      (fun () -> 
+        let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
+        Lwt_io.close oc)
+      (fun _exn ->
+        Lwt_io.close oc
+      )
+    end;
   Lwt.return (decode_cbmc_output_stream encoding output_lines, cancel_kill)
 
 (* From the lannot label identifier, returns the corresponding error label for CBMC *)
