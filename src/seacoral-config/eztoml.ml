@@ -350,17 +350,17 @@ let pp_spec_doc ppf (Spec (t, _, doc)) =
   pp_doc (pp_of_typ t) doc ppf
 
 let buff = Buffer.create 80
-let pp_spec_doc_comments: Format.formatter -> _ spec -> unit = fun ppf spec ->
+let pp_spec_doc_comments: prefix:string -> Format.formatter -> _ spec -> unit = fun ~prefix ppf spec ->
   Buffer.clear buff;
   let bppf = Fmt.with_buffer buff in
   Format.pp_set_geometry ~max_indent:72 ~margin:78 bppf;
   Fmt.pf bppf "@[%a@]%!" pp_spec_doc spec;
   let doc_lines = String.split_on_char '\n' (Buffer.contents buff) in
-  List.iter (Fmt.pf ppf "# %s@;") doc_lines
+  List.iter (Fmt.pf ppf "%s%s@;" prefix) doc_lines
 
 let print_row_as_toml_line ?(with_doc=true) ?value
     ppf { key; spec = Spec (t, {get; _}, doc) as spec; _} =
-  if with_doc then pp_spec_doc_comments ppf spec;
+  if with_doc then pp_spec_doc_comments ~prefix:"# " ppf spec;
   match value with
   | Some v ->
       Fmt.pf ppf "%s = %a@;" key (pp_of_typ t) (get v)
@@ -388,6 +388,23 @@ let print_as_toml_file ?with_doc ?value ppf ((main_key, schema): string * 'a sch
     Fmt.pf ppf "%a@;" (print_row_as_toml_line ?with_doc ?value) row
   end schema;
   Fmt.pf ppf "@]@\n@]"
+
+let print_as_rst_file ppf ((main_key, schema): string * 'a schema) =
+  let title =
+    Fmt.str "%s configuration options [%s]" (String.capitalize_ascii main_key) main_key
+  in
+  let underline = String.make (String.length title) '~' in
+  Fmt.pf ppf
+    "@[<v 0>%s\
+     @;%s\
+     @;@;" title underline;
+  Hashtbl.iter (fun _ row ->
+    Fmt.pf ppf "- @[<v 0>`%s` %s: %a@]@;"
+      row.key
+      (if row.runtime then "[runtime knob]" else "[project-defining knob]")
+      (pp_spec_doc_comments ~prefix:"") row.spec
+    ) schema;
+  Fmt.pf ppf "@]@;@;"     
 
 (** Cmdliner helpers *)
 

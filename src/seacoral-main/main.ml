@@ -109,6 +109,17 @@ let init_config_file () =                           (* TODO: `init_args` type *)
             " Sc_sys.File.print file;
     Cmdliner.Cmd.Exit.cli_error
 
+let gen_config_doc () =
+  let file = Sc_sys.File.assume "seacoral.rst" in
+  let () =
+    let> chan = file in
+    Sc_config.Section.print_config_rst_doc
+      (Format.formatter_of_out_channel chan) ~head:first_config_sections
+  in
+  Fmt.pr "@[<hov>Configuration@ documentation@ saved@ in@ %a@]@.\
+          " Sc_sys.File.print file;
+  Cmdliner.Cmd.Exit.ok
+
 (** Start log reporting; returns a function to close any underlying log file. *)
 let with_logging ?(enable_logfile = true) ~project_config f =
   if not enable_logfile then
@@ -359,6 +370,8 @@ let load_args ?argv () =
                           configuration file")
         (Cmdliner.Term.const `Config_show_toml);
     ];
+    v (info "gen-rst-doc" ~doc:"Dump a configuration file with default options")
+      (Cmdliner.Term.const `Gen_config_doc);
     v (info "initialize"                       (* alias for config initialize *)
          ~doc:"Dump a configuration file with default options (alias for \
                $(b,config initialize) sub-command)")
@@ -382,6 +395,8 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
       show_toml_documentation ()
   | Ok `Ok `Config_init ->
       init_config_file ()
+  | Ok `Ok `Gen_config_doc ->
+      gen_config_doc ()
   | Ok `Ok `Generate args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~mode:`Generate args)

@@ -33,11 +33,16 @@ build-deps:
 .PHONY: doc-common odoc view sphinx
 doc-common: build
 	mkdir -p _drom/docs
-	rsync -auv docs/. _drom/docs/.
+	rsync -auv _drom/docs/. docs/.
 
-sphinx: doc-common
+.venv/.sphinx-ready:
+	python3 -m venv .venv
+	.venv/bin/pip install sphinx myst-parser
+	touch .venv/.sphinx-ready
+
+sphinx: .venv/.sphinx-ready doc-common
 	./scripts/before.sh sphinx ${SPHINX_TARGET}
-	sphinx-build sphinx ${SPHINX_TARGET}
+	.venv/bin/sphinx-build -M html sphinx ${SPHINX_TARGET}
 	./scripts/after.sh sphinx  ${SPHINX_TARGET}
 
 odoc: doc-common
@@ -81,7 +86,7 @@ clean:
 	./scripts/after.sh clean
 
 distclean: clean
-	rm -rf _opam _drom
+	rm -rf _opam _drom .venv
 	./scripts/after.sh distclean
 
 -include Makefile.trailer

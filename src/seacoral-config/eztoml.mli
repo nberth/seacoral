@@ -138,6 +138,10 @@ val print_as_toml_file :
   ?with_doc:bool -> ?value: 'a ->
   Format.formatter -> string * 'a schema -> unit
 
+(** Prints the schema as a restructured documentation file. *)
+val print_as_rst_file :
+  Format.formatter -> string * 'a schema -> unit
+
 val manpage_section_name: string -> string
 
 (** [as_section_update_cmdliner_term ~prefix section_schema section_term]
