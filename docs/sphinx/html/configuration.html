@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tool configuration &mdash; seacoral doc
- (ad9b9209
-) (2026/03/09 16:05) documentation</title>
+ (1ace3053
+) (2026/03/09 16:42) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f6669c3f"></script>
+      <script src="_static/documentation_options.js?v=12bcb9a2"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -353,7 +353,22 @@ analysis or tests generation is started (default: [])</p></li>
 </ul>
 <section id="about-pointer-specification">
 <h4>About pointer specification<a class="headerlink" href="#about-pointer-specification" title="Link to this heading"></a></h4>
-<p>TODO: rewrite specification</p>
+<p>The core configuration options <cite>treat_pointer_as_array/cstring</cite> require a list of pointers.
+It is possible to directly specify inputs or fields of a given structure.
+Examples</p>
+<ul class="simple">
+<li><p><cite>treat-pointer-as-array = [“foo”]</cite>: input <cite>foo</cite> is not only a pointer, but an array with
+several elements whose size is bounded by <cite>max-ptr-array-length</cite>.</p></li>
+<li><p><cite>treat-pointer-as-cstring = [{struct t}.p]</cite>: all values of type <cite>struct t</cite> in the input
+has a field <cite>p</cite> that must be a a <cite>char*</cite> and is a string.</p></li>
+</ul>
+<p>A similar syntax is used for <cite>array-size-mapping</cite>: this list is a list of pairs of
+named locations separated by ‘:’.</p>
+<ul class="simple">
+<li><p><cite>array-size-mapping=[arr:N]</cite>: the input <cite>arr</cite> is an array that must have size <cite>N</cite>.</p></li>
+<li><p><cite>array-size-mapping=[{struct s}:a:N]</cite>: all values of type <cite>struct s</cite> in the input
+has a field <cite>a</cite> that is an array of <cite>N</cite>.</p></li>
+</ul>
 </section>
 </section>
 </section>

@@ -307,34 +307,33 @@ unit-testing. Still, in some cases, it is interesting to force some values. A te
 with null pointers leading to errors does not form the best coverage set. By assuming
 pointers are not null, we can generate prettier test sets.
 
-Options
--------
+Execution modes
+---------------
 
-seacoral [OPTIONS]
+Seacoral has six different execution modes. Each mode can be run with `$ seacoral [MODE]`.
 
-Launches the SeaCoral orchestrator. The following OPTIONS are available:
+=========== ==========================================================================================
+Mode
+=========== ==========================================================================================
+check       Check configuration and (optionally) perform initial project initialization
+config      Managing configurations
+gen-rst-doc Dump a configuration documentation (RST format)
+generate    Generate tests (default action)
+initialize  Dump a configuration file with default options (alias for seacoral initialize) sub-command
+replay      Replay the current test suite without starting any test generation tool
+=========== ==========================================================================================
 
-==========================  ====================================================================
-Options                     Documentation
-==========================  ==================================================================== 
-``-C``                      Uses a :ref:`configuration file<Configuration>`.
-``--check-config-only``     Only checks the configuration.
-``--clean-start``           Removes the project with the same hash before starting its analysis.
-``--criterion``             Coverage criterion.
-``--debug``                 Selects the console log level.
-``--disable-syntax-check``  Disable check for syntax errors in input files prior to labeling.
-``--enable-syntax-check``   Enables check for syntax errors in input files (the default).
-``--entrypoint``            Selects the function to analyze.
-``--external-libs``         External libraries required to compile the project.
-``--files``                 The list of files of the project.
-``--force-preprocess``      Forces the preprocessing, even if it already has been performed.
-``--functions-to-cover``    Lists the functions to cover.
-``-I``                      The list of directories to be searched for header files.
-``--init``                  Generates a default configuration file.
-``--inputs``                The input files.
-``--name``                  The name of the project.
-``--show-toml-doc``         Print the configuration documentation and gracefully exit.
-``--tools``                 Selects the tools to use for the tests.
-``--workdir``               Directory where the working files are stored (default: _sc).
-``--help``                  Display the list of options.
-==========================  ====================================================================
+All these modes has a common set of options.
+
+========================== ===================================================================================
+Option                     Documentation
+========================== ===================================================================================
+-C, --config               Use the given configuration file
+--clean-start              Remove the project with the same hash before starting its analysis (default: false)
+--stats, --show-statistics Print statistics of the current run
+--version                  Show version information.
+========================== ===================================================================================
+
+When run, seacoral will use the options defined in the `seacoral` configuration file specified
+with the `-C` option.
+More information on seacoral configuration in Section :ref:`configuration`.

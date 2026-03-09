@@ -370,7 +370,7 @@ let load_args ?argv () =
                           configuration file")
         (Cmdliner.Term.const `Config_show_toml);
     ];
-    v (info "gen-rst-doc" ~doc:"Dump a configuration file with default options")
+    v (info "gen-rst-doc" ~doc:"Dump a configuration documentation (RST format)")
       (Cmdliner.Term.const `Gen_config_doc);
     v (info "initialize"                       (* alias for config initialize *)
          ~doc:"Dump a configuration file with default options (alias for \

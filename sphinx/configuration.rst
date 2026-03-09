@@ -6,15 +6,15 @@ Tool configuration
 Configuration file
 ------------------
 
-SeaCoral can be configured differently via a `toml` file with the option `-c`.
+SeaCoral can be configured differently via a `toml` file with the option `-C`.
 
-Options can be `project-wide` or `runtime`, depending on how they influence
-the analysis. If a `project-wide` option is changed between two analyses,
+Options can be `project-defining` or `runtime`, depending on how they influence
+the analysis. If a `project-defining` option is changed between two analyses,
 a new separate project will be created and the old results will not be used.
 If a `runtime` option is changed beween two analyses, it will re-use the
 previous project.
 
-Note that you can generate a new configuration file with the option `--init`.
+Note that you can generate a new configuration file with `$ seacoral init`.
 It will create a `seacoral.toml` that you can use to start the analysis.
 
 .. The following documentation can be generated with "$ seacoral gen-rst-doc".
@@ -357,6 +357,15 @@ named locations separated by ':'.
   It also is possible for a structure to reference itself:
   `{struct:t}.y:.N` states that for any structure `s` of type `t` in the input,
   `s.y` is an array whose size must be equal to `s.N`.
+
+Command line
+------------
+
+Previous options can be accessed via the command line interface with their key
+(for example, `$ seacoral --force-preprocess`). Both the configuration file and
+CLI arguments can be used; CLI arguments will override keys set up in the
+configuration file.
+
 
 
 Environment variables
