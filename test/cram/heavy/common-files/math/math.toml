@@ -1,0 +1,16 @@
+[project]
+files = ["math.c"]
+criterion = "DC"
+entrypoint = "obfuscated_one"
+external-libs = ["m"]
+
+[cbmc]
+timeout = 5
+
+[klee]
+timeout = 30.000
+
+[libfuzzer]
+timeout = 0
+runs = 1000
+seed = 42

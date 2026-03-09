@@ -301,7 +301,9 @@ let elaborate ~test_repr ({ workspace; codebase; config; label_data;
         init_func = params.init_func;
         oracle_func =
           if params.seek_oracle_failures then params.oracle_func else None;
-        labelized_file = label_data.labelized_file }
+        labelized_file = label_data.labelized_file;
+        external_libs = config.project_problem.external_libs
+      }
   in
   let* covinfo = Sc_store.covinfo store in
   let labels = update_labels_status ~covinfo labels in

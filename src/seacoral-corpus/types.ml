@@ -44,6 +44,7 @@ type 'r validator_params =
     validator_verbosity: int;  (** when strictly positive, enable some logging
                                    from validation executables (only one level
                                    for now) *)
+    external_libs : string list
   }
 
 (** A type that enables tools to either retrieve an actual test inputs value
