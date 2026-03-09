@@ -247,12 +247,10 @@ let cbmc_generic_process
   in
   let _stream_writer : unit Lwt.t = (* Using async makes the whole run die *)
     let oc = Lwt_io.of_fd outputs_fd ~mode:Output in
-    Lwt.catch begin fun () -> 
-      let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
+    Lwt.finalize begin fun () -> 
+      Lwt_io.write_lines oc (Lwt_stream.clone output_lines)
+    end begin fun () ->
       Lwt_io.close oc
-    end begin fun exn ->
-      let* () = Lwt_io.close oc in
-      Lwt.reraise exn
     end
   in
   Lwt.return (decode_cbmc_output_stream encoding output_lines, cancel_kill)
