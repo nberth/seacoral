@@ -3,8 +3,8 @@
   [A]{Sc} Initializing working environment...
   [A]{Sc} Doing the hard work...
   [A]{Sc} Launching cbmc on `obfuscated_one'
-  [E]{Sc_cbmc} Input channel closed while reading it. Maybe due to CBMC
-               timeout.
+  [E]{Sc_cbmc} Input channel closed unexpectedly: this is likely due to CBMC
+               reaching its timeout.
   [A]{Sc} Extracting new testcases from corpus...
   [A]{Sc} Hard work done
   [A]{Sc} Coverage statistics for `obfuscated_one':

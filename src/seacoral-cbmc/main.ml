@@ -260,7 +260,8 @@ let run wd : unit Lwt.t =
     begin fun exn ->
     match exn with
     | Lwt_io.Channel_closed "input" ->
-       Log.LWT.err "Input@ channel@ closed@ while@ reading@ it.@ Maybe@ due@ to@ CBMC@ timeout."
+       Log.LWT.err "Input@ channel@ closed@ unexpectedly: \
+                    this@ is@ likely@ due@ to@ CBMC@ reaching@ its@ timeout."
     | exn -> Lwt.reraise exn
     end
 
