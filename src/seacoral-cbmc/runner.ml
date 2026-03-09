@@ -245,16 +245,17 @@ let cbmc_generic_process
     (* TODO: move to toplevel seacoral-cbmc to avoid carrying the store here *)
     Sc_store.on_termination store ~h:(fun _ -> Sc_sys.Process.terminate proc)
   in
-  Lwt.async begin fun () ->
+  let _stream_writer : unit Lwt.t = (* Using async makes the whole run die *)
     let oc = Lwt_io.of_fd outputs_fd ~mode:Output in
     Lwt.catch
       (fun () -> 
         let* () = Lwt_io.write_lines oc (Lwt_stream.clone output_lines) in
         Lwt_io.close oc)
-      (fun _exn ->
-        Lwt_io.close oc
+      (fun exn ->
+        let* () = Lwt_io.close oc in
+        Lwt.reraise exn
       )
-    end;
+  in
   Lwt.return (decode_cbmc_output_stream encoding output_lines, cancel_kill)
 
 (* From the lannot label identifier, returns the corresponding error label for CBMC *)
