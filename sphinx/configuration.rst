@@ -316,7 +316,21 @@ Test-runner configuration options [test-runner]
 About pointer specification
 ...........................
 
-TODO: rewrite specification
+The core configuration options `treat_pointer_as_array/cstring` require a list of pointers.
+It is possible to directly specify inputs or fields of a given structure.
+Examples
+
+- `treat-pointer-as-array = ["foo"]`: input `foo` is not only a pointer, but an array with
+  several elements whose size is bounded by `max-ptr-array-length`.
+- `treat-pointer-as-cstring = [{struct t}.p]`: all values of type `struct t` in the input
+  has a field `p` that must be a a `char*` and is a string. 
+
+A similar syntax is used for `array-size-mapping`: this list is a list of pairs of
+named locations separated by ':'.
+
+- `array-size-mapping=[arr:N]`: the input `arr` is an array that must have size `N`.
+- `array-size-mapping=[{struct s}:a:N]`: all values of type `struct s` in the input
+  has a field `a` that is an array of `N`.
 
 ..
   The core configuration options `treat_pointer_as_array/cstring` require a list
