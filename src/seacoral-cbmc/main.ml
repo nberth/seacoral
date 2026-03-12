@@ -250,12 +250,20 @@ let handle_properties (type raw_test) (wd: raw_test working_data)
     ~elapsed_time:time ~tests_generated:(List.length test_inputs)
 
 let run wd : unit Lwt.t =
-  let* to_cover = properties_to_verify wd in
-  match to_cover with
-  | None ->
-      Lwt.return ()
-  | Some to_cover ->
-      handle_properties wd to_cover
+  Lwt.catch begin fun () ->
+    let* to_cover = properties_to_verify wd in
+    match to_cover with
+    | None ->
+       Lwt.return ()
+    | Some to_cover ->
+       handle_properties wd to_cover end
+    begin fun exn ->
+    match exn with
+    | Lwt_io.Channel_closed "input" ->
+       Log.LWT.err "Input@ channel@ closed@ unexpectedly:@ \
+                    this@ is@ likely@ due@ to@ CBMC@ reaching@ its@ timeout."
+    | exn -> Lwt.reraise exn
+    end
 
 let read_prev_mode workspace =
   Lwt.catch begin fun () ->
