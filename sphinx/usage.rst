@@ -8,8 +8,8 @@ Simple example
 
 .. TODO: redo the logs to match the current version of the tool
 
-Workflow
-~~~~~~~~
+Seacoral's workflow
+~~~~~~~~~~~~~~~~~~~
 
 Consider the following example with a single condition.
 
@@ -50,8 +50,9 @@ the code is reachable. SeaCoral will work as follows.
 
   We have two `pc_label` s, one for each function branch: `i < 0` and `i ≥ 0`.
 
-2. Then, `sc` calls a given set of tools to analyze the labelized C code.
-   The tools orchestrated by `sc` are `klee`, `libfuzzer`, `cbmc` and `luncov`.
+2. Then, `seacoral` calls a given set of tools to analyze the labelized C code.
+   The tools orchestrated by `seacoral` are `klee`, `libfuzzer`, `cbmc` and
+   `luncov`.
    Each of them create a custom harness where each `pc_label` correspond to specific
    instructions built from tool internals.
 
@@ -66,46 +67,56 @@ Running `seacoral` on this file with `klee` will automatically start the previou
   .. code-block::
 
     $ seacoral --files get_sign.c --entrypoint get_sign --tools klee
-    {Sc_main.Init} Starting to log into `_sc/get_sign.c-CC-@1/logs/1.log`
-    {Sc} Initializing working environment
-    {Sc} Preprocessing `get_sign' (get_sign.c)
-    {Sc} Doing the hard work...
-    {Sc} Launching klee on `get_sign' (get_sign.c)
-    {Sc} Updating static database with new inputs...
-    {Sc} Hard work done
-    {Sc} Coverage statistics for `get_sign' (get_sign.c): cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
-    {Sc} Covered labels: {1, 2}
+    [A]{Sc} Starting to log into `_sc/get_sign.c-CC-@3/logs/1.log'
+    [A]{Sc} Initializing working environment...
+    [A]{Sc} Doing the hard work...
+    [A]{Sc} Launching klee on `get_sign'
+    [A]{Sc} Extracting new testcases from corpus...
+    [A]{Sc} Hard work done
+    [A]{Sc} Coverage statistics for `get_sign':
+    cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
+    [A]{Sc} Covered labels: {1, 2}
+    [A]{Sc} Uncoverable labels: {}
+    [A]{Sc} Crash statistics: rte: none
+    [A]{Sc}        1: Covered
+                   2: Covered
+    Coverage: (2/2) 100.0%
 
-The generated tests can be found in `_sc/get_sign.c-CC-get_sign-last/testcases_CC`.
-In this case, we get three files:
+
+The generated tests can be found in the file `_sc/get_sign.c-CC-last/tests/cov/testsuite.c`.
 
 .. code-block:: c
-   :caption: 0001-klee.c
-
-     int main (){
-       // Globals (if any)
-       
-       // Effective argument(s)
-       int  i  = -1;
-       get_sign (i);
-       return 0;
+   :caption: testsuite.c
+     void test_1 () {
+       /* Found by klee after 1s550 in run 1 */
+       /* Outcome: covering labels {1} */
+       /* Globals, if any */
+  
+       /* Effective argument(s), if any */
+       int i;
+       i = -2147483648;
+       (void) get_sign (i);
      }
 
-.. code-block:: c
-   :caption: 0002-klee.c
+     void test_2 () {
+       /* Found by klee after 1s553 in run 1 */
+       /* Outcome: covering labels {2} */
+       /* Globals, if any */
+  
+       /* Effective argument(s), if any */
+       int i;
+       i = 0;
+       (void) get_sign (i);
+     }
 
-     int main (){
-       // Globals (if any)
-       
-       // Effective argument(s)
-       int  i  = 0;
-       get_sign (i);
-       return 0;
+     int main () {
+       test_1 ();
+       test_2 ();
+       return __sc_exit_status;
      }
 
 The first test reaches the first `pc_label` (`i < 0`) while the second
 one reaches the second `pc_label` (`i ≥ 0`).
-
 
 Using multiple tools
 --------------------

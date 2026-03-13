@@ -183,6 +183,9 @@ called.
 LUncov
 ~~~~~~
 
+Preamble: the current version of the LUncov plug-in does not allow it to handle
+tasks involving complex pointer manipulation.
+
 Part of the `LTest <https://git.frama-c.com/pub/ltest>`_ suite, `luncov` is a `frama-c` plug-in
 that perform static analyzes on a project and try to deduce uncoverability of `pclabel` s.
 The analyzes are done by `EVA`, an abstract intepreter, and `WP`, a weakest precondition

@@ -13,10 +13,9 @@ Build and install with :code:`dune`
 
 Checkout the sources of :code:`seacoral` in a directory.
 
-You need a switch with at least version :code:`4.14.0` of OCaml,
-you can for example create it with::
-
-  opam switch create 4.14.1
+You need a switch with at least version :code:`4.14.2` of OCaml::
+  
+  opam switch create 4.14.2
 
 Then, you need to install all the dependencies::
 
@@ -37,6 +36,6 @@ targets:
 * :code:`sphinx`: build sphinx documentation (from the :code:`sphinx/` directory)
 * :code:`dev-deps`: build development dependencies, in particular
   :code:`ocamlformat`, :code:`odoc` and :code:`merlin`
-* :code:`doc`: build documentation with :code:`odoc`
+* :code:`odoc`: build documentation with :code:`odoc`
 * :code:`fmt`: format the code using :code:`ocamlformat`
 * :code:`test`: run tests
