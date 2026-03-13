@@ -67,17 +67,11 @@ Project configuration options [project]
   
 - `files` [project-defining knob]: C files to consider.
   
-- `criterion` [project-defining knob]: Coverage criterion (case-insensitive). Launch `frama-c -lannot-list` for a
-  list of available criteria (default: "CC"). If you used custom labels, you
-  can use the "Custom" or "Empty" criterion.
+- `criterion` [project-defining knob]: Coverage criterion (case-insensitive). Launch `frama-c -lannot-list` for a list of available criteria (default: "CC"). If you used custom labels, you can use the "Custom" or "Empty" criterion.
   
 - `entrypoint` [project-defining knob]: Entrypoint for the project.
-  
-- `functions-to-cover` [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to
-  automatically cover the entrypoint and any function it may call (this is the
-  default); note this is achieved using an analysis of the syntactic callgraph,
-  so function pointers are ignored. Use `*' to select every function defined in
-  the project.
+
+- `functions-to-cover` [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to automatically cover the entrypoint and any function it may call (this is the default); note this is achieved using an analysis of the syntactic callgraph, so function pointers are ignored. Use '*' to select every function defined in the project.
   
 - `include-dirs` [project-defining knob]: Directories where header files are searched for (default: []).
   
@@ -209,9 +203,7 @@ Klee configuration options [klee]
 Lcov configuration options [lcov]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `output-directory` [runtime knob]: Path to a directory where to output the report; if "", the report is
-  generated in a directory `lcov/report' that is situated within the project
-  working directory (defaults to "")
+- `output-directory` [runtime knob]: Path to a directory where to output the report; if "", the report is generated in a directory 'lcov/report' that is situated within the project working directory (defaults to "")
   
 - `report-in-logs` [runtime knob]: Include a textual representation of the coverage report in logs
                 (default is false)

@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How to install &mdash; seacoral doc
- (1ace3053
-) (2026/03/09 16:42) documentation</title>
+ (4213c90e
+) (2026/03/13 14:27) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=12bcb9a2"></script>
+      <script src="_static/documentation_options.js?v=9d9c8ff1"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -96,9 +96,8 @@
 <section id="build-and-install-with-dune">
 <h2>Build and install with <code class="code docutils literal notranslate"><span class="pre">dune</span></code><a class="headerlink" href="#build-and-install-with-dune" title="Link to this heading"></a></h2>
 <p>Checkout the sources of <code class="code docutils literal notranslate"><span class="pre">seacoral</span></code> in a directory.</p>
-<p>You need a switch with at least version <code class="code docutils literal notranslate"><span class="pre">4.14.0</span></code> of OCaml,
-you can for example create it with:</p>
-<div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="n">opam</span> <span class="n">switch</span> <span class="n">create</span> <span class="mi">4</span><span class="o">.</span><span class="mi">14</span><span class="o">.</span><span class="mi">1</span>
+<p>You need a switch with at least version <code class="code docutils literal notranslate"><span class="pre">4.14.2</span></code> of OCaml:</p>
+<div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="n">opam</span> <span class="n">switch</span> <span class="n">create</span> <span class="mi">4</span><span class="o">.</span><span class="mi">14</span><span class="o">.</span><span class="mi">2</span>
 </pre></div>
 </div>
 <p>Then, you need to install all the dependencies:</p>
@@ -120,7 +119,7 @@ targets:</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">sphinx</span></code>: build sphinx documentation (from the <code class="code docutils literal notranslate"><span class="pre">sphinx/</span></code> directory)</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">dev-deps</span></code>: build development dependencies, in particular
 <code class="code docutils literal notranslate"><span class="pre">ocamlformat</span></code>, <code class="code docutils literal notranslate"><span class="pre">odoc</span></code> and <code class="code docutils literal notranslate"><span class="pre">merlin</span></code></p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">doc</span></code>: build documentation with <code class="code docutils literal notranslate"><span class="pre">odoc</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">odoc</span></code>: build documentation with <code class="code docutils literal notranslate"><span class="pre">odoc</span></code></p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">fmt</span></code>: format the code using <code class="code docutils literal notranslate"><span class="pre">ocamlformat</span></code></p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">test</span></code>: run tests</p></li>
 </ul>

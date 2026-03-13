@@ -6,15 +6,15 @@ Tool configuration
 Configuration file
 ------------------
 
-SeaCoral can be configured differently via a `toml` file with the option `-c`.
+SeaCoral can be configured differently via a `toml` file with the option `-C`.
 
-Options can be `project-wide` or `runtime`, depending on how they influence
-the analysis. If a `project-wide` option is changed between two analyses,
+Options can be `project-defining` or `runtime`, depending on how they influence
+the analysis. If a `project-defining` option is changed between two analyses,
 a new separate project will be created and the old results will not be used.
 If a `runtime` option is changed beween two analyses, it will re-use the
 previous project.
 
-Note that you can generate a new configuration file with the option `--init`.
+Note that you can generate a new configuration file with `$ seacoral init`.
 It will create a `seacoral.toml` that you can use to start the analysis.
 
 .. The following documentation can be generated with "$ seacoral gen-rst-doc".
@@ -67,17 +67,11 @@ Project configuration options [project]
   
 - `files` [project-defining knob]: C files to consider.
   
-- `criterion` [project-defining knob]: Coverage criterion (case-insensitive). Launch `frama-c -lannot-list` for a
-  list of available criteria (default: "CC"). If you used custom labels, you
-  can use the "Custom" or "Empty" criterion.
+- `criterion` [project-defining knob]: Coverage criterion (case-insensitive). Launch `frama-c -lannot-list` for a list of available criteria (default: "CC"). If you used custom labels, you can use the "Custom" or "Empty" criterion.
   
 - `entrypoint` [project-defining knob]: Entrypoint for the project.
-  
-- `functions-to-cover` [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to
-  automatically cover the entrypoint and any function it may call (this is the
-  default); note this is achieved using an analysis of the syntactic callgraph,
-  so function pointers are ignored. Use `*' to select every function defined in
-  the project.
+
+- `functions-to-cover` [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to automatically cover the entrypoint and any function it may call (this is the default); note this is achieved using an analysis of the syntactic callgraph, so function pointers are ignored. Use '*' to select every function defined in the project.
   
 - `include-dirs` [project-defining knob]: Directories where header files are searched for (default: []).
   
@@ -209,9 +203,7 @@ Klee configuration options [klee]
 Lcov configuration options [lcov]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `output-directory` [runtime knob]: Path to a directory where to output the report; if "", the report is
-  generated in a directory `lcov/report' that is situated within the project
-  working directory (defaults to "")
+- `output-directory` [runtime knob]: Path to a directory where to output the report; if "", the report is generated in a directory 'lcov/report' that is situated within the project working directory (defaults to "")
   
 - `report-in-logs` [runtime knob]: Include a textual representation of the coverage report in logs
                 (default is false)
@@ -357,6 +349,15 @@ named locations separated by ':'.
   It also is possible for a structure to reference itself:
   `{struct:t}.y:.N` states that for any structure `s` of type `t` in the input,
   `s.y` is an array whose size must be equal to `s.N`.
+
+Command line
+------------
+
+Previous options can be accessed via the command line interface with their key
+(for example, `$ seacoral --force-preprocess`). Both the configuration file and
+CLI arguments can be used; CLI arguments will override keys set up in the
+configuration file.
+
 
 
 Environment variables

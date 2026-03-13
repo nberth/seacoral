@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tool configuration &mdash; seacoral doc
- (1ace3053
-) (2026/03/09 16:42) documentation</title>
+ (4213c90e
+) (2026/03/13 14:27) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=12bcb9a2"></script>
+      <script src="_static/documentation_options.js?v=9d9c8ff1"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -72,6 +72,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line">Command line</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment variables</a></li>
 </ul>
 </li>
@@ -109,13 +110,13 @@
 <span id="configuration"></span><h1>Tool configuration<a class="headerlink" href="#tool-configuration" title="Link to this heading"></a></h1>
 <section id="configuration-file">
 <h2>Configuration file<a class="headerlink" href="#configuration-file" title="Link to this heading"></a></h2>
-<p>SeaCoral can be configured differently via a <cite>toml</cite> file with the option <cite>-c</cite>.</p>
-<p>Options can be <cite>project-wide</cite> or <cite>runtime</cite>, depending on how they influence
-the analysis. If a <cite>project-wide</cite> option is changed between two analyses,
+<p>SeaCoral can be configured differently via a <cite>toml</cite> file with the option <cite>-C</cite>.</p>
+<p>Options can be <cite>project-defining</cite> or <cite>runtime</cite>, depending on how they influence
+the analysis. If a <cite>project-defining</cite> option is changed between two analyses,
 a new separate project will be created and the old results will not be used.
 If a <cite>runtime</cite> option is changed beween two analyses, it will re-use the
 previous project.</p>
-<p>Note that you can generate a new configuration file with the option <cite>–init</cite>.
+<p>Note that you can generate a new configuration file with <cite>$ seacoral init</cite>.
 It will create a <cite>seacoral.toml</cite> that you can use to start the analysis.</p>
 <section id="logs-configuration-options-logs">
 <h3>Logs configuration options [logs]<a class="headerlink" href="#logs-configuration-options-logs" title="Link to this heading"></a></h3>
@@ -153,15 +154,9 @@ by default).</p></li>
 library, for instance. Defaults to [].</p></li>
 <li><p><cite>name</cite> [project-defining knob]: Name for the project: this is used in logs and to name the working directory.</p></li>
 <li><p><cite>files</cite> [project-defining knob]: C files to consider.</p></li>
-<li><p><cite>criterion</cite> [project-defining knob]: Coverage criterion (case-insensitive). Launch <cite>frama-c -lannot-list</cite> for a
-list of available criteria (default: “CC”). If you used custom labels, you
-can use the “Custom” or “Empty” criterion.</p></li>
+<li><p><cite>criterion</cite> [project-defining knob]: Coverage criterion (case-insensitive). Launch <cite>frama-c -lannot-list</cite> for a list of available criteria (default: “CC”). If you used custom labels, you can use the “Custom” or “Empty” criterion.</p></li>
 <li><p><cite>entrypoint</cite> [project-defining knob]: Entrypoint for the project.</p></li>
-<li><p><cite>functions-to-cover</cite> [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to
-automatically cover the entrypoint and any function it may call (this is the
-default); note this is achieved using an analysis of the syntactic callgraph,
-so function pointers are ignored. Use <a href="#id1"><span class="problematic" id="id2">`</span></a><a href="#id3"><span class="problematic" id="id4">*</span></a>’ to select every function defined in
-the project.</p></li>
+<li><p><cite>functions-to-cover</cite> [project-defining knob]: Comma-separated list of functions to cover. Use an empty string to automatically cover the entrypoint and any function it may call (this is the default); note this is achieved using an analysis of the syntactic callgraph, so function pointers are ignored. Use ‘*’ to select every function defined in the project.</p></li>
 <li><p><cite>include-dirs</cite> [project-defining knob]: Directories where header files are searched for (default: []).</p></li>
 </ul>
 </section>
@@ -267,9 +262,7 @@ optimize, optimize+avoid, optimize+keepall})</p></li>
 <section id="lcov-configuration-options-lcov">
 <h3>Lcov configuration options [lcov]<a class="headerlink" href="#lcov-configuration-options-lcov" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><cite>output-directory</cite> [runtime knob]: Path to a directory where to output the report; if “”, the report is
-generated in a directory <a href="#id5"><span class="problematic" id="id6">`</span></a>lcov/report’ that is situated within the project
-working directory (defaults to “”)</p></li>
+<li><p><cite>output-directory</cite> [runtime knob]: Path to a directory where to output the report; if “”, the report is generated in a directory ‘lcov/report’ that is situated within the project working directory (defaults to “”)</p></li>
 <li><dl class="simple">
 <dt><cite>report-in-logs</cite> [runtime knob]: Include a textual representation of the coverage report in logs</dt><dd><p>(default is false)</p>
 </dd>
@@ -371,6 +364,13 @@ has a field <cite>a</cite> that is an array of <cite>N</cite>.</p></li>
 </ul>
 </section>
 </section>
+</section>
+<section id="command-line">
+<h2>Command line<a class="headerlink" href="#command-line" title="Link to this heading"></a></h2>
+<p>Previous options can be accessed via the command line interface with their key
+(for example, <cite>$ seacoral –force-preprocess</cite>). Both the configuration file and
+CLI arguments can be used; CLI arguments will override keys set up in the
+configuration file.</p>
 </section>
 <section id="environment-variables">
 <h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>
