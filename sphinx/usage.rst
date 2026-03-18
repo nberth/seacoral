@@ -124,10 +124,10 @@ the property of a triangle.
 
   /* Should return the type of the triangle
      which has sides of these lengths.
-     3 = not a triangle
-     2 = equilateral triangle
-     1 = isoceles triangle
-     0 = other triangle
+     4 = not a triangle
+     3 = equilateral triangle
+     2 = isoceles triangle
+     1 = other triangle
   */
 
   struct triangle {
