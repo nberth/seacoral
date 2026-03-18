@@ -1,7 +1,7 @@
 .. _configuration:
 
-Tool configuration
-==================
+Seacoral's configuration
+========================
 
 Configuration file
 ------------------
