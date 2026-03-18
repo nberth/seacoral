@@ -137,7 +137,8 @@ Let's now see what is generated for a given project:
 
     The C files of the generated tests are stored in this directory. They are
     separated into two categories: tests that do not raise an RTE (saved in
-    `tests/cov/`) and tests raising RTEs (saved in `tests/rte/`).
+    `tests/cov/`), tests raising RTEs (saved in `tests/rte/`) and tests which make
+    the oracle fail (saved in `tests/oracle/`).
 
 12. `validator/`
 

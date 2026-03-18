@@ -6,7 +6,7 @@
 Welcome to SeaCoral
 ===================
 
-SeaCoral (Tranversal Testing Tool) is a tool for automatically testing your C
+SeaCoral is a tool for automatically testing your C
 project. If works by orchestrating different static and dynamic analyzers for
 generating coverage tests and detecting uncoverable paths. It relies
 on the simple "label coverage" measurement defined by `LTest <https://micdel.fr/ltest.html>`_
