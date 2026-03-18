@@ -307,7 +307,7 @@ Note that with these `sc_assume` s, SeaCoral fail to cover some labels:
 This is because the first condition (`(i == 0) || (j == 0) || (k == 0)`) is
 now unsatisfiable. In the current setting, each boolean expression is associated
 to a specific label. The three labels  `i == 0`, `j == 0` and `k == 0` are now
-unreachable, which can be proven by `cbmc-assert`:
+unreachable, which can be proven by `cbmc` in assert mode:
 
   .. code-block::
 

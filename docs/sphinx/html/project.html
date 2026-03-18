@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project management &mdash; seacoral doc
- (4213c90e
-) (2026/03/13 14:27) documentation</title>
+ (95db975f
+) (2026/03/18 11:13) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=9d9c8ff1"></script>
+      <script src="_static/documentation_options.js?v=7adf0642"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -100,18 +100,19 @@ create another project and restart from scratch.</p>
 path (by default, the directory is <cite>_sc</cite> and it is created where you launch
 seacoral). Let’s take the following commands as an example:</p>
 <blockquote>
-<div><div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="o">$</span> <span class="n">seacoral</span> <span class="o">--</span><span class="n">config</span> <span class="n">test</span><span class="o">/</span><span class="n">c</span><span class="o">-</span><span class="n">tests</span><span class="o">/</span><span class="n">get_sign</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">toml</span>
+<div><div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="o">$</span> <span class="n">seacoral</span>
+    <span class="o">--</span><span class="n">config</span> <span class="n">test</span><span class="o">/</span><span class="n">cram</span><span class="o">/</span><span class="n">heavy</span><span class="o">/</span><span class="n">common</span><span class="o">-</span><span class="n">files</span><span class="o">/</span><span class="n">get_sign</span><span class="o">/</span><span class="n">seacoral</span><span class="o">.</span><span class="n">toml</span>
+    <span class="o">--</span><span class="n">tools</span> <span class="n">cbmc</span>
 <span class="o">...</span>
 <span class="o">$</span> <span class="n">ls</span> <span class="o">_</span><span class="n">sc</span><span class="o">/</span>
-<span class="mf">6e2</span><span class="n">af8e901752bf68742591696e757bb</span>  <span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-@</span><span class="mi">1</span>
-<span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-</span><span class="mi">2025</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">13</span><span class="o">:</span><span class="mi">44</span><span class="o">:</span><span class="mi">21</span>  <span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-</span><span class="n">last</span>
-<span class="n">last</span>  <span class="n">resources</span>
+<span class="mi">7888</span><span class="n">bd774fd614036e1314ed8ef490b8</span>  <span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-</span><span class="nc">TIMESTAMP</span>            <span class="n">last</span>
+<span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-@</span><span class="mi">1</span>                  <span class="n">get_sign</span><span class="o">.</span><span class="n">c</span><span class="o">-</span><span class="nc">CC</span><span class="o">-</span><span class="n">last</span>                 <span class="n">shared</span>
 </pre></div>
 </div>
 </div></blockquote>
-<p>We see 6 directories for the same project.</p>
+<p>These directories</p>
 <ol class="arabic">
-<li><p><cite>6e2af8e901752bf68742591696e757bb/</cite></p>
+<li><p><cite>7888bd774fd614036e1314ed8ef490b8/</cite></p>
 <p>This directory name corresponds to the project hash, i.e. the hash of the
 project-wide configuration options used (including the C source code of the project).</p>
 </li>
@@ -120,7 +121,7 @@ project-wide configuration options used (including the C source code of the proj
 criterion. If you restart seacoral with the same file and coverage
 criterion, it will generate a <cite>get_sign.c-CC-&#64;2</cite> directory.</p>
 </li>
-<li><p><cite>get_sign.c-CC-2025-04-08-13:44:21</cite></p>
+<li><p><cite>get_sign.c-CC-TIMESTAMP</cite></p>
 <p>An alias of the previous directory, but with a timestamp.</p>
 </li>
 <li><p><cite>get_sign.c-CC-last</cite></p>
@@ -130,7 +131,7 @@ on a given project.</p>
 <li><p><cite>last</cite></p>
 <p>An alias to the latest seacoral run.</p>
 </li>
-<li><p><cite>resources/</cite></p>
+<li><p><cite>shared/</cite></p>
 <p>A special directory containing the stubs and drivers required for every project.</p>
 </li>
 </ol>
@@ -139,52 +140,74 @@ on a given project.</p>
 <h2>Project layout<a class="headerlink" href="#project-layout" title="Link to this heading"></a></h2>
 <p>Let’s now see what is generated for a given project:</p>
 <blockquote>
-<div><div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="o">$</span> <span class="n">ls</span> <span class="o">_</span><span class="n">sc</span><span class="o">/</span><span class="n">last</span><span class="o">/</span>
-<span class="mi">1</span><span class="o">.</span><span class="n">stat</span>   <span class="n">corpus</span>       <span class="n">klee</span>      <span class="n">logs</span>     <span class="n">luncov</span>  <span class="n">testcases</span>
-<span class="n">config</span>   <span class="n">covinfo</span><span class="o">.</span><span class="n">csv</span>  <span class="n">labeling</span>  <span class="n">lreplay</span>  <span class="n">store</span>
+<div><div class="highlight-ocaml notranslate"><div class="highlight"><pre><span></span><span class="o">$</span> <span class="n">ls</span> <span class="o">_</span><span class="n">sc</span><span class="o">/</span><span class="n">last</span>
+<span class="n">cbmc</span>    <span class="n">corpus</span>       <span class="n">decoder</span>  <span class="n">labeling</span>  <span class="n">lreplay</span>  <span class="n">store</span>  <span class="n">validator</span>
+<span class="n">config</span>  <span class="n">covinfo</span><span class="o">.</span><span class="n">csv</span>  <span class="n">headers</span>  <span class="n">logs</span>      <span class="n">stats</span>    <span class="n">tests</span>
 </pre></div>
 </div>
 </div></blockquote>
 <ol class="arabic">
-<li><p><cite>1.stat</cite></p>
-<p>A file with several statistics on the first run of the project. On a second
-run, the directory will have both the files <cite>1.stat</cite> and <cite>2.stat</cite>.</p>
+<li><p><cite>cbmc/</cite></p>
+<p>The working directory of the CBMC tool. If we had called another tool, it
+would have created a dedicated</p>
 </li>
+<li><p><cite>config/</cite></p>
+<p>For each run, this directory will contain three different files:
+* <cite>‘n’-given.toml</cite>: the toml given for the <cite>n</cite> th run;
+* <cite>‘n’-cmdline.txt</cite>: the command line of the <cite>n</cite> th run;
+* <cite>‘n’-actual.toml</cite>: the configuration of the <cite>n</cite> th run, merging the given
+configuration file and the command line (note: the command line arguments
+override the configuration file options).</p>
+</li>
+</ol>
+<ol class="arabic" start="2">
 <li><p><cite>corpus/</cite></p>
 <p>The directory where the seacoral internal representation of the generated
 tests are stored.</p>
 </li>
-<li><p><cite>klee/</cite>, <cite>luncov/</cite>, <cite>lreplay/</cite></p>
-<p>The working directory of the testing tools. The current configuration
-only spefified to use these three tools only, but had we added <cite>cbmc</cite> we would
-have had a <cite>cbmc/</cite> directory.</p>
-</li>
-<li><p><cite>logs/</cite></p>
-<p>The directory in which all the seacoral logs are stored.</p>
-</li>
-<li><p><cite>testcases/</cite></p>
-<p>The directory where the C files corresponding to the generated tests are
-stored.</p>
-</li>
-<li><p><cite>config/</cite></p>
-<p>For each run, this directory will contain three different files:
-* <cite>‘n’-given.toml</cite>: the toml given for the <cite>n`th run;
-* `’n’-cmdline.txt</cite>: the command line of the <cite>n`th run;
-* `’n’-actual.toml</cite>: the configuration of the <a href="#id1"><span class="problematic" id="id2">`</span></a>n`th run, merging the given
-configuration file and the command line.</p>
-</li>
 <li><p><cite>covinfo.csv</cite></p>
 <p>A csv with information about each run (run id, time,
 covered/uncoverable/unknown labels, num of tests generated)</p>
+</li>
+<li><p><cite>decoder/</cite></p>
+<p>This directory contains the C file (and the associated <cite>.so</cite>) that decodes
+the internal representation of tests from <cite>corpus/</cite> into actual inputs of the
+tested function.</p>
+</li>
+<li><p><cite>headers/</cite></p>
+<p>Internal C files required for proper compilation of several modules of
+seacoral (lreplay &amp; validator).</p>
 </li>
 <li><p><cite>labeling/</cite></p>
 <p>The input files are labelized by <cite>frama-c-lannotate</cite> tool before being sent
 to the orchestrated tools. This directory contains the labelized file as
 well as several internal files used by the <cite>ltest</cite> tools.</p>
 </li>
-<li><p><cite>store/</cite></p>
-<p>Contains the project runtime store and stubs that allows dynamic tools to share
+<li><p><cite>logs/</cite></p>
+<p>The directory in which the whole log of seacoral is stored.</p>
+</li>
+<li><p><cite>lreplay/</cite></p>
+<p>The working directory of the lreplay tool.</p>
+</li>
+<li><p><cite>stats/</cite></p>
+<p>For each run, a <cite>‘n’.json</cite> file in generated with several statistics (tools,
+execution time, number of generated tests, …)</p>
+</li>
+<li><p><cite>store/</cite></p></li>
+</ol>
+<blockquote>
+<div><p>Contains the project runtime store and stubs that allows dynamic tools to share
 their results efficiently. This is only used by seacoral internally.</p>
+</div></blockquote>
+<ol class="arabic" start="11">
+<li><p><cite>tests/</cite></p>
+<p>The C files of the generated tests are stored in this directory. They are
+separated into two categories: tests that do not raise an RTE (saved in
+<cite>tests/cov/</cite>) and tests raising RTEs (saved in <cite>tests/rte/</cite>).</p>
+</li>
+<li><p><cite>validator/</cite></p>
+<p>Contains the project validator stubs and shared objects. This is only used
+by seacoral internally.</p>
 </li>
 </ol>
 </section>

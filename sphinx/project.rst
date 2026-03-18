@@ -22,16 +22,18 @@ seacoral). Let's take the following commands as an example:
 
   .. code-block::
 
-    $ seacoral --config test/c-tests/get_sign/config.toml
+    $ seacoral
+        --config test/cram/heavy/common-files/get_sign/seacoral.toml
+	--tools cbmc
     ...
     $ ls _sc/
-    6e2af8e901752bf68742591696e757bb  get_sign.c-CC-@1
-    get_sign.c-CC-2025-04-08-13:44:21  get_sign.c-CC-last
-    last  resources
+    7888bd774fd614036e1314ed8ef490b8  get_sign.c-CC-TIMESTAMP            last
+    get_sign.c-CC-@1                  get_sign.c-CC-last                 shared
+    
 
-We see 6 directories for the same project.
+These directories
 
-1. `6e2af8e901752bf68742591696e757bb/`
+1. `7888bd774fd614036e1314ed8ef490b8/`
    
    This directory name corresponds to the project hash, i.e. the hash of the
    project-wide configuration options used (including the C source code of the project).
@@ -42,7 +44,7 @@ We see 6 directories for the same project.
    criterion. If you restart seacoral with the same file and coverage
    criterion, it will generate a `get_sign.c-CC-@2` directory.
 
-3. `get_sign.c-CC-2025-04-08-13:44:21`
+3. `get_sign.c-CC-TIMESTAMP`
    
    An alias of the previous directory, but with a timestamp.
 
@@ -55,7 +57,7 @@ We see 6 directories for the same project.
    
    An alias to the latest seacoral run.
 
-6. `resources/`
+6. `shared/`
    
    A special directory containing the stubs and drivers required for every project.
 
@@ -67,55 +69,77 @@ Let's now see what is generated for a given project:
 
   .. code-block::
 
-    $ ls _sc/last/
-    1.stat   corpus       klee      logs     luncov  testcases
-    config   covinfo.csv  labeling  lreplay  store
+    $ ls _sc/last
+    cbmc    corpus       decoder  labeling  lreplay  store  validator
+    config  covinfo.csv  headers  logs      stats    tests
 
-1. `1.stat`
-   
-   A file with several statistics on the first run of the project. On a second
-   run, the directory will have both the files `1.stat` and `2.stat`.
+
+1. `cbmc/`
+
+   The working directory of the CBMC tool. If we had called another tool, it
+   would have created a dedicated 
+
+2. `config/`
+
+   For each run, this directory will contain three different files:
+   * `'n'-given.toml`: the toml given for the `n` th run;
+   * `'n'-cmdline.txt`: the command line of the `n` th run;
+   * `'n'-actual.toml`: the configuration of the `n` th run, merging the given
+   configuration file and the command line (note: the command line arguments
+   override the configuration file options).
 
 2. `corpus/`
    
    The directory where the seacoral internal representation of the generated
    tests are stored.
 
-3. `klee/`, `luncov/`, `lreplay/`
-   
-   The working directory of the testing tools. The current configuration
-   only spefified to use these three tools only, but had we added `cbmc` we would
-   have had a `cbmc/` directory.
+3. `covinfo.csv`
 
-4. `logs/`
-   
-   The directory in which all the seacoral logs are stored.
-
-5. `testcases/`
-   
-   The directory where the C files corresponding to the generated tests are
-   stored.
-
-6. `config/`
-   
-   For each run, this directory will contain three different files:
-   * `'n'-given.toml`: the toml given for the `n`th run;
-   * `'n'-cmdline.txt`: the command line of the `n`th run;
-   * `'n'-actual.toml`: the configuration of the `n`th run, merging the given
-   configuration file and the command line.
-
-7. `covinfo.csv`
-   
    A csv with information about each run (run id, time,
    covered/uncoverable/unknown labels, num of tests generated)
 
-8. `labeling/`
+4. `decoder/`
+
+   This directory contains the C file (and the associated `.so`) that decodes
+   the internal representation of tests from `corpus/` into actual inputs of the
+   tested function.
+
+5. `headers/`
+
+   Internal C files required for proper compilation of several modules of
+   seacoral (lreplay & validator). 
+
+6. `labeling/`
    
    The input files are labelized by `frama-c-lannotate` tool before being sent
    to the orchestrated tools. This directory contains the labelized file as
    well as several internal files used by the `ltest` tools.
 
-9. `store/`
+7. `logs/`
+   
+   The directory in which the whole log of seacoral is stored.
+
+8. `lreplay/`
+
+   The working directory of the lreplay tool.
+
+9. `stats/`
+
+   For each run, a `'n'.json` file in generated with several statistics (tools,
+   execution time, number of generated tests, ...)
+
+10. `store/`
    
    Contains the project runtime store and stubs that allows dynamic tools to share
    their results efficiently. This is only used by seacoral internally.
+
+11. `tests/`
+
+    The C files of the generated tests are stored in this directory. They are
+    separated into two categories: tests that do not raise an RTE (saved in
+    `tests/cov/`) and tests raising RTEs (saved in `tests/rte/`).
+
+12. `validator/`
+
+    Contains the project validator stubs and shared objects. This is only used
+    by seacoral internally. 
