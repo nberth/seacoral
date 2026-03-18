@@ -137,30 +137,30 @@ the property of a triangle.
   };
 
   int tritype(struct triangle t){
-  	int type_code;
-  	int i = t.i;
-  	int j = t.j;
-  	int k = t.k;
-  	if ((i == 0) || (j == 0) || (k == 0)) type_code = 4;
-  	else {
-  		type_code = 0;
-  		if (i == j) type_code = type_code + 1;
-  		if (i == k) type_code = type_code + 2;
-  		if (j == k) type_code = type_code + 3;
-  		if (type_code == 0){
-  			if ((i+j <= k) || (j+k <= i) || (i+k <= j))
-  				type_code = 4;
-  			else
-  				type_code = 1;
-  		}
-  		else if (type_code > 3) type_code = 3;
-  		else if ((type_code == 1) && (i+j > k)) type_code = 2;
-  		else if ((type_code == 2) && (i+k > j)) type_code = 2;
-  		else if ((type_code == 3) && (j+k > i)) type_code = 2;
-  		else if (type_code > 10) type_code = -1;
-  		else type_code = 4;
-  	}
-  	return type_code;
+    int type_code;
+    int i = t.i;
+    int j = t.j;
+    int k = t.k;
+    if ((i == 0) || (j == 0) || (k == 0)) type_code = 4;
+    else {
+      type_code = 0;
+      if (i == j) type_code = type_code + 1;
+      if (i == k) type_code = type_code + 2;
+      if (j == k) type_code = type_code + 3;
+      if (type_code == 0){
+        if ((i+j <= k) || (j+k <= i) || (i+k <= j))
+  	  type_code = 4;
+  	else
+  	  type_code = 1;
+      }
+      else if (type_code > 3) type_code = 3;
+      else if ((type_code == 1) && (i+j > k)) type_code = 2;
+      else if ((type_code == 2) && (i+k > j)) type_code = 2;
+      else if ((type_code == 3) && (j+k > i)) type_code = 2;
+      else if (type_code > 10) type_code = -1;
+      else type_code = 4;
+    }
+    return type_code;
   }
 
 The label annotation step (1.) returns 36 labels, one for each boolean
@@ -254,35 +254,33 @@ the instruction `sc_assume(p)`, where `p` is a boolean expression.
   };
 
   int tritype(struct triangle t){
-  	int type_code;
-  	int i = t.i;
-  	int j = t.j;
-  	int k = t.k;
-
-	sc_assume(i > 0);
-	sc_assume(j > 0);
-	sc_assume(k > 0);
-
-	if ((i == 0) || (j == 0) || (k == 0)) type_code = 4;
-  	else {
-  		type_code = 0;
-  		if (i == j) type_code = type_code + 1;
-  		if (i == k) type_code = type_code + 2;
-  		if (j == k) type_code = type_code + 3;
-  		if (type_code == 0){
-  			if ((i+j <= k) || (j+k <= i) || (i+k <= j))
-  				type_code = 4;
-  			else
-  				type_code = 1;
-  		}
-  		else if (type_code > 3) type_code = 3;
-  		else if ((type_code == 1) && (i+j > k)) type_code = 2;
-  		else if ((type_code == 2) && (i+k > j)) type_code = 2;
-  		else if ((type_code == 3) && (j+k > i)) type_code = 2;
-  		else if (type_code > 10) type_code = -1;
-  		else type_code = 4;
-  	}
-  	return type_code;
+    int type_code;
+    int i = t.i;
+    int j = t.j;
+    int k = t.k;
+    sc_assume(i > 0);
+    sc_assume(j > 0);
+    sc_assume(k > 0);
+    if ((i == 0) || (j == 0) || (k == 0)) type_code = 4;
+    else {
+      type_code = 0;
+      if (i == j) type_code = type_code + 1;
+      if (i == k) type_code = type_code + 2;
+      if (j == k) type_code = type_code + 3;
+      if (type_code == 0){
+        if ((i+j <= k) || (j+k <= i) || (i+k <= j))
+  	  type_code = 4;
+  	else
+  	  type_code = 1;
+      }
+      else if (type_code > 3) type_code = 3;
+      else if ((type_code == 1) && (i+j > k)) type_code = 2;
+      else if ((type_code == 2) && (i+k > j)) type_code = 2;
+      else if ((type_code == 3) && (j+k > i)) type_code = 2;
+      else if (type_code > 10) type_code = -1;
+      else type_code = 4;
+    }
+    return type_code;
   }
 
 With this version of tritype, all tests will verify the assumed properties.
@@ -359,31 +357,8 @@ with the structure set up as a global:
 
   struct triangle t;
 
-  int tritype(){
-  	int type_code;
-  	int i = t.i;
-  	int j = t.j;
-  	int k = t.k;
-  	if ((i == 0) || (j == 0) || (k == 0)) type_code = 4;
-  	else {
-  		type_code = 0;
-  		if (i == j) type_code = type_code + 1;
-  		if (i == k) type_code = type_code + 2;
-  		if (j == k) type_code = type_code + 3;
-  		if (type_code == 0){
-  			if ((i+j <= k) || (j+k <= i) || (i+k <= j))
-  				type_code = 4;
-  			else
-  				type_code = 1;
-  		}
-  		else if (type_code > 3) type_code = 3;
-  		else if ((type_code == 1) && (i+j > k)) type_code = 2;
-  		else if ((type_code == 2) && (i+k > j)) type_code = 2;
-  		else if ((type_code == 3) && (j+k > i)) type_code = 2;
-  		else type_code = 4;
-  	}
-  	return type_code;
-  }
+  int tritype() {
+    ...
 
 The following file defines the initialization function `init` and the oracle function `oracle`.
 
