@@ -418,10 +418,12 @@ let cmdline_flag
       Arg.(value & opt (some bool_conv) None & info_ keys ~doc)
   | Positive { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some      tt , info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some tt else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Negative { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some (neg tt), info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some (neg tt) else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Both { pos_keys; pos_doc; neg_keys; neg_doc } ->
       let pos_doc = match pos_doc with `Same -> doc | `Alt doc -> doc
       and neg_doc = match neg_doc with `Same -> doc | `Alt doc -> doc

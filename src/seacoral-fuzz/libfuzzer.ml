@@ -156,6 +156,7 @@ let config_section =
         ~as_flag:(Negative { keys = `Alt ["disable-libfuzzer-value-profiling"];
                              doc = `Alt "Disable libfuzzer's value profiling \
                                          feature" })
+        ~env:"LIBFUZZER_DISABLE_VALUE_PROFILING"
         (fun c use_value_profiling -> { c with use_value_profiling })
         (fun c -> c.use_value_profiling);
       bool
