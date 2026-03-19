@@ -1,3 +1,4 @@
+The coverage mode of CBMC does not detect RTEs.
   $ seacoral --tools cbmc
   [A]{Sc} Starting to log into `_sc/div0.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
@@ -13,7 +14,8 @@
   [A]{Sc}        1: Covered
                  2: Covered
           Coverage: (2/2) 100.0%
-
+The assert mode of CBMC targets labels and CBMC-generated alarms, hence it can
+detect RTEs.
   $ seacoral --tools cbmc --inputs div0-with-precondition.c --cbmc-mode assert
   [A]{Sc} Starting to log into `_sc/div0-with-precondition.c-CC-@1/logs/1.log'
   [A]{Sc} Initializing working environment...
