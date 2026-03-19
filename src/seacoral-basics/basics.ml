@@ -85,12 +85,12 @@ module PPrt = struct
     let pp_space_separated_ = pp_nodelim ~fsep:" " ~fterm:" " pp_print_string
   end
 
-  let with_oxford_comma pp ppf lst =
+  let with_oxford_comma ?(comb = "and") pp ppf lst =
     let rec aux ?(deep = false) = function
       | [] -> ()
       | [x] -> pp ppf x
-      | [x;y] when not deep -> Fmt.fmt "%a@ and@ %a" ppf pp x pp y
-      | [x;y] when   deep -> Fmt.fmt "%a,@ and@ %a" ppf pp x pp y
+      | [x;y] when not deep -> Fmt.fmt "%a@ %s@ %a" ppf pp x comb pp y
+      | [x;y] when   deep -> Fmt.fmt "%a,@ %s@ %a" ppf pp x comb pp y
       | x :: tl -> Fmt.fmt "%a,@ " ppf pp x; aux ~deep:true tl
     in
     aux lst

@@ -9,7 +9,7 @@
     (echo "\n   (SC_ENABLE_CONSOLE_TIMING no)")
     (echo "\n   (DISPLAY_OUTCOMES no)")
     (echo "\n   ; Disable value profiling as it is not needed in the tests:")
-    (echo "\n   (LIBFUZZER_USE_VALUE_PROFILING false)")
+    (echo "\n   (LIBFUZZER_USE_VALUE_PROFILING no)")
     (echo "\n   ; Retain some level of determinism by constraining replay parallelism:")
     (echo "\n   (KLEE_REPLAY_MAX_CONCURRENCY 1)")
     (echo ")))")))))
