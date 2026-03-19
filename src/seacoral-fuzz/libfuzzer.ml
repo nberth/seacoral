@@ -153,10 +153,8 @@ let config_section =
               slow-down of the fuzzer --- defaults to %a)"
         ~default:default.use_value_profiling
         ~runtime:true
-        ~as_flag:(Negative { keys = `Alt ["disable-libfuzzer-value-profiling"];
-                             doc = `Alt "Disable libfuzzer's value profiling \
-                                         feature" })
-        ~env:"LIBFUZZER_DISABLE_VALUE_PROFILING"
+        ~as_flag:Valued
+        ~env:"LIBFUZZER_USE_VALUE_PROFILING"
         (fun c use_value_profiling -> { c with use_value_profiling })
         (fun c -> c.use_value_profiling);
       bool

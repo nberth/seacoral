@@ -415,7 +415,8 @@ let cmdline_flag
   let info_ = Arg.info ?env:(Option.map (Cmd.Env.info ?docs) env) ?docs in
   function
   | Valued ->
-      Arg.(value & opt (some bool_conv) None & info_ keys ~doc)
+      Arg.(value & opt ~vopt:(Some tt) (some bool_conv) None &
+           info_ keys ~doc)
   | Positive { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
       Arg.(Term.map (fun x -> if x then Some tt else None) &
