@@ -404,7 +404,7 @@ let print_as_rst_file ppf ((main_key, schema): string * 'a schema) =
       (if row.runtime then "[runtime knob]" else "[project-defining knob]")
       (pp_spec_doc_comments ~prefix:"") row.spec
     ) schema;
-  Fmt.pf ppf "@]@;@;"     
+  Fmt.pf ppf "@]@;@;"
 
 (** Cmdliner helpers *)
 
@@ -432,13 +432,16 @@ let cmdline_flag
   let info_ = Arg.info ?env:(Option.map (Cmd.Env.info ?docs) env) ?docs in
   function
   | Valued ->
-      Arg.(value & opt (some bool_conv) None & info_ keys ~doc)
+      Arg.(value & opt ~vopt:(Some tt) (some bool_conv) None &
+           info_ keys ~doc)
   | Positive { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some      tt , info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some tt else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Negative { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some (neg tt), info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some (neg tt) else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Both { pos_keys; pos_doc; neg_keys; neg_doc } ->
       let pos_doc = match pos_doc with `Same -> doc | `Alt doc -> doc
       and neg_doc = match neg_doc with `Same -> doc | `Alt doc -> doc
