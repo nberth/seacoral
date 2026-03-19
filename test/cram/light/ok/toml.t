@@ -274,6 +274,10 @@ Show its contents:
   # indefinitely)
   timeout = 30.000
   
+  # Enable libfuzzer's value profiling feature (may incur a 2x slow-down of the
+  # fuzzer --- defaults to true)
+  use-value-profiling = true
+  
   # Whether to restrict libfuzzers' sensitivity to labels instead of to its own
   # counters (default: false; `use-counters` and `use-cmp` have no effect when
   # used in combination with this option)

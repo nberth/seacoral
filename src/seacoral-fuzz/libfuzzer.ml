@@ -35,6 +35,7 @@ type opt =
     max_starvation_time: int;          (* == max seconds without valid inputs *)
     use_counters: bool;
     use_cmp: bool;
+    use_value_profiling: bool;
     labels_only: bool;
   }
 
@@ -58,6 +59,7 @@ let config_section =
       runs = -1;
       use_counters = false;
       use_cmp = true;
+      use_value_profiling = true;
       timeout = 30.;
       triage_timeout = 0.;
       micro_timeout = 1.;
@@ -145,6 +147,17 @@ let config_section =
         ~runtime:true
         (fun c use_cmp -> { c with use_cmp })
         (fun c -> c.use_cmp);
+      bool
+        ~key:"use-value-profiling"
+        ~doc:"Enable libfuzzer's value profiling feature (may incur a 2x \
+              slow-down of the fuzzer --- defaults to %a)"
+        ~default:default.use_value_profiling
+        ~runtime:true
+        ~as_flag:(Negative { keys = `Alt ["disable-libfuzzer-value-profiling"];
+                             doc = `Alt "Disable libfuzzer's value profiling \
+                                         feature" })
+        (fun c use_value_profiling -> { c with use_value_profiling })
+        (fun c -> c.use_value_profiling);
       bool
         ~key:"labels-only"
         ~doc:"Whether to restrict libfuzzers' sensitivity to labels instead of \
@@ -409,10 +422,11 @@ let exec_fuzzer (type raw_test) (wd: raw_test working_data) ?env exe outdir
              asprintf "-artifact_prefix=%s/" rel_crashdir;
              asprintf "-use_counters=%i" (as_int wd.opt.use_counters);
              asprintf "-use_cmp=%i" (as_int wd.opt.use_cmp);
+             asprintf "-use_value_profile=%i\
+                      " (as_int wd.opt.use_value_profiling);
              asprintf "-max_total_time=%i" (int_of_float wd.opt.timeout);
              asprintf "-timeout=%i" (int_of_float wd.opt.micro_timeout);
              (* asprintf "-minimize_crash=%i" (as_int oncrash); *)
-             (* "-use_value_profile=1"; *)
              rel_outdir;
            ] @ if oncrash then [] else [
             rel_seedsdir;

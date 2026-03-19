@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- Use of Libfuzzer's value-profiling feature [#92](https://github.com/OCamlPro/seacoral/pull/92)
 - Partial support for constrained pointer fields [#58](https://github.com/OCamlPro/seacoral/pull/58)
 - Argument `--initialization` to `seacoral check` to assess proper project initialization after configuration checks [#73](https://github.com/OCamlPro/seacoral/pull/73)
 - New subcommand for replaying tests only [#47](https://github.com/OCamlPro/seacoral/pull/47)
