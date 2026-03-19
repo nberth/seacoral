@@ -83,7 +83,7 @@ module PPrt : sig
     ?fterm:ufmt ->
     ('a * int) pp -> 'a list pp
 
-  (** [with_oxford_comma pp ppf lst] pretty-prints [lst] using [ppf] by
+  (** [with_oxford_comma ~comb pp ppf lst] pretty-prints [lst] using [ppf] by
       enumerating its items and inserting Oxford-style comma.  In particular,
       this function:
 
@@ -91,11 +91,13 @@ module PPrt : sig
 
       - acts like [pp ppf e] if [lst = [e]];
 
-      - prints "[a] and [b]" (without comma) in case [lst = [a;b]];
+      - prints "[a] [comb] [b]" (without comma) in case [lst = [a;b]];
 
       - otherwise prints every element followed by a comma, except for the last
-        that is preceded with "and", as for instance in "a, b, c, and d". *)
-  val with_oxford_comma: 'a pp -> 'a list pp
+        that is preceded with "[comb]", as for instance in "a, b, c, and d".
+
+      [comb] is "and" by default; other sensible use is "or". *)
+  val with_oxford_comma: ?comb:string -> 'a pp -> 'a list pp
 
   (** {3 Helpers for printing string lists} *)
 
