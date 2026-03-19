@@ -431,10 +431,11 @@ In our case, we are interested in the second case, with the option
 
 Seacoral found 4 tests that made the oracle fail. These tests can be read in
 `_sc/last/tests/fail/testsuite.c`.
-* Test 1 `(kind = ISOSCELES, i = 16777216, j = 16777216, k = 50331648)` is not a real triangle, because `i + j < k`
-* Test 2 `(kind = ISOSCELES, i = 16777216, j = 16777216, k = 16777216)` is actually equilateral.
-* Test 3 `(kind = ISOSCELES, i = 2130706432, j = 2130706432, k = 16777216)` is a real bug in the tritype function. The values of `i` and `j` provoke an integer overflow when calculating `i + j`.
-* Test 4 `(kind = ISOSCELES, i = 16777216, j = 50331648, k = 16777216)` is equivalent to Test 1 switching `j` and `k`.
+
+- Test 1 `(kind = ISOSCELES, i = 16777216, j = 16777216, k = 50331648)` is not a real triangle, because `i + j < k`.
+- Test 2 `(kind = ISOSCELES, i = 16777216, j = 16777216, k = 16777216)` is actually equilateral.
+- Test 3 `(kind = ISOSCELES, i = 2130706432, j = 2130706432, k = 16777216)` is a real bug in the tritype function. The values of `i` and `j` provoke an integer overflow when calculating `i + j`.
+- Test 4 `(kind = ISOSCELES, i = 16777216, j = 50331648, k = 16777216)` is equivalent to Test 1 switching `j` and `k`.
 
 Execution modes
 ---------------

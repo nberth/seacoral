@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seacoral’s configuration &mdash; seacoral doc
- (36e9a753
-) (2026/03/18 15:55) documentation</title>
+ (c6978984
+) (2026/03/19 12:07) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=4ac4bede"></script>
+      <script src="_static/documentation_options.js?v=c7026712"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -66,12 +66,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#lreplay-configuration-options-lreplay">Lreplay configuration options [lreplay]</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#luncov-configuration-options-luncov">Luncov configuration options [luncov]</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#report-configuration-options-report">Report configuration options [report]</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#test-runner-configuration-options-test-runner">Test-runner configuration options [test-runner]</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#about-pointer-specification">About pointer specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-runner-configuration-options-test-runner">Test-runner configuration options [test-runner]</a></li>
 </ul>
 </li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#about-pointer-specification">About pointer specification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#command-line">Command line</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment variables</a></li>
 </ul>
@@ -344,8 +342,10 @@ disables parallelism)</p></li>
 <li><p><cite>custom-tests</cite> [runtime knob]: Custom tests to be added to the testsuite; they are played before any
 analysis or tests generation is started (default: [])</p></li>
 </ul>
+</section>
+</section>
 <section id="about-pointer-specification">
-<h4>About pointer specification<a class="headerlink" href="#about-pointer-specification" title="Link to this heading"></a></h4>
+<h2>About pointer specification<a class="headerlink" href="#about-pointer-specification" title="Link to this heading"></a></h2>
 <p>The core configuration options <cite>treat_pointer_as_array/cstring</cite> require a list of pointers.
 It is possible to directly specify inputs or fields of a given structure.
 Examples</p>
@@ -362,8 +362,6 @@ named locations separated by ‘:’.</p>
 <li><p><cite>array-size-mapping=[{struct s}:a:N]</cite>: all values of type <cite>struct s</cite> in the input
 has a field <cite>a</cite> that is an array of <cite>N</cite>.</p></li>
 </ul>
-</section>
-</section>
 </section>
 <section id="command-line">
 <h2>Command line<a class="headerlink" href="#command-line" title="Link to this heading"></a></h2>
