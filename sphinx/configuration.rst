@@ -306,7 +306,7 @@ Test-runner configuration options [test-runner]
   analysis or tests generation is started (default: [])
 
 About pointer specification
-...........................
+---------------------------
 
 The core configuration options `treat_pointer_as_array/cstring` require a list of pointers.
 It is possible to directly specify inputs or fields of a given structure.
