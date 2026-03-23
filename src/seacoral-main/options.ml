@@ -126,7 +126,9 @@ module Parsing = struct
     let keys = ["rst"] in
     let doc = "Selects the .rst file name in which the documentation is dumped \
                into." in
-    let v = Arg.(value & opt (some string) None & info keys ~doc ~docs) in
+    let v = Arg.(value & opt (some Arg.non_dir_file) None &
+                 info keys ~doc ~docv:"FILE" ~docs)
+    in
     let set c f =
       match f with
       | None -> c
