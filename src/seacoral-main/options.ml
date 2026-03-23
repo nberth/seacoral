@@ -10,8 +10,6 @@
 
 open Types
 
-exception Failed_parsing of string
-
 let log_level_of_int = function
   | 0 -> None
   | 1 -> Some Logs.App

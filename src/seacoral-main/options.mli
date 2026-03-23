@@ -8,8 +8,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-exception Failed_parsing of string
-
 val logs_section: Types.logs_config Sc_config.Section.section
 
 val default: Types.options

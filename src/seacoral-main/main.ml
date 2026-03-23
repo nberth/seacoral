@@ -359,43 +359,38 @@ let load_args ?argv () =
   and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term
   and doc = Cmdliner.Term.map (fun options -> `Dump_doc options) Options.dump_doc_term
   in
-  try
-    eval_value ~catch:false ?argv @@
-      group ~default:generate
-        (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
-           ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
-        [
-          v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
-            generate;
-          group (info "config" ~doc:"Managing configurations") @@
-            [
-              v (info "initialize" ~doc:"Dump a configuration file with default options")
-                (Cmdliner.Term.const `Config_init);
-              v (info "doc" ~doc:"Show documentation for the contents of the \
-                                  configuration file")
-                (Cmdliner.Term.const `Config_show_toml);
-            ];
-          group (info "doc" ~doc:"Manages documentation") [
-              v (info "dump" ~doc:"Dump a configuration documentation")
-                doc;
-            ];
-          v (info "initialize"                       (* alias for config initialize *)
-               ~doc:"Dump a configuration file with default options (alias for \
-                     $(b,config initialize) sub-command)")
-            (Cmdliner.Term.const `Config_init);
-          v (info "check" ~man:gen_man
-               ~doc:"Check configuration and (optionally) perform initial project \
-                     initialization")
-            check;
-          v (info "replay" ~man:gen_man
-               ~doc:"Replay the current test suite without starting any test \
-                     generation tool.")
-            replay;
-        ]
-  with
-  | Options.Failed_parsing s ->
-     Log.err "Failed command line parsing: %s" s;
-     Error `Exn
+  eval_value ~catch:false ?argv @@
+    group ~default:generate
+      (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
+         ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
+      [
+        v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
+          generate;
+        group (info "config" ~doc:"Managing configurations") @@
+          [
+            v (info "initialize" ~doc:"Dump a configuration file with default options")
+              (Cmdliner.Term.const `Config_init);
+            v (info "doc" ~doc:"Show documentation for the contents of the \
+                                configuration file")
+              (Cmdliner.Term.const `Config_show_toml);
+          ];
+        group (info "doc" ~doc:"Manages documentation") [
+            v (info "dump" ~doc:"Dump a configuration documentation")
+              doc;
+          ];
+        v (info "initialize"                       (* alias for config initialize *)
+             ~doc:"Dump a configuration file with default options (alias for \
+                   $(b,config initialize) sub-command)")
+          (Cmdliner.Term.const `Config_init);
+        v (info "check" ~man:gen_man
+             ~doc:"Check configuration and (optionally) perform initial project \
+                   initialization")
+          check;
+        v (info "replay" ~man:gen_man
+             ~doc:"Replay the current test suite without starting any test \
+                   generation tool.")
+          replay;
+      ]
 
 let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () =
 
