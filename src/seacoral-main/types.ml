@@ -38,3 +38,10 @@ type check_options =
     check_initialization: bool;
     (** Additionally perform project initialization. *)
   }
+
+type dump_doc_options =
+  {
+    dump_as: [`Rst of string]
+    (** The format of the dumped documentation. *)
+  }
+

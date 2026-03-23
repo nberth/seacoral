@@ -109,8 +109,11 @@ let init_config_file () =                           (* TODO: `init_args` type *)
             " Sc_sys.File.print file;
     Cmdliner.Cmd.Exit.cli_error
 
-let gen_config_doc () =
-  let file = Sc_sys.File.assume "seacoral.rst" in
+let dump_config_doc o =
+  let file = 
+    match o.dump_as with
+    | `Rst f -> Sc_sys.File.assume f
+  in
   let () =
     let>% fmt = file in
     Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections
@@ -353,37 +356,46 @@ let load_args ?argv () =
   let chk_term = Cmdliner.Term.product gen_term Options.check_term in
   let generate = Cmdliner.Term.map (fun options -> `Generate options) gen_term
   and check = Cmdliner.Term.map (fun options -> `Check options) chk_term
-  and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term in
-  eval_value ~catch:false ?argv @@
-  group ~default:generate
-    (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
-       ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
-  [
-    v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
-      generate;
-    group (info "config" ~doc:"Managing configurations") @@
-    [
-      v (info "initialize" ~doc:"Dump a configuration file with default options")
-        (Cmdliner.Term.const `Config_init);
-      v (info "doc" ~doc:"Show documentation for the contents of the \
-                          configuration file")
-        (Cmdliner.Term.const `Config_show_toml);
-    ];
-    v (info "gen-rst-doc" ~doc:"Dump a configuration documentation (RST format)")
-      (Cmdliner.Term.const `Gen_config_doc);
-    v (info "initialize"                       (* alias for config initialize *)
-         ~doc:"Dump a configuration file with default options (alias for \
-               $(b,config initialize) sub-command)")
-      (Cmdliner.Term.const `Config_init);
-    v (info "check" ~man:gen_man
-         ~doc:"Check configuration and (optionally) perform initial project \
-               initialization")
-      check;
-    v (info "replay" ~man:gen_man
-         ~doc:"Replay the current test suite without starting any test \
-               generation tool.")
-      replay;
-  ]
+  and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term
+  and doc = Cmdliner.Term.map (fun options -> `Dump_doc options) Options.dump_doc_term
+  in
+  try
+    eval_value ~catch:false ?argv @@
+      group ~default:generate
+        (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
+           ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
+        [
+          v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
+            generate;
+          group (info "config" ~doc:"Managing configurations") @@
+            [
+              v (info "initialize" ~doc:"Dump a configuration file with default options")
+                (Cmdliner.Term.const `Config_init);
+              v (info "doc" ~doc:"Show documentation for the contents of the \
+                                  configuration file")
+                (Cmdliner.Term.const `Config_show_toml);
+            ];
+          group (info "doc" ~doc:"Manages documentation") [
+              v (info "dump" ~doc:"Dump a configuration documentation")
+                doc;
+            ];
+          v (info "initialize"                       (* alias for config initialize *)
+               ~doc:"Dump a configuration file with default options (alias for \
+                     $(b,config initialize) sub-command)")
+            (Cmdliner.Term.const `Config_init);
+          v (info "check" ~man:gen_man
+               ~doc:"Check configuration and (optionally) perform initial project \
+                     initialization")
+            check;
+          v (info "replay" ~man:gen_man
+               ~doc:"Replay the current test suite without starting any test \
+                     generation tool.")
+            replay;
+        ]
+  with
+  | Options.Failed_parsing s ->
+     Log.err "Failed command line parsing: %s" s;
+     Error `Exn
 
 let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () =
 
@@ -394,8 +406,8 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
       show_toml_documentation ()
   | Ok `Ok `Config_init ->
       init_config_file ()
-  | Ok `Ok `Gen_config_doc ->
-      gen_config_doc ()
+  | Ok `Ok (`Dump_doc o) ->
+      dump_config_doc o
   | Ok `Ok `Generate args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~mode:`Generate args)

@@ -17,7 +17,7 @@ previous project.
 Note that you can generate a new configuration file with `$ seacoral init`.
 It will create a `seacoral.toml` that you can use to start the analysis.
 
-.. The following documentation can be generated with "$ seacoral gen-rst-doc".
+.. The following documentation can be generated with "$ seacoral doc dump".
 
 Logs configuration options [logs]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,22 +32,18 @@ Run configuration options [run]
 
 - `workdir` [runtime knob]: Directory where the working files are stored (defaults to "_sc").
   
-- `display-outcomes` [runtime knob]: When set to "yes", displays for each test which labels it covers ("yes" by
-  default).
+- `display-outcomes` [runtime knob]: When set to "yes", displays for each test which labels it covers ("yes" by default).
   
 - `max-validation-concurrency` [runtime knob]: Maximum number of concurrent validations (defaults to 16). A null value
   enables unlimitted parallelism.
   
-- `verbose-validation` [runtime knob]: When set, show labels reached during test validation in logs (false by
-  default).
+- `verbose-validation` [runtime knob]: When set, show labels reached during test validation in logs (false by default).
   
 - `force-preprocess` [runtime knob]: Force preprocessing, even if it has already been performed.
   
-- `enable-syntax-check` [runtime knob]: Whether to check for syntax errors in input files prior to labeling and test
-  generation (true by default).
+- `enable-syntax-check` [runtime knob]: Whether to check for syntax errors in input files prior to labeling and test generation (true by default).
   
-- `strategy` [runtime knob]: Employ the given orchestration strategy: 's' stands for sequential, 'p' for
-  parallel, and 'o' for optimized.  The default is "p".
+- `strategy` [runtime knob]: Employ the given orchestration strategy: 's' stands for sequential, 'p' for parallel, and 'o' for optimized.  The default is "p".
   
 - `test-timeout` [runtime knob]: Time (in seconds) after which a test execution is considered to fail (1.000
   by default).

@@ -8,6 +8,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+exception Failed_parsing of string
+
 val logs_section: Types.logs_config Sc_config.Section.section
 
 val default: Types.options
@@ -20,3 +22,5 @@ val gen_term
 
 val check_term
   : Types.check_options Cmdliner.Term.t
+
+val dump_doc_term : Types.dump_doc_options Cmdliner.Term.t
