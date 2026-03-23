@@ -401,7 +401,7 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
       show_toml_documentation ()
   | Ok `Ok `Config_init ->
       init_config_file ()
-  | Ok `Ok (`Dump_doc o) ->
+  | Ok `Ok `Dump_doc o ->
       dump_config_doc o
   | Ok `Ok `Generate args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
