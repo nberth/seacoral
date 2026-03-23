@@ -60,7 +60,8 @@ let default_check_options: check_options =
   }
 
 let default_doc_options: dump_doc_options = {
-    dump_as = `Rst "seacoral.rst"
+    format = `Rst;
+    destination = `Stdout
 }
 
 module Parsing = struct
@@ -129,7 +130,7 @@ module Parsing = struct
     let set c f =
       match f with
       | None -> c
-      | Some f -> {dump_as = `Rst f}
+      | Some f -> {c with destination = `Filename f}
     in
     Term.(map set term $ v)
 

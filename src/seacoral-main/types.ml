@@ -41,7 +41,7 @@ type check_options =
 
 type dump_doc_options =
   {
-    dump_as: [`Rst of string]
-    (** The format of the dumped documentation. *)
+    format: [`Rst];
+    destination: [`Stdout | `Filename of string]
   }
 

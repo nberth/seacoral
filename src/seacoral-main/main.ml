@@ -110,16 +110,19 @@ let init_config_file () =                           (* TODO: `init_args` type *)
     Cmdliner.Cmd.Exit.cli_error
 
 let dump_config_doc o =
-  let file = 
-    match o.dump_as with
-    | `Rst f -> Sc_sys.File.assume f
+  let () = 
+    match o.destination with
+    | `Stdout ->
+       Sc_config.Section.print_config_rst_doc
+         Format.std_formatter
+         ~head:first_config_sections
+    | `Filename fname ->
+       let file = Sc_sys.File.assume fname in
+       let>% fmt = file in
+       Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections;
+       Fmt.pr "@[<hov>Configuration@ documentation@ saved@ in@ %a@]@.\
+               " Sc_sys.File.print file
   in
-  let () =
-    let>% fmt = file in
-    Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections
-  in
-  Fmt.pr "@[<hov>Configuration@ documentation@ saved@ in@ %a@]@.\
-          " Sc_sys.File.print file;
   Cmdliner.Cmd.Exit.ok
 
 (** Start log reporting; returns a function to close any underlying log file. *)

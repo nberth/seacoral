@@ -447,7 +447,7 @@ Mode
 =========== ==========================================================================================
 check       Check configuration and (optionally) perform initial project initialization
 config      Managing configurations
-gen-rst-doc Dump a configuration documentation (RST format)
+doc         Dumps the seacoral configuration documentation
 generate    Generate tests (default action)
 initialize  Dump a configuration file with default options (alias for seacoral initialize) sub-command
 replay      Replay the current test suite without starting any test generation tool

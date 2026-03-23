@@ -17,7 +17,7 @@ previous project.
 Note that you can generate a new configuration file with `$ seacoral init`.
 It will create a `seacoral.toml` that you can use to start the analysis.
 
-.. The following documentation can be generated with "$ seacoral doc dump".
+.. The following documentation can be generated with "$ seacoral doc dump --rst <file>".
 
 Logs configuration options [logs]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
