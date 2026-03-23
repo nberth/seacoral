@@ -97,9 +97,9 @@ let init_config_file () =                           (* TODO: `init_args` type *)
   try
     let file = Sc_sys.File.create_empty "seacoral.toml" in
     let () =
-      let> chan = file in
+      let>% fmt = file in
       Sc_config.Section.print_default_config_file
-        (Format.formatter_of_out_channel chan) ~head:first_config_sections
+        fmt ~head:first_config_sections
     in
     Fmt.pr "@[<hov>Default@ configuration@ saved@ in@ %a@]@.\
            " Sc_sys.File.print file;
@@ -112,9 +112,8 @@ let init_config_file () =                           (* TODO: `init_args` type *)
 let gen_config_doc () =
   let file = Sc_sys.File.assume "seacoral.rst" in
   let () =
-    let> chan = file in
-    Sc_config.Section.print_config_rst_doc
-      (Format.formatter_of_out_channel chan) ~head:first_config_sections
+    let>% fmt = file in
+    Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections
   in
   Fmt.pr "@[<hov>Configuration@ documentation@ saved@ in@ %a@]@.\
           " Sc_sys.File.print file;
