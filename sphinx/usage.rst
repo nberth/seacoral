@@ -69,7 +69,7 @@ Running `seacoral` on this file with `klee` will automatically start the previou
     [A]{Sc} Extracting new testcases from corpus...
     [A]{Sc} Hard work done
     [A]{Sc} Coverage statistics for `get_sign':
-    cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
+            cov: 2 (100.0%) uncov: 0 (0.0%) unkwn: 0 (0.0%) with 2 tests
     [A]{Sc} Covered labels: {1, 2}
     [A]{Sc} Uncoverable labels: {}
     [A]{Sc} Crash statistics: rte: none
@@ -178,9 +178,11 @@ covered:
     [A]{Sc} Launching libfuzzer on `tritype'
     [A]{Sc} Extracting new testcases from corpus...
     [A]{Sc} Hard work done
-    [A]{Sc} Coverage statistics for `tritype': cov: 35 (97.2%) uncov: 0 (0.0%) unkwn: 1 (2.8%) with 10 tests
+    [A]{Sc} Coverage statistics for `tritype': cov: 35 (97.2%) uncov: 0 (0.0%)
+            unkwn: 1 (2.8%) with 10 tests
     [A]{Sc} Covered labels:
-    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
+            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+	    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
     [A]{Sc} Uncoverable labels: {}
     [A]{Sc} Crash statistics: rte: none
 
@@ -196,14 +198,17 @@ labels in the code: `cbmc-assert`, `cbmc-clabel` or `luncov`.
      $ ./seacoral --files tritype.c --entrypoint tritype --tools cbmc --cbmc-mode assert
      [A]{Sc} Starting to log into `_sc/tritype.c-CC-@2/logs/2.log'
      [A]{Sc} Initializing working environment...
-     [A]{Sc} Current coverage statistics for `tritype': cov: 35 (97.2%) uncov: 0 (0.0%) unkwn: 1 (2.8%) with 10 tests
+     [A]{Sc} Current coverage statistics for `tritype': cov: 35 (97.2%)
+     uncov: 0 (0.0%) unkwn: 1 (2.8%) with 10 tests
      [A]{Sc} Doing the hard work...
      [A]{Sc} Launching cbmc on `tritype'
      [A]{Sc} Extracting new testcases from corpus...
      [A]{Sc} Hard work done
-     [A]{Sc} Coverage statistics for `tritype': cov: 35 (97.2%) uncov: 1 (2.8%) unkwn: 0 (0.0%) with 10 tests
+     [A]{Sc} Coverage statistics for `tritype': cov: 35 (97.2%) uncov: 1 (2.8%)
+             unkwn: 0 (0.0%) with 10 tests
      [A]{Sc} Covered labels:
-     {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
+             {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+	     20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
      [A]{Sc} Uncoverable labels: {35}
 
 We see that `cbmc` in `assert` mode discovered a new uncoverable label,
@@ -295,9 +300,11 @@ Note that with these `sc_assume` s, SeaCoral fail to cover some labels:
    [A]{Sc} Launching libfuzzer on `tritype'
    [A]{Sc} Extracting new testcases from corpus...
    [A]{Sc} Hard work done
-   [A]{Sc} Coverage statistics for `tritype': cov: 32 (88.9%) uncov: 0 (0.0%) unkwn: 4 (11.1%) with 7 tests
+   [A]{Sc} Coverage statistics for `tritype': cov: 32 (88.9%) uncov: 0 (0.0%)
+           unkwn: 4 (11.1%) with 7 tests
    [A]{Sc} Covered labels:
-              {2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
+           {2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+           22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
    [A]{Sc} Uncoverable labels: {}
    [A]{Sc} Crash statistics: rte: none
 
@@ -311,15 +318,18 @@ unreachable, which can be proven by `cbmc` in assert mode:
    $ ./seacoral --files tritype_annoted.c --entrypoint tritype --tools cbmc --cbmc-mode assert
    [A]{Sc} Starting to log into `_sc/tritype.c-CC-@5/logs/2.log'
    [A]{Sc} Initializing working environment...
-   [A]{Sc} Current coverage statistics for `tritype': cov: 32 (88.9%) uncov: 0 (0.0%) unkwn: 4 (11.1%) with 7 tests
-                                                         rte: none
+   [A]{Sc} Current coverage statistics for `tritype': cov: 32 (88.9%) uncov: 0 (0.0%)
+   unkwn: 4 (11.1%) with 7 tests
+           rte: none
    [A]{Sc} Doing the hard work...
    [A]{Sc} Launching cbmc on `tritype'
    [A]{Sc} Extracting new testcases from corpus...
    [A]{Sc} Hard work done
-   [A]{Sc} Coverage statistics for `tritype': cov: 32 (88.9%) uncov: 4 (11.1%) unkwn: 0 (0.0%) with 7 tests
+   [A]{Sc} Coverage statistics for `tritype': cov: 32 (88.9%) uncov: 4 (11.1%)
+           unkwn: 0 (0.0%) with 7 tests
    [A]{Sc} Covered labels:
-              {2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
+           {2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+	   22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36}
    [A]{Sc} Uncoverable labels: {1, 3, 5, 35}
    [A]{Sc} Crash statistics: rte: none
 
@@ -408,7 +418,11 @@ In our case, we are interested in the second case, with the option
 
   .. code-block::
 
-   $ ./seacoral --files tritype-global.c --tools klee --fixtures-files fixtures-tritype.c --fixtures-init init --fixtures-oracle oracle --seek-oracle-failures
+   $ ./seacoral --files tritype-global.c --tools klee \
+     --fixtures-files fixtures-tritype.c \
+     --fixtures-init init \
+     --fixtures-oracle oracle \
+     --seek-oracle-failures 
    [A]{Sc} Starting to log into `_sc/tritype-global.c-CC-@4/logs/1.log'
    [A]{Sc} Initializing working environment...
    [A]{Sc} Doing the hard work...
@@ -416,15 +430,18 @@ In our case, we are interested in the second case, with the option
    [A]{Sc} Extracting new testcases from corpus...
    [A]{Sc} Hard work done
    [A]{Sc} Test 1: covering labels {2, 4, 6, 7, 9, 11, 14, 21}
-   [A]{Sc} Test 2: covering labels {2, 4, 6, 8, 10, 11, 14, 22, 24, 25, 28, 29, 31, 33}
+   [A]{Sc} Test 2: covering labels {2, 4, 6, 8, 10, 11, 14, 22, 24, 25, 28, 29,
+           31, 33}
    [A]{Sc} Test 3: oracle failure
    [A]{Sc} Test 4: oracle failure
    [A]{Sc} Test 5: covering labels {2, 4, 6, 7, 10, 12, 14, 22, 23, 25}
    [A]{Sc} Test 6: oracle failure
    [A]{Sc} Test 7: oracle failure
    [A]{Sc} Test 8: covering labels {2, 4, 6, 8, 9, 12, 14, 22, 24, 25, 27, 29}
-   [A]{Sc} Coverage statistics for `tritype': cov: 20 (58.8%) uncov: 0 (0.0%) unkwn: 14 (41.2%) with 4 tests
-   [A]{Sc} Covered labels: {2, 4, 6, 7, 8, 9, 10, 11, 12, 14, 21, 22, 23, 24, 25, 27, 28, 29, 31, 33}
+   [A]{Sc} Coverage statistics for `tritype': cov: 20 (58.8%) uncov: 0 (0.0%)
+           unkwn: 14 (41.2%) with 4 tests
+   [A]{Sc} Covered labels: {2, 4, 6, 7, 8, 9, 10, 11, 12, 14, 21, 22, 23, 24,
+           25, 27, 28, 29, 31, 33}
    [A]{Sc} Uncoverable labels: {}
    [A]{Sc} Crash statistics: rte: none
    [A]{Sc} Oracle statistics: fails: 4 tests
@@ -447,7 +464,7 @@ Mode
 =========== ==========================================================================================
 check       Check configuration and (optionally) perform initial project initialization
 config      Managing configurations
-doc         Dumps the seacoral configuration documentation
+doc         Show documentation for the contents of the configuration file
 generate    Generate tests (default action)
 initialize  Dump a configuration file with default options (alias for seacoral initialize) sub-command
 replay      Replay the current test suite without starting any test generation tool
@@ -484,11 +501,21 @@ or print the documentation `$ seacoral config doc`.
 Doc
 ...
 
+This mode generates the configuration documentation for different format (pretty, RST). 
+
 Generate
 ........
+
+This is the main (and default) mode of Seacoral. From a :ref:`configuration` file, generates
+tests.
 
 Initialize
 ..........
 
+Sets seacoral up for starting an analysis by generating a default configuration file.
+
 Replay
 ......
+
+Replays the test suite already generated for a given project without running any test
+generation tool.
