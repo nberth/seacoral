@@ -1,0 +1,31 @@
+name: Publish documentation on GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - doc
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        # needed so that tags really fetch, cf. https://github.com/actions/checkout/issues/1471
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/sphinx/html
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

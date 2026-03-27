@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath('.') + '/_extensions')
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-#extensions = ['sphinx.ext.extlinks']
+extensions = ['sphinx_simplepdf']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -71,7 +71,7 @@ release = version + datetime.datetime.now().strftime(" (%Y/%m/%d %H:%M)")
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -167,10 +167,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'seacoral.tex', 'seacoral Documentation',
-     'author', 'manual'),
+    (master_doc,
+     'seacoral.tex',
+     'seacoral Documentation',
+     'Berthier, Nicolas \\and de Oliveira, Steven',
+     'manual'),
 ]
 
+latex_engine = "xelatex"
 
 # -- Options for manual page output ---------------------------------------
 
@@ -218,6 +222,3 @@ epub_copyright = copyright
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
 
-# entry point for setup
-def setup(app):
-    app.add_stylesheet('css/fixes.css')

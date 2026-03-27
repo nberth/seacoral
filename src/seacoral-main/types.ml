@@ -38,3 +38,10 @@ type check_options =
     check_initialization: bool;
     (** Additionally perform project initialization. *)
   }
+
+type dump_doc_options =
+  {
+    format: [`Rst | `Formatted];
+    destination: [`Stdout | `Filename of string]
+  }
+

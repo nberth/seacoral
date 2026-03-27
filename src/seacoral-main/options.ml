@@ -59,6 +59,11 @@ let default_check_options: check_options =
     check_initialization = false;
   }
 
+let default_doc_options: dump_doc_options = {
+    format = `Formatted;
+    destination = `Stdout
+}
+
 module Parsing = struct
   open Cmdliner
 
@@ -115,6 +120,24 @@ module Parsing = struct
   let check_term =
     Term.const default_check_options |> check_option
 
+  (* --- `doc'-specific --- *)
+
+  let rst_file term =
+    let keys = ["rst"] in
+    let doc = "Selects the .rst file name in which the documentation is dumped \
+               into." in
+    let v = Arg.(value & opt (some Arg.non_dir_file) None &
+                 info keys ~doc ~docv:"FILE" ~docs)
+    in
+    let set c f =
+      match f with
+      | None -> c
+      | Some f -> {format = `Rst; destination = `Filename f}
+    in
+    Term.(map set term $ v)
+
+  let dump_doc_term =
+    Term.const default_doc_options |> rst_file
 end
 
 let gen_term ~config_sections_that_show_up_as_arguments:amendable_sections =
@@ -122,3 +145,6 @@ let gen_term ~config_sections_that_show_up_as_arguments:amendable_sections =
 
 let check_term =
   Parsing.check_term
+
+let dump_doc_term =
+  Parsing.dump_doc_term

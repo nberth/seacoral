@@ -128,6 +128,9 @@ let core_digest () : Digest.t =
 let print_toml_spec ppf (Any section) : unit =
   Eztoml.print_as_toml_file ppf (section.section_name, section.section_schema)
 
+let print_rst_spec ppf (Any section) : unit =
+  Eztoml.print_as_rst_file ppf (section.section_name, section.section_schema)  
+
 let section_name (Any s) =
   s.section_name
 
@@ -144,6 +147,9 @@ let iter_sections ~head f =
     Seq.filter (fun s -> not (in_head s)) @@
     Hashtbl.to_seq_values sections
   end
+
+let print_config_rst_doc ~head ppf =
+  iter_sections ~head (print_rst_spec ppf)
 
 let print_default_config_file ~head ppf =
   iter_sections ~head (print_toml_spec ppf)

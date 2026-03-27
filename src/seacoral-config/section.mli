@@ -47,6 +47,9 @@ val core_digest: unit -> Digest.t
     sections are printed in lexicographic order. *)
 val print_default_config_file: head:any_section list -> Format.formatter -> unit
 
+(** Same as [print_default_config_file] in the RST documentation format. *)
+val print_config_rst_doc: head:any_section list -> Format.formatter -> unit
+
 (** Prints a TOML file that corresponds to the current set of options for all
     of the registered and configured sections. *)
 val print_current_config_file: Format.formatter -> unit

@@ -20,3 +20,5 @@ val gen_term
 
 val check_term
   : Types.check_options Cmdliner.Term.t
+
+val dump_doc_term : Types.dump_doc_options Cmdliner.Term.t

@@ -88,18 +88,13 @@ let first_config_sections =
     Any Sc_lib.Config.pointer_handling_section;
   ]
 
-let show_toml_documentation () =
-  Sc_config.Section.print_doc Fmt.stdout ~head:first_config_sections;
-  Fmt.pr "%!";
-  Cmdliner.Cmd.Exit.ok
-
 let init_config_file () =                           (* TODO: `init_args` type *)
   try
     let file = Sc_sys.File.create_empty "seacoral.toml" in
     let () =
-      let> chan = file in
+      let>% fmt = file in
       Sc_config.Section.print_default_config_file
-        (Format.formatter_of_out_channel chan) ~head:first_config_sections
+        fmt ~head:first_config_sections
     in
     Fmt.pr "@[<hov>Default@ configuration@ saved@ in@ %a@]@.\
            " Sc_sys.File.print file;
@@ -108,6 +103,30 @@ let init_config_file () =                           (* TODO: `init_args` type *)
     Fmt.epr "@[<hov>File@ %a@ exists:@ not@ overriding@]@.\
             " Sc_sys.File.print file;
     Cmdliner.Cmd.Exit.cli_error
+
+let dump_config_doc o =
+  let dump_doc =
+    match o.format with
+    | `Rst ->
+       fun fmt -> 
+       Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections
+    | `Formatted ->
+       fun fmt -> 
+       Sc_config.Section.print_doc fmt ~head:first_config_sections;
+  in
+  let () =
+    match o.destination with
+    | `Stdout ->
+       dump_doc Fmt.stdout;
+       Fmt.pr "%!";
+    | `Filename fname ->
+       let file = Sc_sys.File.assume fname in
+       let>% fmt = file in
+       Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections;
+       Fmt.pr "@[<hov>Configuration@ documentation@ saved@ in@ %a@]@.\
+               " Sc_sys.File.print file
+  in
+  Cmdliner.Cmd.Exit.ok
 
 (** Start log reporting; returns a function to close any underlying log file. *)
 let with_logging ?(enable_logfile = true) ~project_config f =
@@ -343,45 +362,52 @@ let load_args ?argv () =
   let chk_term = Cmdliner.Term.product gen_term Options.check_term in
   let generate = Cmdliner.Term.map (fun options -> `Generate options) gen_term
   and check = Cmdliner.Term.map (fun options -> `Check options) chk_term
-  and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term in
+  and replay = Cmdliner.Term.map (fun options -> `Replay options) gen_term
+  and doc = Cmdliner.Term.map (fun options -> `Dump_doc options) Options.dump_doc_term
+  in
   eval_value ~catch:false ?argv @@
-  group ~default:generate
-    (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
-       ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
-  [
-    v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
-      generate;
-    group (info "config" ~doc:"Managing configurations") @@
-    [
-      v (info "initialize" ~doc:"Dump a configuration file with default options")
-        (Cmdliner.Term.const `Config_init);
-      v (info "doc" ~doc:"Show documentation for the contents of the \
-                          configuration file")
-        (Cmdliner.Term.const `Config_show_toml);
-    ];
-    v (info "initialize"                       (* alias for config initialize *)
-         ~doc:"Dump a configuration file with default options (alias for \
-               $(b,config initialize) sub-command)")
-      (Cmdliner.Term.const `Config_init);
-    v (info "check" ~man:gen_man
-         ~doc:"Check configuration and (optionally) perform initial project \
-               initialization")
-      check;
-    v (info "replay" ~man:gen_man
-         ~doc:"Replay the current test suite without starting any test \
-               generation tool.")
-      replay;
-  ]
+    group ~default:generate
+      (info "seacoral" ~version:Version.version ~doc:"Tests for your project!"
+         ~man:(`S Cmdliner.Manpage.s_commands :: gen_man)) @@
+      [
+        v (info "generate" ~man:gen_man ~doc:"Generate tests (default action)")
+          generate;
+        group (info "config" ~doc:"Managing configurations") @@
+          [
+            v (info "initialize" ~doc:"Dump a configuration file with default options")
+              (Cmdliner.Term.const `Config_init);
+            v (info "doc" ~doc:"Show documentation for the contents of the \
+                                configuration file")
+              doc;
+          ];
+        group (info "doc" ~doc:"Manages documentation") [
+            v (info "dump" ~doc:"Show documentation for the contents of the \
+                                 configuration file")
+              doc;
+          ];
+        v (info "initialize"                       (* alias for config initialize *)
+             ~doc:"Dump a configuration file with default options (alias for \
+                   $(b,config initialize) sub-command)")
+          (Cmdliner.Term.const `Config_init);
+        v (info "check" ~man:gen_man
+             ~doc:"Check configuration and (optionally) perform initial project \
+                   initialization")
+          check;
+        v (info "replay" ~man:gen_man
+             ~doc:"Replay the current test suite without starting any test \
+                   generation tool.")
+          replay;
+      ]
 
 let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () =
 
   Basics.PPrt.init_formatters ();
 
   match load_args ?argv () with
-  | Ok `Ok `Config_show_toml ->
-      show_toml_documentation ()
   | Ok `Ok `Config_init ->
       init_config_file ()
+  | Ok `Ok `Dump_doc o ->
+      dump_config_doc o
   | Ok `Ok `Generate args ->
       with_lwt (run ?enable_logfile ?enable_detailed_stats
                   ?enable_console_timing ~mode:`Generate args)
