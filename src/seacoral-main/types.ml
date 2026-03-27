@@ -41,7 +41,7 @@ type check_options =
 
 type dump_doc_options =
   {
-    format: [`Rst];
+    format: [`Rst | `Formatted];
     destination: [`Stdout | `Filename of string]
   }
 

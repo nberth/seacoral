@@ -88,11 +88,6 @@ let first_config_sections =
     Any Sc_lib.Config.pointer_handling_section;
   ]
 
-let show_toml_documentation () =
-  Sc_config.Section.print_doc Fmt.stdout ~head:first_config_sections;
-  Fmt.pr "%!";
-  Cmdliner.Cmd.Exit.ok
-
 let init_config_file () =                           (* TODO: `init_args` type *)
   try
     let file = Sc_sys.File.create_empty "seacoral.toml" in
@@ -110,12 +105,20 @@ let init_config_file () =                           (* TODO: `init_args` type *)
     Cmdliner.Cmd.Exit.cli_error
 
 let dump_config_doc o =
-  let () = 
+  let dump_doc =
+    match o.format with
+    | `Rst ->
+       fun fmt -> 
+       Sc_config.Section.print_config_rst_doc fmt ~head:first_config_sections
+    | `Formatted ->
+       fun fmt -> 
+       Sc_config.Section.print_doc fmt ~head:first_config_sections;
+  in
+  let () =
     match o.destination with
     | `Stdout ->
-       Sc_config.Section.print_config_rst_doc
-         Format.std_formatter
-         ~head:first_config_sections
+       dump_doc Fmt.stdout;
+       Fmt.pr "%!";
     | `Filename fname ->
        let file = Sc_sys.File.assume fname in
        let>% fmt = file in
@@ -375,10 +378,11 @@ let load_args ?argv () =
               (Cmdliner.Term.const `Config_init);
             v (info "doc" ~doc:"Show documentation for the contents of the \
                                 configuration file")
-              (Cmdliner.Term.const `Config_show_toml);
+              doc;
           ];
         group (info "doc" ~doc:"Manages documentation") [
-            v (info "dump" ~doc:"Dump a configuration documentation")
+            v (info "dump" ~doc:"Show documentation for the contents of the \
+                                 configuration file")
               doc;
           ];
         v (info "initialize"                       (* alias for config initialize *)
@@ -400,8 +404,6 @@ let main ?enable_console_timing ?enable_detailed_stats ?enable_logfile ?argv () 
   Basics.PPrt.init_formatters ();
 
   match load_args ?argv () with
-  | Ok `Ok `Config_show_toml ->
-      show_toml_documentation ()
   | Ok `Ok `Config_init ->
       init_config_file ()
   | Ok `Ok `Dump_doc o ->

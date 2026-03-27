@@ -467,3 +467,28 @@ Option                     Documentation
 When run, seacoral will use the options defined in the `seacoral` configuration file specified
 with the `-C` option.
 More information on seacoral configuration in Section :ref:`configuration`.
+
+Check
+.....
+
+This mode simply checks the :ref:`configuration` values from the given
+configuration file and the command line arguments. If `--init` is used,
+seacoral will also initialize the :ref:`project`'s workspace. 
+
+Config
+......
+
+This mode can either generate a fresh configuration file `$ seacoral config initialize`
+or print the documentation `$ seacoral config doc`.
+
+Doc
+...
+
+Generate
+........
+
+Initialize
+..........
+
+Replay
+......

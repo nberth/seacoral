@@ -60,7 +60,7 @@ let default_check_options: check_options =
   }
 
 let default_doc_options: dump_doc_options = {
-    format = `Rst;
+    format = `Formatted;
     destination = `Stdout
 }
 
@@ -132,7 +132,7 @@ module Parsing = struct
     let set c f =
       match f with
       | None -> c
-      | Some f -> {c with destination = `Filename f}
+      | Some f -> {format = `Rst; destination = `Filename f}
     in
     Term.(map set term $ v)
 
