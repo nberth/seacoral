@@ -24,7 +24,7 @@ let run_section =
       test_timeout = 1.;
       max_validation_concurrency = 16;
       verbose_validation = false;
-      display_outcomes = `No;
+      display_outcomes = `Yes;
     }
   in
   Sc_config.Section.define "run" ~default ~entries:Sc_config.Eztoml.[
@@ -122,8 +122,10 @@ let run_section =
         (fun c -> c.verbose_validation);
       string
         ~key:"display-outcomes"
-        ~doc:"When set to \"yes\", displays for each test which labels it covers \
-              (%a by default)."
+        ~doc:"Whether to display the outcome of each test upon termination: \
+              \"no\" disables this display, \"yes\" displays outcomes for tests \
+              numbered in generation order, and \"verbose\" shows outcomes along \
+              with detailed test inputs (%a by default)."
         ~env:"DISPLAY_OUTCOMES"
         ~runtime:true
         ~default:"yes"

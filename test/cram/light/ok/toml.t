@@ -15,7 +15,9 @@ Show its contents:
   # Directory where the working files are stored (defaults to "_sc").
   workdir = "_sc"
   
-  # When set to "yes", displays for each test which labels it covers ("yes" by
+  # Whether to display the outcome of each test upon termination: "no" disables
+  # this display, "yes" displays outcomes for tests numbered in generation order,
+  # and "verbose" shows outcomes along with detailed test inputs ("yes" by
   # default).
   display-outcomes = "yes"
   
