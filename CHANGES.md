@@ -3,6 +3,7 @@
 ## Next release
 
 ### Added
+- Ability to interpret `--flag` as `--flag=true` for Boolean CLI flags [#94](https://github.com/OCamlPro/seacoral/pull/94)
 - User documentation of SeaCoral [#85](https://github.com/OCamlPro/seacoral/pull/85)
 - Partial support for constrained pointer fields [#58](https://github.com/OCamlPro/seacoral/pull/58)
 - Argument `--initialization` to `seacoral check` to assess proper project initialization after configuration checks [#73](https://github.com/OCamlPro/seacoral/pull/73)

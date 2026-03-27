@@ -15,3 +15,11 @@
   [W]{Sc_project} Ignoring `string' specification for pointer field `a' in
                   `struct t' that is already constrained as an array with size
                   field `n'.
+
+Take this opportunity to check that `--init` and `--clean-start` are
+valued Boolean flags:
+  $ seacoral check --init=true --config dynamic.toml
+  [A]{Sc} Starting to log into `_sc/dynamic.c-DC-@3/logs/2.log'
+  [A]{Sc} Initializing working environment...
+  $ seacoral check --init false --config dynamic.toml --clean-start true
+  [A]{Sc} Starting to log into `_sc/dynamic.c-DC-@4/logs/1.log'

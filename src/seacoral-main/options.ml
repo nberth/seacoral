@@ -69,13 +69,16 @@ module Parsing = struct
 
   let docs = Manpage.s_common_options
 
+  let bool_valued_flag =
+    Arg.(opt ~vopt:true bool false)
+
   let clean_start_term config_term =
     let keys = ["clean-start"] in
     let doc =
       "Remove the project with the same hash before starting its analysis \
        (default: false)"
     in
-    let v = Arg.(value & flag & info keys ~doc ~docs) in
+    let v = Arg.(value & bool_valued_flag & info keys ~doc ~docs) in
     let set c f = {c with clean_start = f} in
     Term.(map set config_term $ v)
 
@@ -97,7 +100,7 @@ module Parsing = struct
   let statistics config_term =
     let keys = ["show-statistics"; "stats"] in
     let doc = "Print statistics of the current run" in
-    let v = Arg.(value & flag & info keys ~doc ~docs) in
+    let v = Arg.(value & bool_valued_flag & info keys ~doc ~docs) in
     let set c f = {c with print_statistics = f} in
     Term.(map set config_term $ v)
 
@@ -113,7 +116,7 @@ module Parsing = struct
   let check_option check_config_term =
     let keys = ["initialization"; "init"] in
     let doc = "Additionally perform project initialization" in
-    let v = Arg.(value & flag & info keys ~doc ~docs) in
+    let v = Arg.(value & bool_valued_flag & info keys ~doc ~docs) in
     let set _c b = { check_initialization = b } in
     Term.(map set check_config_term $ v)
 

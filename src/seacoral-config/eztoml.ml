@@ -404,7 +404,7 @@ let print_as_rst_file ppf ((main_key, schema): string * 'a schema) =
       (if row.runtime then "[runtime knob]" else "[project-defining knob]")
       (pp_spec_doc_comments ~prefix:"") row.spec
     ) schema;
-  Fmt.pf ppf "@]@;@;"     
+  Fmt.pf ppf "@]@;@;"
 
 (** Cmdliner helpers *)
 
@@ -432,13 +432,16 @@ let cmdline_flag
   let info_ = Arg.info ?env:(Option.map (Cmd.Env.info ?docs) env) ?docs in
   function
   | Valued ->
-      Arg.(value & opt (some bool_conv) None & info_ keys ~doc)
+      Arg.(value & opt ~vopt:(Some tt) (some bool_conv) None &
+           info_ keys ~doc)
   | Positive { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some      tt , info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some tt else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Negative { keys; doc = kdoc } ->
       let doc = match kdoc with `Same -> doc | `Alt doc -> doc in
-      Arg.(value & vflag None [Some (neg tt), info_ (ikeys keys) ~doc])
+      Arg.(Term.map (fun x -> if x then Some (neg tt) else None) &
+           value & flag & info_ (ikeys keys) ~doc)
   | Both { pos_keys; pos_doc; neg_keys; neg_doc } ->
       let pos_doc = match pos_doc with `Same -> doc | `Alt doc -> doc
       and neg_doc = match neg_doc with `Same -> doc | `Alt doc -> doc
@@ -459,11 +462,23 @@ let cmdline_flag
              [Some      tt , info (ikeys pos_keys) ~doc:pos_doc ?docs;
               Some (neg tt), info (ikeys neg_keys) ~doc:neg_doc ?docs])
 
+let loose_bool_conv =
+  let bool_parser s =
+    match String.lowercase_ascii s with
+    | "" | "false" | "no" | "n" | "0" -> Ok false
+    | "true" | "yes" | "y" | "1" -> Ok true
+    | s ->
+        PPrt.string_to Result.error "invalid value %S, expected one of %a." s
+          (PPrt.with_oxford_comma ~comb:"or" @@ Fmt.fmt "%S")
+          ["true"; "false"; "yes"; "no"; "y"; "n"; "1"; "0"; ""]
+  in
+  Cmdliner.Arg.conv' (bool_parser, Format.pp_print_bool)
+
 let bool_cmdline_flag
   : keys:string list -> ?env:string -> doc:string -> ?docs:string -> bool doc ->
     cmdline_flag_type -> bool option Cmdliner.Term.t =
   cmdline_flag
-    ~bool_conv:Cmdliner.Arg.bool ~tt:true ~neg:(not)
+    ~bool_conv:loose_bool_conv ~tt:true ~neg:(not)
 
 (* --- *)
 
@@ -568,7 +583,7 @@ module Toml_conv = struct
   and tfloat  e = TFloat  e and nfloat  e = NodeFloat  e
   and tstring e = TString e and nstring e = NodeString e
 
-  let bool         = value_conv Arg.bool   tbool
+  let bool         = value_conv loose_bool_conv tbool
   and int          = value_conv Arg.int    tint
   and float        = value_conv Arg.float  tfloat
   and string       = value_conv Arg.string tstring
