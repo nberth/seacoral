@@ -418,10 +418,10 @@ In our case, we are interested in the second case, with the option
 
   .. code-block::
 
-   $ ./seacoral --files tritype-global.c --tools klee \
-     --fixtures-files fixtures-tritype.c \
-     --fixtures-init init \
-     --fixtures-oracle oracle \
+   $ ./seacoral --files tritype-global.c --tools klee
+     --fixtures-files fixtures-tritype.c
+     --fixtures-init init
+     --fixtures-oracle oracle
      --seek-oracle-failures 
    [A]{Sc} Starting to log into `_sc/tritype-global.c-CC-@4/logs/1.log'
    [A]{Sc} Initializing working environment...

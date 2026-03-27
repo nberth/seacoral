@@ -43,6 +43,7 @@ doc-common: build
 sphinx: .venv/.sphinx-ready doc-common
 	./scripts/before.sh sphinx ${SPHINX_TARGET}
 	.venv/bin/sphinx-build -M html sphinx ${SPHINX_TARGET}
+	.venv/bin/sphinx-build -M latexpdf sphinx ${SPHINX_TARGET}
 	./scripts/after.sh sphinx  ${SPHINX_TARGET}
 
 odoc: doc-common

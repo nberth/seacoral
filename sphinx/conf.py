@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath('.') + '/_extensions')
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['rst2pdf.pdfbuilder']
+extensions = ['sphinx_simplepdf']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -167,10 +167,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'seacoral.tex', 'seacoral Documentation',
-     'author', 'manual'),
+    (master_doc,
+     'seacoral.tex',
+     'seacoral Documentation',
+     'Berthier, Nicolas \\and de Oliveira, Steven',
+     'manual'),
 ]
 
+latex_engine = "xelatex"
 
 # -- Options for manual page output ---------------------------------------
 

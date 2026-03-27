@@ -7,15 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seacoral’s configuration &mdash; seacoral doc
- (c6978984
-) (2026/03/19 12:07) documentation</title>
+ (fc97617f
+) (2026/03/27 10:34) documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=beddf052" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=c7026712"></script>
+      <script src="_static/documentation_options.js?v=d20b0487"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -128,17 +128,15 @@ information, and 5 or any other value for full debug messages (default: 3).</p><
 <h3>Run configuration options [run]<a class="headerlink" href="#run-configuration-options-run" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><cite>workdir</cite> [runtime knob]: Directory where the working files are stored (defaults to “_sc”).</p></li>
-<li><p><cite>display-outcomes</cite> [runtime knob]: When set to “yes”, displays for each test which labels it covers (“yes” by
-default).</p></li>
+<li><p><cite>display-outcomes</cite> [runtime knob]: Whether to display the outcome of each test upon termination: “no” disables this display,
+“yes” displays outcomes for tests numbered in generation order, and “verbose” shows outcomes along with detailed test inputs
+(“yes” by default).</p></li>
 <li><p><cite>max-validation-concurrency</cite> [runtime knob]: Maximum number of concurrent validations (defaults to 16). A null value
 enables unlimitted parallelism.</p></li>
-<li><p><cite>verbose-validation</cite> [runtime knob]: When set, show labels reached during test validation in logs (false by
-default).</p></li>
+<li><p><cite>verbose-validation</cite> [runtime knob]: When set, show labels reached during test validation in logs (false by default).</p></li>
 <li><p><cite>force-preprocess</cite> [runtime knob]: Force preprocessing, even if it has already been performed.</p></li>
-<li><p><cite>enable-syntax-check</cite> [runtime knob]: Whether to check for syntax errors in input files prior to labeling and test
-generation (true by default).</p></li>
-<li><p><cite>strategy</cite> [runtime knob]: Employ the given orchestration strategy: ‘s’ stands for sequential, ‘p’ for
-parallel, and ‘o’ for optimized.  The default is “p”.</p></li>
+<li><p><cite>enable-syntax-check</cite> [runtime knob]: Whether to check for syntax errors in input files prior to labeling and test generation (true by default).</p></li>
+<li><p><cite>strategy</cite> [runtime knob]: Employ the given orchestration strategy: ‘s’ stands for sequential, ‘p’ for parallel, and ‘o’ for optimized.  The default is “p”.</p></li>
 <li><p><cite>test-timeout</cite> [runtime knob]: Time (in seconds) after which a test execution is considered to fail (1.000
 by default).</p></li>
 <li><p><cite>tools</cite> [runtime knob]: Tools to use. Defaults to []. Use [“*”] to select every known tool.</p></li>
