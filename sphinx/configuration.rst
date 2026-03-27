@@ -32,7 +32,9 @@ Run configuration options [run]
 
 - `workdir` [runtime knob]: Directory where the working files are stored (defaults to "_sc").
   
-- `display-outcomes` [runtime knob]: When set to "yes", displays for each test which labels it covers ("yes" by default).
+- `display-outcomes` [runtime knob]: Whether to display the outcome of each test upon termination: "no" disables this display,
+  "yes" displays outcomes for tests numbered in generation order, and "verbose" shows outcomes along with detailed test inputs
+  ("yes" by default).
   
 - `max-validation-concurrency` [runtime knob]: Maximum number of concurrent validations (defaults to 16). A null value
   enables unlimitted parallelism.
