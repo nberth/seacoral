@@ -33,7 +33,7 @@ let run_section =
         ~doc:"Force preprocessing, even if it has already been performed."
         ~default:default.force_preprocess
         ~runtime:true
-        ~as_flag:(Positive { keys = `Same; doc = `Same })
+        ~as_flag:Valued
         (fun c f -> {c with force_preprocess = f})
         (fun c -> c.force_preprocess);
       string
@@ -116,7 +116,7 @@ let run_section =
               by default)."
         ~env:"VERBOSE_VALIDATION"
         ~runtime:true       (* CHECKME: validator recompilation may be needed *)
-        ~as_flag:(Positive { keys = `Same; doc = `Same })
+        ~as_flag:Valued
         ~default:default.verbose_validation
         (fun c b -> { c with verbose_validation = b })
         (fun c -> c.verbose_validation);
