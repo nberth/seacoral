@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## 1.1.0 ( 2026-03-30 )
 
 ### Added
 - Ability to interpret `--flag` as `--flag=true` for Boolean CLI flags [#94](https://github.com/OCamlPro/seacoral/pull/94)
