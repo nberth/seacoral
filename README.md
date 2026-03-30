@@ -15,6 +15,7 @@ the `docker` subdirectory](docker/README.md).
 ## Resources
 
 * Website: https://ocamlpro.com/seacoral
+* Documentation: https://ocamlpro.github.io/seacoral/
 * Sources: https://github.com/ocamlpro/seacoral
 
 ## Funding notice
