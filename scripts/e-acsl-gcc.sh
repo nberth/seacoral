@@ -5,7 +5,7 @@
 #  E-ACSL plug-in released in LGPL as metioned below. It was modified    #
 #  from its original form                                                #
 #                                                                        #
-#  Copyright (C) 2024  OCamlPro                                          #
+#  Copyright (C) 2024-2026  OCamlPro                                     #
 #                                                                        #
 ##########################################################################
 #                                                                        #

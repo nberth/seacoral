@@ -25,7 +25,7 @@ Duale")][RAPID] project AutoCouv: "Génération automatique de tests par
 couverture des labels".
 
 ---
-Copyright © 2024-2025 OCamlPro
+Copyright © 2024-2026 OCamlPro
 
 [ci-badge]: https://github.com/ocamlpro/seacoral/workflows/CI/badge.svg
 [release-badge]: https://img.shields.io/github/release/ocamlpro/seacoral.svg
