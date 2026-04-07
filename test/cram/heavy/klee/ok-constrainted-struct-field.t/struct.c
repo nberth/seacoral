@@ -1,0 +1,1 @@
+../../common-files/constrainted-struct-field/struct.c

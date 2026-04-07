@@ -71,3 +71,29 @@
                 11: Unknown
                 12: Covered
           Coverage: (9/12) 75.0%
+
+  $ seacoral --tools cbmc --config struct.toml
+  [A]{Sc} Starting to log into `_sc/struct.c-CC-@1/logs/1.log'
+  [A]{Sc} Initializing working environment...
+  [A]{Sc} Doing the hard work...
+  [A]{Sc} Launching cbmc on `struct_'
+  [A]{Sc} Extracting new testcases from corpus...
+  [A]{Sc} Hard work done
+  [A]{Sc} Coverage statistics for `struct_':
+          cov: 9 (75.0%) uncov: 0 (0.0%) unkwn: 3 (25.0%) with 4 tests
+  [A]{Sc} Covered labels: {1, 2, 3, 5, 6, 7, 9, 10, 12}
+  [A]{Sc} Uncoverable labels: {}
+  [A]{Sc} Crash statistics: rte: none
+  [A]{Sc}        1: Covered
+                 2: Covered
+                 3: Covered
+                 4: Unknown
+                 5: Covered
+                 6: Covered
+                 7: Covered
+                 8: Unknown
+                 9: Covered
+                10: Covered
+                11: Unknown
+                12: Covered
+          Coverage: (9/12) 75.0%
