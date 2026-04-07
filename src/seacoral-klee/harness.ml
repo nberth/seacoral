@@ -140,7 +140,7 @@ let emit_constrained_carray_init { nonleaf_typs; _ } ppf (etyp, ap, size_typ,
                                                           size_ap, depth) =
   let ctype_key = Ctype_key.of_typ etyp in
   if Ctype_set.mem ctype_key nonleaf_typs then
-    Fmt.pf ppf "__SC_KLEE_INIT_CONSTRAINED_PTR (@[&(%s),@ %a@ &(%s),@ %s,@ \
+    Fmt.pf ppf "__SC_KLEE_INIT_CONSTRAINED_PTR (@[&(%s),@ %a,@ &(%s),@ %s,@ \
                 %a,@ %a@]);@]@;"
       (string_of_ap ap)
       Sc_values.Printer.c_typ size_typ

@@ -150,6 +150,7 @@ extern void __sc_nop (void);
   do {									\
     __SC_KLEE_CHECK_CONSTRAINED (ptr, (unsigned long)(*(size)), depth);	\
     __SC_KLEE_ALLOC_CONSTRAINED (ptr, (unsigned long)(*(size)), item_type, { \
+	const long __s = (long) (*(size));				\
 	void* __p = *(ptr);						\
 	for (long i = 0L; i < __s; i++, __p += sizeof (item_type)) {	\
 	  item_init (__p, (depth) + 1);					\
