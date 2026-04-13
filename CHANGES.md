@@ -3,6 +3,7 @@
 ## Next release
 
 ### Fixed
+- Some performance issues with CBMC [#98](https://github.com/OCamlPro/seacoral/pull/98)
 - Improper harness for KLEE, when a constrained field is an array of non-primitive cells [#97](https://github.com/OCamlPro/seacoral/pull/97)
 
 ## 1.1.0 ( 2026-03-30 )

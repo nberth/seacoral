@@ -19,9 +19,8 @@ Check that `__unused_global` is not symbolized:
   int main () {
     int b;
     
-    int __tmp_0 = nondet_int();
-    b = __tmp_0;
-    __CPROVER_input("b", __tmp_0);
+    b = nondet_int();
+     __CPROVER_input("b", b);
     (void) f (b);
     sc_cover_statement(1);
     sc_cover_statement(2);
