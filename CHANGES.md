@@ -2,6 +2,9 @@
 
 ## Next release
 
+### Added
+- Reporting of global buffer overflows [#99](https://github.com/OCamlPro/seacoral/pull/99)
+
 ### Fixed
 - Improper harness for KLEE, when a constrained field is an array of non-primitive cells [#97](https://github.com/OCamlPro/seacoral/pull/97)
 
