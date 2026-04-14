@@ -12,6 +12,11 @@ produce tests for your C projects.
 Instructions for using SeaCoral in a Docker container are provided [in
 the `docker` subdirectory](docker/README.md).
 
+### Evaluation Artifact
+
+An artifact that contains a Docker image, usage instructions, and
+examples, is available on [Zenodo][artifact-doi][^artifact-note].
+
 ## Resources
 
 * Website: https://ocamlpro.com/seacoral
@@ -33,3 +38,10 @@ Copyright © 2024-2026 OCamlPro
 
 [AID]: https://www.defense.gouv.fr/aid
 [RAPID]: https://www.defense.gouv.fr/aid/deposez-votre-projet/rapid-regime-dappui-linnovation-duale
+
+[artifact-doi]: https://doi.org/10.5281/zenodo.17357287
+[^artifact-note]: This artifact provides the material that enables the
+    reproduction of every run of SeaCoral that is described in the
+    paper "SeaCoral: A Collaborative Test Generation Toolset" by
+    Nicolas Berthier, Steven de Oliveira, Nikolai Kosmatov, and
+    Delphine Longuet, that was submitted to TACAS 2026.
