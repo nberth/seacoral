@@ -477,13 +477,13 @@ let printer sd =
 let pp_include ppf filename =
   Fmt.pf ppf "#include %S@\n" filename
 
-let generate ~project ~target ~cbmc_driver =
+let generate ~project ~target =
   let sd = support_data project in
   let {pp_body; pp_label_decl} = printer sd in
   let labelized_file = project.label_data.labelized_file in
   let>% ppf = target in
   Log.debug "Writing@ harness@ file@ `%a'" Sc_sys.File.print target;
-  pp_include ppf (Sc_sys.File.absname cbmc_driver);
+  Fmt.pf ppf "#include <cbmc_driver.h>@\n";
   pp_label_decl ppf;
   pp_include ppf (Sc_sys.File.absname labelized_file);
   pp_body ppf
