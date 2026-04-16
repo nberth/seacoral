@@ -450,7 +450,7 @@ let emit_body_n_gen_env ({ params = A params; _ } as sd) ppf =
      %a\
      %a\
      @,%t\
-     %a\
+     @,@[<hov>%a@]\
      @,return 0;\
      @]@,}"
     emit_oracle_assessment_macro
@@ -471,7 +471,7 @@ let generate ~project ~target =
   let>% ppf = target in
   Log.debug "Writing@ harness@ file@ `%a'" Sc_sys.File.print target;
   Fmt.pf ppf "@[<v>#include <cbmc_driver.h>";
-  label_decl sd ppf;
+  Fmt.pf ppf "@,@[<hov>%t@]" (label_decl sd);
   pp_include ppf (Sc_sys.File.absname labelized_file);
   let env = emit_body_n_gen_env sd ppf in
   Fmt.pf ppf "@]@.";
